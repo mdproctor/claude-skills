@@ -6,6 +6,112 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a skill collection for Claude Code, providing specialized guidance for Java/Quarkus development workflows. Skills are markdown files with YAML frontmatter that Claude Code loads to execute specific development tasks.
 
+## Project Type Awareness
+
+**CRITICAL: Skills must handle different project types with appropriate workflows.**
+
+The skills in this repository support multiple project types, each with different documentation requirements and commit workflows. When evolving skills, always consider that new project types will be added over time.
+
+### Current Supported Project Types
+
+#### 1. Skills Repository (this repository)
+**Detection:** Contains `*/SKILL.md` files in skill directories
+**Commit Workflow:** `git-commit` skill
+**Documentation Requirements:**
+- CLAUDE.md (repository guidance) — auto-synced via `update-claude-md`
+- README.md (skill collection overview) — auto-synced via `update-readme`
+- NO DESIGN.md requirement (skills are self-documenting)
+
+**Pre-commit Validation:**
+- `skill-review` validates SKILL.md structure, CSO compliance, cross-references
+- Blocks commits on CRITICAL findings
+
+**Pattern:**
+```
+git-commit → skill-review (if SKILL.md staged)
+          → update-claude-md (if CLAUDE.md exists)
+          → update-readme (if README.md exists and skill changes)
+```
+
+#### 2. Java/Maven/Gradle Projects
+**Detection:** Contains `pom.xml` or `build.gradle` in repository root
+**Commit Workflow:** `java-git-commit` skill
+**Documentation Requirements:**
+- **DESIGN.md (REQUIRED)** — architecture documentation at `docs/DESIGN.md`
+- CLAUDE.md (optional) — project-specific guidance, auto-synced via `update-claude-md`
+- NO README.md auto-sync (typically framework-generated)
+
+**Pre-commit Validation:**
+- Blocks if `docs/DESIGN.md` is missing (java-git-commit enforces from first commit)
+- `java-code-review` runs automatically if not done in current session
+- `java-security-audit` triggered for security-critical changes
+
+**Pattern:**
+```
+java-git-commit → Check DESIGN.md exists (BLOCKS if missing)
+                → update-design (syncs DESIGN.md with code changes)
+                → update-claude-md (if CLAUDE.md exists)
+```
+
+#### 3. Generic/Other Projects
+**Detection:** No `pom.xml`, `build.gradle`, or `*/SKILL.md` files
+**Commit Workflow:** `git-commit` skill
+**Documentation Requirements:**
+- CLAUDE.md (optional) — auto-synced via `update-claude-md`
+- README.md (optional) — NO auto-sync (generic projects vary too much)
+- NO DESIGN.md requirement
+
+**Pattern:**
+```
+git-commit → update-claude-md (if CLAUDE.md exists)
+```
+
+### Adding New Project Types
+
+**When adding support for new project types** (e.g., advocacy/evangelization, Python, Go, documentation-only):
+
+1. **Create project-type-specific commit skill** (extends `git-commit`):
+   - Name: `<type>-git-commit` (e.g., `advocacy-git-commit`, `python-git-commit`)
+   - Frontmatter: Clear detection criteria (file patterns, directory structure)
+   - Reference `git-commit` in Prerequisites
+
+2. **Define documentation requirements**:
+   - What docs are REQUIRED vs optional?
+   - What gets auto-synced?
+   - Example: Advocacy projects might require `CONTENT-GUIDE.md` instead of `DESIGN.md`
+
+3. **Create sync skills if needed**:
+   - Pattern: `update-<doc-name>` (e.g., `update-content-guide`)
+   - Chain from project-type commit skill
+   - Follow `update-design` pattern
+
+4. **Update git-commit frontmatter**:
+   - Add new project type to exclusion list
+   - Example: "For advocacy/evangelization projects, use advocacy-git-commit instead"
+
+5. **Document in this file**:
+   - Add new section under "Current Supported Project Types"
+   - Update README.md Skill Chaining Reference table
+
+### Evolution Guidance
+
+**When modifying existing skills, always ask:**
+- Does this change affect project type detection?
+- Does this introduce assumptions about a specific project type?
+- Should this be in a project-type-specific skill instead of generic?
+- Are we adding documentation requirements that don't fit all project types?
+
+**Red flags for project-type coupling:**
+- Hardcoding paths like `docs/DESIGN.md` in generic skills
+- Assuming build tools exist (Maven, npm, etc.)
+- Requiring specific documentation formats across all projects
+
+**Correct approach:**
+- Keep `git-commit` generic and extensible
+- Put project-type logic in `<type>-git-commit` skills
+- Use clear detection criteria (file existence, not heuristics)
+- Document assumptions explicitly
+
 ## Skill Architecture
 
 ### Frontmatter Requirements
