@@ -1,14 +1,11 @@
 ---
 name: java-dev
 description: >
-  Use this skill for all Java development and debugging tasks in Claude Code,
-  targeting Quarkus server-side applications running in the cloud. Triggers on:
-  writing new Java classes or methods, fixing Java bugs, refactoring Java code,
-  reviewing Java code for correctness or performance, adding tests, or any task
-  involving .java, pom.xml, or build.gradle files. Also triggers when the user
-  says "implement", "fix", "refactor", "review", or "add tests" in a Java/Quarkus
-  project context. When a task also involves committing, chain with the
-  java-git-commit skill.
+  Use when writing new Java code, fixing bugs, refactoring, or adding tests in
+  Quarkus applications. Triggers on creating/modifying .java files, editing
+  pom.xml/build.gradle, or when user says "implement", "fix", "refactor", "add
+  tests". Does NOT trigger on reading/discussing code without changes. For code
+  review, use java-code-review. For commits, use java-git-commit.
 ---
 
 # Java Development

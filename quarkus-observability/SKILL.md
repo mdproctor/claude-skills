@@ -1,12 +1,11 @@
 ---
 name: quarkus-observability
 description: >
-  Use when the user mentions "logging", "tracing", "observability", "MDC",
-  "structured logs", "JSON logs", "OpenTelemetry", "OTel", "Prometheus",
-  "metrics", "Kibana", "Loki", "Datadog", "workflow tracing", or
-  "quarkus.flow.tracing". Also use when debugging a workflow in production
-  or setting up monitoring. Configures structured logging, MDC fields,
-  distributed tracing, and metrics for Quarkus and quarkus-flow applications.
+  Use when configuring observability for Quarkus/quarkus-flow - user says "set up
+  logging", "configure tracing", "enable metrics", "add OpenTelemetry", "configure
+  MDC", or asks how to set up structured logging/correlation IDs. Does NOT trigger
+  on discussing existing logs or metrics. Configures structured logging, MDC,
+  distributed tracing, and metrics.
 ---
 
 # Quarkus Logging and Observability

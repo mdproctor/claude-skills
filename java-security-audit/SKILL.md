@@ -1,12 +1,11 @@
 ---
 name: java-security-audit
 description: >
-  Use when the user says "security review", "check for vulnerabilities", "audit
-  security", "OWASP", or when reviewing code that handles user input,
-  authentication, authorization, data persistence, or external API calls. Checks
-  Java/Quarkus code against OWASP Top 10 and Quarkus-specific security
-  patterns. Can be invoked explicitly or as part of java-code-review for
-  security-critical changes.
+  Use when user explicitly requests "security review", "audit security", "check
+  for vulnerabilities", "OWASP check", or when java-code-review offers security
+  audit for auth/payment/PII code. NOT automatic - must be explicitly requested
+  or offered. Checks Java/Quarkus against OWASP Top 10 with language-specific
+  patterns.
 ---
 
 # Security Audit for Quarkus Applications

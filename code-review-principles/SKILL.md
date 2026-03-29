@@ -4,8 +4,8 @@ description: >
   Universal code review principles covering safety, concurrency, performance,
   testing philosophy, and review workflow. Provides language-agnostic
   checklist and severity assignment guidance for catching critical issues
-  before they reach production. Use as foundation for language-specific
-  code review skills.
+  before they reach production. NOT invoked directly - referenced as foundation
+  by language-specific code review skills via Prerequisites.
 ---
 
 # Code Review Principles

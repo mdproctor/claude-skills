@@ -4,8 +4,8 @@ description: >
   Universal observability principles covering structured logging, distributed
   tracing, and metrics. Includes MDC/correlation ID patterns, header
   propagation, trace span concepts, and metrics types. Technology-agnostic
-  guidance for production observability. Use as foundation for
-  framework-specific observability skills.
+  guidance for production observability. NOT invoked directly - referenced as
+  foundation by framework-specific observability skills via Prerequisites.
 ---
 
 # Observability Principles
