@@ -25,7 +25,7 @@ For the core conventional commits workflow, refer to the `git-commit` skill.
 **This skill builds on [`git-commit`]**.
 
 Apply all rules from:
-- **`git-commit`**: Subject line format (imperative mood, max 50 chars), Conventional Commits 1.0.0 specification, always wait for explicit user confirmation before committing, never mention AI/tooling attribution
+- **`git-commit`**: Subject line format (imperative mood, max 50 chars), Conventional Commits 1.0.0 specification, always wait for explicit user confirmation before committing, never add attribution unless user explicitly requests it
 
 Then apply the Java/Quarkus-specific commit patterns below.
 

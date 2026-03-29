@@ -18,7 +18,11 @@ Conventional Commits 1.0.0 specification.
 - Follow the **Conventional Commits 1.0.0 specification**.
 - Subject line: imperative mood, max 50 chars, no trailing period.
 - Never run `git commit` until the user has explicitly confirmed.
-- Never mention AI, tooling, or assistant attribution in commit messages.
+- **Never add attribution to commit messages** unless the user explicitly requests it:
+  - No `Co-Authored-By: Claude` or similar AI attribution
+  - No `Generated-by:`, `AI-assisted:`, or tool mentions
+  - No meta-commentary about how the commit was created
+  - Commit messages describe WHAT changed and WHY, not WHO/WHAT wrote it
 
 ## Workflow
 
@@ -192,6 +196,7 @@ digraph commit_flow {
 
 | Mistake | Why It's Wrong | Fix |
 |---------|----------------|-----|
+| Adding AI attribution (Co-Authored-By, Generated-by, etc.) | Violates Core Rules; user didn't ask for it | Never add attribution unless user explicitly requests |
 | Committing before user confirms | User loses control | Always show proposal and wait for YES |
 | Subject line > 50 chars | Truncated in git log | Keep under 50, use body for details |
 | Subject ends with period | Not conventional commits standard | Remove trailing period |
