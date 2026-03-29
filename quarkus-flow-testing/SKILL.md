@@ -201,5 +201,5 @@ class WorkflowWithAITest {
 
 - Before writing tests: understand workflow structure with **quarkus-flow-dev**
 - Apply **java-dev** testing rules (JUnit 5, AssertJ, real CDI)
-- When done: invoke **code-review** before committing
+- When done: invoke **java-code-review** before committing
 - When committing: invoke **java-git-commit**

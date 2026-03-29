@@ -55,6 +55,57 @@ You're not writing documentation. You're leaving breadcrumbs for Future You, who
 
 ## Skills
 
+### Generic Foundation Skills
+
+#### **code-review-principles**
+Universal code review principles covering safety, concurrency, performance, testing philosophy, and review workflow. Language-agnostic checklist with severity assignment guidance.
+
+**Features:**
+- Safety violation patterns (resource leaks, deadlocks, silent corruption)
+- Concurrency checklist (blocking on async threads, thread-safe collections)
+- Performance principles for hot paths
+- Testing philosophy (real implementations over mocks)
+- Severity assignment flow
+- Common pitfalls table
+
+**Extended by:** java-code-review (and future language-specific reviews)
+
+#### **security-audit-principles**
+Universal OWASP Top 10 security audit principles for server-side applications. Language-agnostic vulnerability identification.
+
+**Features:**
+- OWASP Top 10 checklist (injection, auth, access control, crypto, config, etc.)
+- Severity decision flow
+- Defense in depth principles
+- Common security pitfalls table
+
+**Extended by:** java-security-audit (and future language-specific audits)
+
+#### **dependency-management-principles**
+Universal dependency management principles for BOM (Bill of Materials) patterns. Works with any package manager.
+
+**Features:**
+- BOM alignment decision flow
+- Compatibility checking workflow
+- Version drift prevention
+- When to create ADRs for dependencies
+- Common pitfalls table
+
+**Extended by:** maven-dependency-update (and future package managers)
+
+#### **observability-principles**
+Universal observability principles: structured logging, distributed tracing, and metrics. Technology-agnostic guidance.
+
+**Features:**
+- Three pillars of observability (logs, traces, metrics)
+- MDC/correlation ID patterns
+- HTTP header propagation
+- OpenTelemetry concepts
+- Metrics types (counters, histograms, gauges)
+- Production configuration checklist
+
+**Extended by:** quarkus-observability (and future frameworks)
+
 ### Core Development
 
 #### **java-dev**
@@ -88,7 +139,7 @@ Specialized development for quarkus-flow (CNCF Serverless Workflow) including:
 - Complete API reference extracted to `funcDSL-reference.md`
 - Common Pitfalls table (7 mistakes and fixes)
 - HITL pattern example with full workflow
-- Enhanced Skill Chaining (includes logging-observability)
+- Enhanced Skill Chaining (includes quarkus-observability)
 - Token-optimized: 31.5% reduction from original size
 
 **Triggers:** Flow subclasses, workflow YAML, mentions of "workflow", "agent", "agentic", or "LangChain4j".
@@ -111,26 +162,26 @@ Comprehensive testing patterns for quarkus-flow workflows:
 
 ### Quality Assurance
 
-#### **code-review**
-Pre-commit code review enforcing:
+#### **java-code-review**
+Pre-commit code review for Java/Quarkus applications enforcing:
 - Critical safety checks (resource leaks, classloader issues, deadlock risks)
-- Concurrency correctness
-- Performance best practices
+- Concurrency correctness for Quarkus/Vert.x event loop
+- Performance best practices for cloud deployments
 - Testing coverage validation
 - Code clarity standards
 
-Assigns severity levels (CRITICAL/WARNING/NOTE) and blocks commits on critical findings.
+Builds on code-review-principles with Java-specific checks. Assigns severity levels (CRITICAL/WARNING/NOTE) and blocks commits on critical findings.
 
 **Features:**
-- "Why Code Review Matters" section with real incident examples
-- Severity assignment flowchart (CRITICAL/WARNING/NOTE decision tree)
-- Comprehensive checklist organized by category
+- Prerequisites section (extends code-review-principles)
+- Java/Quarkus-specific violation patterns
 - ❌/✅ code examples for Safety, Concurrency, Performance, Testing sections
+- Integration with java-git-commit workflow
 
-**Triggers:** "review my code", "check my changes", `/code-review`, or automatically via `java-git-commit`.
+**Triggers:** "review my code", "check my changes", `/java-code-review`, or automatically via `java-git-commit`.
 
-#### **security-audit**
-Security vulnerability review for Quarkus applications:
+#### **java-security-audit**
+Security vulnerability review for Java/Quarkus applications:
 - OWASP Top 10 checks adapted for Quarkus server-side apps
 - Injection prevention (SQL, Log, Command)
 - Broken authentication and access control detection
@@ -138,9 +189,10 @@ Security vulnerability review for Quarkus applications:
 - SSRF and unvalidated redirect checks
 - Quarkus security feature recommendations
 
+Builds on security-audit-principles with Java/Quarkus-specific patterns.
+
 **Features:**
-- "Why Security Audits Matter" with real breach examples
-- Severity assignment flowchart (CRITICAL/WARNING/NOTE for security)
+- Prerequisites section (extends security-audit-principles)
 - ❌/✅ code examples for each OWASP category
 - Quarkus-specific security patterns and configurations
 - Integration with Vault, OIDC, and security extensions
@@ -209,27 +261,38 @@ Creates and manages Architecture Decision Records (ADRs) in MADR format:
 
 ### Project Management
 
-#### **dependency-update**
+#### **maven-dependency-update**
 Maven dependency management with BOM-first approach:
 - Quarkus platform alignment verification
 - BOM-managed vs explicit version detection
 - Compatibility checking before version bumps
 - Safe upgrade proposals with risk assessment
 
+Builds on dependency-management-principles with Maven/Quarkus-specific workflow.
+
 **Features:**
-- Common Pitfalls table (7 BOM/version mistakes)
-- BOM alignment rules with clear decision criteria
-- Version compatibility checking workflow
+- Prerequisites section (extends dependency-management-principles)
+- Maven-specific BOM alignment rules
+- Quarkus platform version compatibility checking
+- pom.xml manipulation workflow
 
 **Triggers:** "update dependencies", "bump version", "upgrade Quarkus", "add dependency", `pom.xml` changes.
 
-#### **logging-observability**
+#### **quarkus-observability**
 Configures production-grade observability for Quarkus/quarkus-flow:
 - Structured JSON logging with MDC
 - quarkus-flow workflow tracing (instance tracking)
 - OpenTelemetry distributed tracing
 - Micrometer/Prometheus metrics
 - Log aggregator integration (Kibana, Loki, Datadog)
+
+Builds on observability-principles with Quarkus-specific configuration.
+
+**Features:**
+- Prerequisites section (extends observability-principles)
+- Quarkus extension configuration (quarkus-logging-json, quarkus-opentelemetry)
+- quarkus-flow-specific workflow tracing patterns
+- application.properties configuration examples
 
 **Triggers:** Mentions of "logging", "tracing", "observability", "MDC", "OpenTelemetry", "metrics", workflow debugging.
 
@@ -241,7 +304,7 @@ Skills are designed to chain together for complete workflows:
 ```
 java-dev or quarkus-flow-dev
   → quarkus-flow-testing (if writing tests)
-  → code-review (automatic or manual)
+  → java-code-review (automatic or manual)
     → java-git-commit
       → update-design (automatic)
 ```
@@ -256,16 +319,16 @@ Major decision made
 
 ### Dependency Management → Commit
 ```
-dependency-update
-  → code-review (if code changes)
+maven-dependency-update
+  → java-code-review (if code changes)
     → java-git-commit
       → Optional: adr (for major upgrades)
 ```
 
 ### Observability Setup
 ```
-logging-observability
-  → dependency-update (for new deps)
+quarkus-observability
+  → maven-dependency-update (for new deps)
     → Optional: adr (document strategy)
       → java-git-commit
 ```
@@ -311,12 +374,17 @@ These skills are invoked automatically by Claude Code based on context, or expli
 
 ```
 /java-git-commit
-/code-review
+/java-code-review
+/java-security-audit
+/maven-dependency-update
+/quarkus-observability
 /update-design
 /adr
 ```
 
 Skills trigger automatically when relevant keywords appear in conversation or when working with specific file types.
+
+**Generic foundation skills** are not invoked directly - they are referenced as prerequisites by language-specific skills.
 
 ## Requirements
 
@@ -333,14 +401,20 @@ Each skill explicitly declares when to chain to other skills:
 |---|---|---|
 | `java-dev` | `java-git-commit` | After implementation/refactoring |
 | `quarkus-flow-dev` | `quarkus-flow-testing` | When writing tests |
-| `quarkus-flow-dev` | `code-review` → `java-git-commit` | After workflow implementation |
-| `quarkus-flow-testing` | `code-review` → `java-git-commit` | After writing tests |
-| `code-review` | Blocks `java-git-commit` | If CRITICAL findings exist |
+| `quarkus-flow-dev` | `java-code-review` → `java-git-commit` | After workflow implementation |
+| `quarkus-flow-testing` | `java-code-review` → `java-git-commit` | After writing tests |
+| `code-review-principles` | (referenced by language-specific reviews) | Foundation for all code reviews |
+| `java-code-review` | Blocks `java-git-commit` | If CRITICAL findings exist |
+| `java-code-review` | `java-security-audit` | Security-critical code detected |
+| `security-audit-principles` | (referenced by language-specific audits) | Foundation for all security audits |
+| `java-security-audit` | Blocks `java-git-commit` | If CRITICAL vulnerabilities exist |
+| `dependency-management-principles` | (referenced by package managers) | Foundation for all dependency updates |
+| `maven-dependency-update` | `adr` | Major version upgrades |
+| `maven-dependency-update` | `java-git-commit` | After successful update |
+| `observability-principles` | (referenced by framework implementations) | Foundation for all observability |
+| `quarkus-observability` | `maven-dependency-update` | Adding OTel/Micrometer deps |
+| `quarkus-observability` | `adr` | First-time observability setup |
 | `java-git-commit` | `update-design` | Always (automatic) |
-| `dependency-update` | `adr` | Major version upgrades |
-| `dependency-update` | `java-git-commit` | After successful update |
-| `logging-observability` | `dependency-update` | Adding OTel/Micrometer deps |
-| `logging-observability` | `adr` | First-time observability setup |
 | `adr` | `update-design` | New components documented |
 | `adr` | `java-git-commit` | Stage with related changes |
 
@@ -366,8 +440,9 @@ These skills are tailored for specific project conventions. When adapting for yo
 
 1. Review safety and concurrency rules in `java-dev`
 2. Adjust conventional commit types in `java-git-commit`
-3. Customize BOM versions in `dependency-update`
-4. Update observability endpoints in `logging-observability`
+3. Customize BOM versions in `maven-dependency-update`
+4. Update observability endpoints in `quarkus-observability`
+5. Extend generic principles skills for other languages/frameworks (e.g., `go-code-review`, `gradle-dependency-update`)
 
 ## Skill Quality & Validation
 
@@ -387,27 +462,38 @@ All skills have been systematically improved following the [superpowers:writing-
 
 ```
 .
-├── LICENSE                          # Apache License 2.0
-├── README.md                        # This file
-├── java-dev/                        # Core Java/Quarkus development
+├── LICENSE                              # Apache License 2.0
+├── README.md                            # This file
+├── CLAUDE.md                            # Guidance for Claude Code
+├── code-review-principles/              # Generic code review principles
 │   └── SKILL.md
-├── quarkus-flow-dev/               # Serverless Workflow patterns
+├── security-audit-principles/           # Generic security audit principles
+│   └── SKILL.md
+├── dependency-management-principles/    # Generic dependency management principles
+│   └── SKILL.md
+├── observability-principles/            # Generic observability principles
+│   └── SKILL.md
+├── java-dev/                            # Core Java/Quarkus development
+│   └── SKILL.md
+├── quarkus-flow-dev/                    # Serverless Workflow patterns
 │   ├── SKILL.md
-│   └── funcDSL-reference.md        # Complete FuncDSL API reference
-├── quarkus-flow-testing/           # Workflow testing patterns
+│   └── funcDSL-reference.md            # Complete FuncDSL API reference
+├── quarkus-flow-testing/                # Workflow testing patterns
 │   └── SKILL.md
-├── code-review/                    # Pre-commit quality checks
+├── java-code-review/                    # Java-specific code review
 │   └── SKILL.md
-├── security-audit/                 # Security vulnerability review
+├── java-security-audit/                 # Java-specific security audit
 │   └── SKILL.md
-├── java-git-commit/                # Smart commit with design sync
+├── git-commit/                          # Generic conventional commits
 │   └── SKILL.md
-├── update-design/                  # DESIGN.md maintenance
+├── java-git-commit/                     # Java-specific smart commits
 │   └── SKILL.md
-├── adr/                            # Architecture Decision Records
+├── update-design/                       # DESIGN.md maintenance
 │   └── SKILL.md
-├── dependency-update/              # Maven dependency management
+├── adr/                                 # Architecture Decision Records
 │   └── SKILL.md
-└── logging-observability/          # Production observability setup
+├── maven-dependency-update/             # Maven dependency management
+│   └── SKILL.md
+└── quarkus-observability/               # Quarkus observability setup
     └── SKILL.md
 ```

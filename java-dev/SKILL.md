@@ -361,10 +361,10 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 
 ## Skill Chaining
 
-- **Before committing:** invoke **code-review** to catch safety, concurrency, and performance issues
+- **Before committing:** invoke **java-code-review** to catch safety, concurrency, and performance issues
 - **After implementing or refactoring:** if the user wants to commit, invoke
   **java-git-commit**, which will also sync DESIGN.md via **update-design**
 - **For architectural decisions:** suggest running **adr** to document significant decisions
-- **For logging/observability setup:** invoke **logging-observability** when implementing structured logging, tracing, or metrics
-- **For security-critical code:** invoke **security-audit** when handling authentication, authorization, payment, or PII
+- **For logging/observability setup:** invoke **quarkus-observability** when implementing structured logging, tracing, or metrics
+- **For security-critical code:** invoke **java-security-audit** when handling authentication, authorization, payment, or PII
 - **If architectural impact without commit:** suggest running **update-design** independently

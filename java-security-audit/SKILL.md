@@ -1,11 +1,11 @@
 ---
-name: security-audit
+name: java-security-audit
 description: >
   Use when the user says "security review", "check for vulnerabilities", "audit
   security", "OWASP", or when reviewing code that handles user input,
   authentication, authorization, data persistence, or external API calls. Checks
   Java/Quarkus code against OWASP Top 10 and Quarkus-specific security
-  patterns. Can be invoked explicitly or as part of code-review for
+  patterns. Can be invoked explicitly or as part of java-code-review for
   security-critical changes.
 ---
 
@@ -15,17 +15,14 @@ You are a security expert reviewing Java/Quarkus server applications. Your job
 is to identify vulnerabilities before they reach production, with particular
 focus on OWASP Top 10 risks adapted for Quarkus server-side applications.
 
-## Why Security Audits Matter
+## Prerequisites
 
-**Caught in review vs. caught in production:**
-- SQL injection found in review: 10-minute fix
-- SQL injection in production: data breach, regulatory fines, customer trust destroyed
+**This skill builds on `security-audit-principles` AND `java-dev`**. Apply all security-audit-principles:
+- OWASP Top 10 vulnerability categories and severity assessment
+- Security audit workflow and reporting format
+- Why security audits matter and cost of production discovery
 
-**Real examples of what security audits prevent:**
-- **SQL injection via JPQL concatenation**. Would have allowed attackers to dump entire user database. Caught by reviewing query construction.
-- **Unvalidated redirect** accepting `redirect_url` parameter. Would have enabled phishing attacks via trusted domain. Caught by checking all external redirects.
-- **Mass assignment vulnerability** binding request JSON to entity with `@Transactional`. Would have allowed users to escalate privileges by setting `isAdmin=true`. Caught by reviewing DTO boundaries.
-- **JWT secret in application.properties** committed to git. Would have allowed anyone with repo access to forge tokens. Caught by checking configuration files.
+This skill adds Java/Quarkus-specific implementations including JPA parameterized queries, JAX-RS validation patterns, Quarkus security features (@RolesAllowed, SecurityIdentity), and Maven dependency CVE checking.
 
 ## Workflow
 
@@ -37,15 +34,6 @@ Determine what's being reviewed:
 - Security-critical subsystem (authentication, payment, PII handling)
 
 Ask user to clarify scope if unclear.
-
-## Prerequisites
-
-**This skill builds on `java-dev`**. All java-dev safety and concurrency rules apply:
-- Resource management (try-with-resources for Closeable)
-- Thread safety and event loop awareness
-- Silent corruption prevention (never swallow exceptions)
-
-Security audit adds OWASP Top 10 vulnerability checks on top of general safety practices.
 
 ### Step 2 — Run the security checklist
 
@@ -411,13 +399,13 @@ quarkus.rate-limiter.enabled=true
 
 ## Skill Chaining
 
-**Triggered by code-review:**
-When code-review encounters code handling authentication, authorization, payment processing, PII, or external API calls, it should offer to run security-audit for specialized OWASP Top 10 checks.
+**Triggered by java-code-review:**
+When java-code-review encounters code handling authentication, authorization, payment processing, PII, or external API calls, it should offer to run java-security-audit for specialized OWASP Top 10 checks.
 
 **Chains from:**
-- **code-review**: Security audit is a specialized form of code review. Automatically offered for security-critical changes (auth, payment, PII handling).
+- **java-code-review**: Security audit is a specialized form of code review. Automatically offered for security-critical changes (auth, payment, PII handling).
 - **java-dev**: Invoke for security-critical implementations (authentication, authorization, payment, PII handling).
-- **dependency-update**: Invoke when updating dependencies with known CVEs or security advisories.
+- **maven-dependency-update**: Invoke when updating dependencies with known CVEs or security advisories.
 
 **Integration notes:**
 - **java-dev**: Security rules override convenience. If a security fix makes code more verbose, that's acceptable.

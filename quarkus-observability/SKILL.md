@@ -1,5 +1,5 @@
 ---
-name: logging-observability
+name: quarkus-observability
 description: >
   Use when the user mentions "logging", "tracing", "observability", "MDC",
   "structured logs", "JSON logs", "OpenTelemetry", "OTel", "Prometheus",
@@ -9,12 +9,22 @@ description: >
   distributed tracing, and metrics for Quarkus and quarkus-flow applications.
 ---
 
-# Logging and Observability
+# Quarkus Logging and Observability
 
 Quarkus and quarkus-flow provide three complementary observability
 mechanisms: structured logging with MDC, distributed tracing via
 OpenTelemetry, and metrics via Micrometer/Prometheus. This skill covers
 how to configure and use them together correctly.
+
+## Prerequisites
+
+**This skill builds on `observability-principles`**. Apply all observability-principles:
+- Structured logging patterns and JSON output formats
+- MDC/correlation ID patterns and propagation
+- Distributed tracing concepts and span design
+- Metrics collection and aggregation patterns
+
+This skill adds Quarkus-specific configuration including quarkus.log.console.json properties, quarkus-flow MDC fields (quarkus.flow.instanceId, quarkus.flow.task), JBoss Logger API, Quarkus OpenTelemetry integration, Micrometer/Prometheus setup, and quarkus-flow built-in metrics.
 
 ---
 
@@ -294,7 +304,7 @@ quarkus.micrometer.export.prometheus.enabled=true
 
 - **Invoked by `quarkus-flow-dev`**: When implementing workflows that need
   observability (workflow tracing, MDC context propagation, metrics).
-- If adding OTel or Micrometer dependencies: invoke **dependency-update**
+- If adding OTel or Micrometer dependencies: invoke **maven-dependency-update**
   to verify BOM alignment.
 - If this is the first time setting up observability for CaseHub: consider
   an ADR via **adr** documenting the logging and tracing strategy chosen.

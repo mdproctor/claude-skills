@@ -1,10 +1,10 @@
 ---
-name: code-review
+name: java-code-review
 description: >
   Use when the user says "review my code", "check my changes", "can you
-  review this", "look at my staged changes", or invokes /code-review. Also
+  review this", "look at my staged changes", or invokes /java-code-review. Also
   triggered automatically by java-git-commit if no review has been done in
-  the current session. Reviews staged Java changes against safety,
+  the current session. Reviews staged Java/Quarkus changes against safety,
   concurrency, performance, and code quality rules. CRITICAL findings block
   the commit; all other findings are advisory.
 ---
@@ -16,38 +16,14 @@ problems before they reach the repository, with particular focus on the
 issues that are hardest to find later: safety violations, concurrency bugs,
 and silent data corruption.
 
-## Why Code Review Matters
-
-**Caught in review vs. caught in production:**
-- Resource leak found in review: 2-minute fix
-- Resource leak in production: 3-hour incident, emergency patch, postmortem
-
-**Real examples of what reviews prevent:**
-- **Deadlock** between cache lock and event publishing lock. Would have hung production during peak hours. Caught in review by checking lock ordering documentation.
-- **ThreadLocal leak** holding 200MB per deployment. Would have crashed dev environments after 10 hot-reloads. Caught by checking cleanup in finally blocks.
-- **Blocking I/O on Vert.x thread**. Would have frozen all concurrent requests during database slowdown. Caught by seeing missing `@Blocking` annotation.
-- **Mockito test passing, real DB failing**. Integration test used mocked repository instead of real database. Migration failure would have been discovered in staging. Caught by enforcing real DB in tests.
-
-**What code review is not:**
-- Not style police (formatters handle that)
-- Not architecture redesign (that's during design phase)
-- Not performance tuning (profiler does that better)
-
-**What code review is:**
-- Safety net for critical issues compilers can't detect
-- Second pair of eyes on concurrency correctness
-- Verification that tests actually test what they claim
-
 ## Prerequisites
 
-**This skill builds on `java-dev`**. Apply all java-dev rules when reviewing:
-- **Safety**: Resource leaks, deadlocks, ThreadLocal cleanup, silent corruption
-- **Concurrency**: Thread model clarity, event loop blocking, lock ordering
-- **Performance**: Hot path optimization, avoiding unnecessary allocations
-- **Testing**: JUnit 5 + AssertJ, real CDI over mocking, integration test coverage
-- **Code Quality**: `final` parameters, minimal changes, clear documentation
+**This skill builds on `code-review-principles` AND `java-dev`**. Apply all code-review-principles:
+- Severity assignment (CRITICAL/WARNING/NOTE)
+- Review workflow and reporting format
+- Why reviews matter and what they catch vs. production discovery
 
-Review enforces these rules are followed in the code being committed.
+This skill adds Java/Quarkus-specific implementations including try-with-resources patterns, ThreadLocal cleanup, `@Blocking` annotations, CDI testing, and Quarkus-specific safety checks.
 
 ## Workflow
 
@@ -91,7 +67,7 @@ Review complete: 2 CRITICAL, 1 WARNING, 3 NOTES
 
 **If CRITICAL findings exist:**
 > "🔴 There are CRITICAL issues that must be resolved before committing.
-> Fix them and re-run `/code-review`, or tell me what to fix and I'll
+> Fix them and re-run `/java-code-review`, or tell me what to fix and I'll
 > help you address them."
 >
 > Do NOT hand off to java-git-commit until the user confirms fixes are done.
@@ -366,7 +342,7 @@ class OrderServiceTest {
 ## Skill Chaining
 
 **Triggered by java-git-commit:**
-When `java-git-commit` is invoked and no `/code-review` has been run
+When `java-git-commit` is invoked and no `/java-code-review` has been run
 in the current session, ask:
 > "Would you like me to run a code review before committing? (Recommended)"
 
@@ -374,14 +350,14 @@ If the user says yes, run this skill in full before proceeding.
 If the user says no, proceed directly to `java-git-commit`.
 Do not ask again if a review was already completed this session.
 
-**Chain to security-audit for security-critical code:**
+**Chain to java-security-audit for security-critical code:**
 If reviewing code that handles:
 - User input (authentication, authorization, validation)
 - Payment processing or PII
 - External API calls or data persistence
 
-Offer to run `security-audit` for specialized OWASP Top 10 vulnerability checks:
-> "This code handles [auth/payment/PII]. Run security-audit for specialized vulnerability checks?"
+Offer to run `java-security-audit` for specialized OWASP Top 10 vulnerability checks:
+> "This code handles [auth/payment/PII]. Run java-security-audit for specialized vulnerability checks?"
 
 **Reference java-dev for detailed patterns:**
 For deep dives into safety, concurrency, and performance patterns with additional examples, see `java-dev` skill.

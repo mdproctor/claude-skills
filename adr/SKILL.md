@@ -4,7 +4,7 @@ description: >
   Use when the user says "create an ADR", "record this decision", "document
   why we chose X", "add an architecture decision", or when a significant
   technical decision is being made that warrants capturing the reasoning and
-  alternatives considered. Also use when dependency-update proposes a major
+  alternatives considered. Also use when maven-dependency-update proposes a major
   version upgrade or adoption of a new extension, or when update-design
   captures a significant new component. Manages ADRs in MADR format under
   docs/adr/.
@@ -46,7 +46,7 @@ If the user hasn't provided enough context, ask for:
 - What alternatives were considered and why were they rejected?
 - Any consequences or tradeoffs worth noting?
 
-For decisions arising from **dependency-update** or **update-design**,
+For decisions arising from **maven-dependency-update** or **update-design**,
 extract context from those proposals automatically.
 
 ### Step 3 — Draft the ADR

@@ -182,7 +182,7 @@ All pitfalls from `git-commit` apply, plus:
 ## Skill Chaining
 
 - **Always invokes `update-design`** before proposing commit
-- **Chains from `code-review`** after all critical issues resolved
+- **Chains from `java-code-review`** after all critical issues resolved
 - **May chain to `adr`** for major architectural decisions
 
 ## Examples

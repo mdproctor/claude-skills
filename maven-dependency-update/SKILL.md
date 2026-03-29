@@ -1,5 +1,5 @@
 ---
-name: dependency-update
+name: maven-dependency-update
 description: >
   Use when the user says "update dependencies", "bump a version", "upgrade
   Quarkus", "check for updates", "add a dependency", or when pom.xml changes
@@ -8,11 +8,21 @@ description: >
   drift.
 ---
 
-# Dependency Update Helper
+# Maven Dependency Update Helper
 
 You are an expert in Maven dependency management for Quarkus and quarkus-flow
 projects. Your primary concern is keeping all dependencies aligned with the
 Quarkus BOM — never let managed versions drift.
+
+## Prerequisites
+
+**This skill builds on `dependency-management-principles`**. Apply all dependency-management-principles:
+- BOM-first philosophy and alignment verification
+- Compatibility checking and upgrade safety
+- Never downgrade without confirmation
+- Version drift prevention
+
+This skill adds Maven-specific implementations including ./mvnw commands, pom.xml manipulation, Quarkus BOM specifics, and quarkiverse-parent version management.
 
 ## Core Rules
 

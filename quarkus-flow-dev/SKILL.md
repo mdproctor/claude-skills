@@ -182,9 +182,9 @@ workflow("review-loop")
 - **When implementing a new workflow:** apply `java-dev` rules for safety and
   concurrency, then this skill for DSL patterns
 - **When writing tests:** use **quarkus-flow-testing** for testing patterns
-- **When done:** invoke **code-review** before committing
+- **When done:** invoke **java-code-review** before committing
 - **When committing:** invoke **java-git-commit** (which chains **update-design**)
 - **For significant architectural additions:** ensure **update-design** captures
   it in DESIGN.md even outside of a commit
-- **For workflow observability:** use **logging-observability** when adding
+- **For workflow observability:** use **quarkus-observability** when adding
   workflow tracing or MDC context
