@@ -58,6 +58,21 @@ If nothing is staged, stop and tell the user:
 > "Nothing is staged. Run `git add <files>` first, or tell me which files
 > to stage."
 
+### Step 1a — Review skills (if SKILL.md changes)
+
+Check if any SKILL.md files are staged:
+```bash
+git diff --staged --name-only | grep 'SKILL.md$'
+```
+
+**If SKILL.md files found:**
+- Invoke the `skill-review` skill to validate structure and conventions
+- If CRITICAL findings exist → stop and ask user to fix before continuing
+- If only WARNING/NOTE findings → hold them, continue to Step 2
+
+**If no SKILL.md files:**
+- Skip to Step 2
+
 ### Step 2 — Generate commit message
 
 Draft one conventional commit message (see **Message Format** below).
@@ -76,14 +91,32 @@ ls CLAUDE.md 2>/dev/null
 - Hold those proposals too
 
 **If CLAUDE.md doesn't exist:**
+- Skip to Step 2b
+
+### Step 2b — Sync README.md (if skills repo)
+
+Check if README.md exists and skill changes detected:
+```bash
+ls README.md 2>/dev/null && git diff --staged --name-only | grep -E '(SKILL\.md|^[^/]+/$)'
+```
+
+**If README.md exists and skill changes found:**
+- Invoke the `update-readme` skill, passing the staged diff
+- It will analyze skill collection changes and propose README.md updates
+- Hold those proposals too
+
+**If README.md doesn't exist or no skill changes:**
 - Skip to Step 3 (present proposal)
 
 ### Step 3 — Present proposal
 
-**If CLAUDE.md updates proposed**, show consolidated proposal:
+**If skill-review, CLAUDE.md, or README.md updates proposed**, show consolidated proposal:
 ~~~
 ## Staged files
 <output of git diff --staged --stat>
+
+## Skill review findings (if any)
+<output from skill-review>
 
 ## Proposed commit message
 <type>[optional scope]: <description>
@@ -92,8 +125,11 @@ ls CLAUDE.md 2>/dev/null
 
 <optional footer>
 
-## Proposed CLAUDE.md updates
+## Proposed CLAUDE.md updates (if any)
 <output from update-claude-md skill>
+
+## Proposed README.md updates (if any)
+<output from update-readme skill>
 ~~~
 
 **Otherwise**, show standard proposal:
@@ -114,19 +150,20 @@ Then ask exactly:
 
 ### Step 4 — Commit (only after explicit YES)
 
-**If CLAUDE.md updates were proposed**, run in this exact order:
-1. Let update-claude-md apply its changes
-2. Stage the updated file: `git add CLAUDE.md`
-3. Commit with the confirmed message:
+**If documentation updates were proposed**, run in this exact order:
+1. Let update-claude-md apply its changes (if proposed)
+2. Let update-readme apply its changes (if proposed)
+3. Stage updated files: `git add CLAUDE.md README.md` (only files that were changed)
+4. Commit with the confirmed message:
 ~~~bash
 git commit -m "<subject>" -m "<body if any>"
 ~~~
-4. Confirm success:
+5. Confirm success:
 ~~~bash
 git log --oneline -1
 ~~~
 
-**If no CLAUDE.md updates**, run in this exact order:
+**If no documentation updates**, run in this exact order:
 1. Commit with the confirmed message:
 ~~~bash
 git commit -m "<subject>" -m "<body if any>"

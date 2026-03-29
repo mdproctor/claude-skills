@@ -193,17 +193,20 @@ When modifying existing skills:
 - `git-commit` — generic conventional commits (extended by `java-git-commit`)
 
 **Workflow integrators** (chain multiple skills):
-- `git-commit` — automatically invokes `update-claude-md` (if CLAUDE.md exists)
+- `git-commit` — automatically invokes `skill-review` (if SKILL.md staged), `update-claude-md` (if CLAUDE.md exists), and `update-readme` (if README.md exists and skill changes)
 - `java-git-commit` — automatically invokes `update-design` and `update-claude-md` (if docs exist)
 - `java-code-review` — triggers `java-security-audit` for security-critical code
+- `skill-review` — blocks `git-commit` if CRITICAL findings exist
 
 **Specialized skills** (domain-specific):
 - `quarkus-flow-dev` — builds on `java-dev`, extended by `quarkus-flow-testing`
 - `java-security-audit` — OWASP Top 10 for Java/Quarkus, triggered by `java-code-review`
 - `maven-dependency-update` — Maven BOM management, builds on `dependency-management-principles`
 - `quarkus-observability` — Quarkus observability config, builds on `observability-principles`
+- `skill-review` — SKILL.md validation (frontmatter, CSO, cross-references, flowcharts), invoked by `git-commit`
 - `update-design` — DESIGN.md synchronization (architecture documentation), invoked by `java-git-commit`
 - `update-claude-md` — CLAUDE.md synchronization (workflow documentation), invoked by `git-commit` and `java-git-commit`
+- `update-readme` — README.md synchronization (skills repository documentation), invoked by `git-commit`
 
 ## README Synchronization
 

@@ -162,6 +162,27 @@ Comprehensive testing patterns for quarkus-flow workflows:
 
 ### Quality Assurance
 
+#### **skill-review**
+Pre-commit review for Claude Code skills ensuring structural integrity, CSO compliance,
+and documentation completeness:
+- Frontmatter validation (name, description, CSO rules)
+- Flowchart syntax testing (Graphviz validation)
+- Naming convention compliance (generic `-principles`, language prefixes)
+- Cross-reference verification (bidirectional chaining)
+- Documentation completeness (Success Criteria, Common Pitfalls, Prerequisites)
+- Severity assignment (CRITICAL/WARNING/NOTE)
+
+Builds quality assurance discipline specifically for skills repositories. Blocks commits
+on CRITICAL findings (invalid frontmatter, broken flowcharts, CSO violations).
+
+**Features:**
+- Review checklist by category (frontmatter, naming, cross-references, flowcharts)
+- Severity decision flowchart
+- Common Pitfalls table (8 skill authoring mistakes)
+- Cross-reference bidirectional verification
+
+**Triggers:** "review my skill", "check this skill", `/skill-review`, or automatically when SKILL.md files are staged for commit.
+
 #### **java-code-review**
 Pre-commit code review for Java/Quarkus applications enforcing:
 - Critical safety checks (resource leaks, classloader issues, deadlock risks)
@@ -261,6 +282,20 @@ Maintains CLAUDE.md documentation in sync with workflow and convention changes:
 
 Invoked automatically by `git-commit` and `java-git-commit` (if CLAUDE.md exists), or independently. Handles workflow documentation; for architectural documentation, see `update-design`.
 
+#### **update-readme**
+Maintains README.md documentation in sync with skill collection changes in skills repositories:
+- Skill descriptions (Skills section)
+- Chaining relationships (Skill Chaining Reference table)
+- Feature additions (Key Features section)
+- Repository structure changes
+
+**Features:**
+- Common Pitfalls table (8 documentation mistakes)
+- Skills repository awareness (skill naming, chaining patterns)
+- Surgical update strategy (preserves user's voice)
+
+Invoked automatically by `git-commit` (if README.md exists and skill changes detected), or independently. Specific to skills repositories; for code repositories, use project-specific documentation tools.
+
 #### **adr**
 Creates and manages Architecture Decision Records (ADRs) in MADR format:
 - Sequential numbering and lifecycle management
@@ -316,13 +351,21 @@ Builds on observability-principles with Quarkus-specific configuration.
 
 Skills are designed to chain together for complete workflows:
 
-### Development → Review → Commit
+### Development → Review → Commit (Java repositories)
 ```
 java-dev or quarkus-flow-dev
   → quarkus-flow-testing (if writing tests)
   → java-code-review (automatic or manual)
     → java-git-commit
-      → update-design (automatic)
+      → update-design + update-claude-md (automatic)
+```
+
+### Skill Development → Review → Commit (Skills repositories)
+```
+skill-creator or superpowers:writing-skills
+  → skill-review (automatic when SKILL.md staged)
+  → git-commit
+    → update-claude-md + update-readme (automatic)
 ```
 
 ### Architecture Decision → Documentation
@@ -430,10 +473,16 @@ Each skill explicitly declares when to chain to other skills:
 | `observability-principles` | (referenced by framework implementations) | Foundation for all observability |
 | `quarkus-observability` | `maven-dependency-update` | Adding OTel/Micrometer deps |
 | `quarkus-observability` | `adr` | First-time observability setup |
+| `skill-creator` | `skill-review` | When skill authoring complete |
+| `superpowers:writing-skills` | `skill-review` | When skill authoring complete |
+| `skill-review` | Blocks `git-commit` | If CRITICAL findings exist (skills repos) |
+| `git-commit` | `skill-review` | Always (automatic if SKILL.md files staged) |
 | `git-commit` | `update-claude-md` | Always (automatic if CLAUDE.md exists) |
+| `git-commit` | `update-readme` | Always (automatic if README.md exists and skill changes) |
 | `java-git-commit` | `update-design` | Always (automatic if docs/DESIGN.md exists) |
 | `java-git-commit` | `update-claude-md` | Always (automatic if CLAUDE.md exists) |
 | `update-design` | (companion: `update-claude-md`) | Architecture changes often need workflow doc updates |
+| `update-readme` | (companion: `update-claude-md`) | Skill changes often need workflow doc updates |
 | `adr` | `update-design` | New components documented |
 | `adr` | `java-git-commit` | Stage with related changes |
 
@@ -499,6 +548,8 @@ All skills have been systematically improved following the [superpowers:writing-
 │   └── funcDSL-reference.md            # Complete FuncDSL API reference
 ├── quarkus-flow-testing/                # Workflow testing patterns
 │   └── SKILL.md
+├── skill-review/                        # SKILL.md validation and review
+│   └── SKILL.md
 ├── java-code-review/                    # Java-specific code review
 │   └── SKILL.md
 ├── java-security-audit/                 # Java-specific security audit
@@ -510,6 +561,8 @@ All skills have been systematically improved following the [superpowers:writing-
 ├── update-design/                       # DESIGN.md maintenance
 │   └── SKILL.md
 ├── update-claude-md/                    # CLAUDE.md maintenance
+│   └── SKILL.md
+├── update-readme/                       # README.md maintenance
 │   └── SKILL.md
 ├── adr/                                 # Architecture Decision Records
 │   └── SKILL.md
