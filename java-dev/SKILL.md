@@ -56,6 +56,56 @@ Our code is deployed in mission-critical scenarios. Never compromise on:
 - Classloader leaks
 - Silent data corruption
 
+**Resource leaks:**
+~~~java
+// ❌ BAD: Stream not closed if exception thrown
+FileInputStream fis = new FileInputStream(path);
+byte[] data = fis.readAllBytes();
+fis.close();  // Never reached if readAllBytes() throws
+
+// ✅ GOOD: Guaranteed cleanup
+try (FileInputStream fis = new FileInputStream(path)) {
+    byte[] data = fis.readAllBytes();
+}
+~~~
+
+**Classloader leaks:**
+~~~java
+// ❌ BAD: ThreadLocal never removed, holds classloader reference
+ThreadLocal<RequestContext> context = new ThreadLocal<>();
+context.set(new RequestContext());
+// ... use it ...
+// Classloader can't be GC'd after hot reload
+
+// ✅ GOOD: Explicit cleanup
+ThreadLocal<RequestContext> context = new ThreadLocal<>();
+try {
+    context.set(new RequestContext());
+    // ... use it ...
+} finally {
+    context.remove();  // Releases classloader reference
+}
+~~~
+
+**Silent data corruption:**
+~~~java
+// ❌ BAD: Exception swallowed, order marked complete incorrectly
+try {
+    processPayment(order);
+    order.setStatus(COMPLETE);
+} catch (Exception e) { }  // Payment failed but order shows complete
+
+// ✅ GOOD: Log and propagate
+try {
+    processPayment(order);
+    order.setStatus(COMPLETE);
+} catch (Exception e) {
+    LOG.error("Payment failed for order {}", order.getId(), e);
+    order.setStatus(FAILED);
+    throw e;
+}
+~~~
+
 When a violation of these rules is detected in existing code, output a
 **CRITICAL SAFETY WARNING** block with:
 - The specific risk (e.g. "potential deadlock between locks A and B")
@@ -86,9 +136,46 @@ Most of our state is confined to a single thread. Prefer thread-local storage
 or event-loop patterns over shared-state concurrency. This aligns with
 Quarkus's Vert.x event-loop model — avoid blocking the I/O thread.
 
-If code is intended for a single-threaded hot loop, add a comment:
+**Single-threaded code:**
 ~~~java
-// NOT thread-safe — designed for single-threaded use only
+// ❌ BAD: No indication of thread model
+public class EventProcessor {
+    private List<Event> buffer = new ArrayList<>();  // Is this shared?
+
+    public void add(Event e) {
+        buffer.add(e);
+    }
+}
+
+// ✅ GOOD: Explicit thread model
+public class EventProcessor {
+    // NOT thread-safe — designed for single-threaded use only
+    private List<Event> buffer = new ArrayList<>();
+
+    public void add(Event e) {
+        buffer.add(e);
+    }
+}
+~~~
+
+**Blocking on event loop:**
+~~~java
+// ❌ BAD: JDBC call blocks event loop thread
+@Path("/orders")
+public class OrderResource {
+    public Order create(OrderRequest req) {
+        return orderRepo.persist(req);  // Blocks I/O thread
+    }
+}
+
+// ✅ GOOD: Dispatched to worker thread
+@Path("/orders")
+public class OrderResource {
+    @Blocking  // Runs on worker thread
+    public Order create(OrderRequest req) {
+        return orderRepo.persist(req);
+    }
+}
 ~~~
 
 Always establish whether code is single- or multi-threaded before writing it.
@@ -100,9 +187,47 @@ ordering, the invariants being protected, and any tradeoffs made.
 This codebase targets cloud-hosted Quarkus services where efficiency matters
 at scale. Be mindful of allocations and GC pressure.
 
-- Avoid `java.util.stream` and functional overhead in performance-critical paths
-- Prefer primitive collections or arrays over boxed wrapper types to reduce GC
-  pressure
+**Hot path optimization:**
+~~~java
+// ❌ BAD: Stream overhead in per-request path
+@Path("/items")
+public List<String> getActive() {
+    return items.stream()
+        .filter(Item::isActive)
+        .map(Item::getName)
+        .collect(Collectors.toList());
+}
+
+// ✅ GOOD: Simple loop for hot path
+@Path("/items")
+public List<String> getActive() {
+    List<String> result = new ArrayList<>(items.size());
+    for (Item item : items) {
+        if (item.isActive()) {
+            result.add(item.getName());
+        }
+    }
+    return result;
+}
+~~~
+
+**Avoid unnecessary boxing:**
+~~~java
+// ❌ BAD: Boxing creates GC pressure
+List<Integer> counts = getCounts();
+int sum = 0;
+for (Integer count : counts) {  // Boxing/unboxing
+    sum += count;
+}
+
+// ✅ GOOD: Primitives when possible
+int[] counts = getCounts();
+int sum = 0;
+for (int count : counts) {
+    sum += count;
+}
+~~~
+
 - For hot paths, measure before optimizing — don't pre-optimize cold code
 
 **What counts as performance-critical**: tight loops, per-request processing,
@@ -187,20 +312,20 @@ substitute for catching compilation errors you can see directly.
 
 If you catch yourself thinking any of these, **STOP** and apply the correct approach:
 
-| Rationalization | Reality |
-|-----------------|---------|
-| "Resource will close automatically" | Not without try-with-resources or explicit finally. Add it now. |
-| "This is single-threaded, no sync needed" | Document it with `// NOT thread-safe` comment or future-you will forget. |
-| "I'll add the test after I finish this" | Test coverage gaps never get filled. Add integration test now. |
-| "This is performance-critical, streams are too slow" | Measure first. Don't pre-optimize without profiling data. |
-| "Just this once I'll catch and ignore the exception" | Silent failures cause production mysteries. Log it or rethrow. |
-| "I know this blocks, but it's quick" | Blocking Vert.x event loop causes cascading failures. Use @Blocking. |
-| "ThreadLocal cleanup isn't critical here" | Classloader leaks accumulate slowly then crash. Always clean up. |
-| "The lock order doesn't matter for this simple case" | Simple cases become complex. Document lock ordering now. |
-| "This allocation is trivial" | In a hot loop, trivial allocations cause GC pressure. Use primitives. |
-| "I'll use HashMap, order doesn't matter" | If it's build-time code, order matters. Use LinkedHashMap or TreeMap. |
-| "Mockito is faster than a real test database" | Mocks drift from reality. Use @QuarkusTest with real DB. |
-| "Let me refactor this code I haven't read yet" | Read first, understand, then refactor. Don't break working code. |
+| Rationalization | Problem | Impact | Fix |
+|-----------------|---------|--------|-----|
+| "Resource will close automatically" | Missing try-with-resources | FD exhaustion after 20hrs | Wrap in try-with-resources |
+| "This is single-threaded, no sync needed" | Undocumented thread model | Future bugs when threading added | Add `// NOT thread-safe` comment |
+| "I'll add the test after I finish this" | No test coverage | Gaps never get filled | Add integration test now |
+| "This is performance-critical, streams are too slow" | Premature optimization | Bugs from complex code | Measure first with profiler |
+| "Just this once I'll catch and ignore the exception" | Swallowed exception | Silent failures, lost data | Log exception or rethrow |
+| "I know this blocks, but it's quick" | Blocking event loop | Cascading 503 errors | Use @Blocking annotation |
+| "ThreadLocal cleanup isn't critical here" | Classloader leak | OOM after 10 deployments | Remove in finally block |
+| "The lock order doesn't matter for this simple case" | Undocumented lock order | Deadlock when code grows | Document ordering now |
+| "This allocation is trivial" | Boxing in hot loop | GC pressure, latency spikes | Use primitive types |
+| "I'll use HashMap, order doesn't matter" | Non-deterministic ordering | Build flakiness | Use LinkedHashMap/TreeMap |
+| "Mockito is faster than a real test database" | Mocked database | Mock/prod drift, broken prod | Use @QuarkusTest + real DB |
+| "Let me refactor this code I haven't read yet" | Refactoring unknown code | Breaking working functionality | Read and understand first |
 
 ## Skill chaining
 

@@ -27,8 +27,9 @@ Expert Java development for Quarkus server-side applications with focus on:
 
 **Features:**
 - Quick Reference table (safety, concurrency, performance, testing, code quality)
-- "Red Flags — These Thoughts Mean STOP" rationalization table
+- "Red Flags — These Thoughts Mean STOP" 4-column rationalization table (Problem-Impact-Fix)
 - "Why These Rules Matter" section with 6 real production incidents
+- ❌/✅ code examples for Safety, Concurrency, Performance sections
 - RED-GREEN-REFACTOR validated (prevents resource leaks under pressure)
 
 **Triggers:** Writing Java classes, fixing bugs, refactoring, working with `.java`, `pom.xml`, or build files.
@@ -80,8 +81,27 @@ Assigns severity levels (CRITICAL/WARNING/NOTE) and blocks commits on critical f
 - "Why Code Review Matters" section with real incident examples
 - Severity assignment flowchart (CRITICAL/WARNING/NOTE decision tree)
 - Comprehensive checklist organized by category
+- ❌/✅ code examples for Safety, Concurrency, Performance, Testing sections
 
 **Triggers:** "review my code", "check my changes", `/code-review`, or automatically via `java-git-commit`.
+
+#### **security-audit**
+Security vulnerability review for Quarkus applications:
+- OWASP Top 10 checks adapted for Quarkus server-side apps
+- Injection prevention (SQL, Log, Command)
+- Broken authentication and access control detection
+- Cryptographic failures and security misconfiguration
+- SSRF and unvalidated redirect checks
+- Quarkus security feature recommendations
+
+**Features:**
+- "Why Security Audits Matter" with real breach examples
+- Severity assignment flowchart (CRITICAL/WARNING/NOTE for security)
+- ❌/✅ code examples for each OWASP category
+- Quarkus-specific security patterns and configurations
+- Integration with Vault, OIDC, and security extensions
+
+**Triggers:** "security review", "audit security", "OWASP", or when reviewing auth/authorization/PII handling code.
 
 ### Version Control & Documentation
 
@@ -317,6 +337,8 @@ All skills have been systematically improved following the [superpowers:writing-
 ├── quarkus-flow-testing/           # Workflow testing patterns
 │   └── SKILL.md
 ├── code-review/                    # Pre-commit quality checks
+│   └── SKILL.md
+├── security-audit/                 # Security vulnerability review
 │   └── SKILL.md
 ├── java-git-commit/                # Smart commit with design sync
 │   └── SKILL.md

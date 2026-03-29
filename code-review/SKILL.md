@@ -119,14 +119,54 @@ digraph severity_flow {
 
 ### 🔴 Safety (always check — any violation is CRITICAL)
 
-- **Resource leaks**: streams, connections, readers, writers, executors —
-  must be closed via try-with-resources or explicit finally. Check for any
-  `new` of a `Closeable` not wrapped in try-with-resources.
-- **Classloader leaks**: `ThreadLocal` values set but never removed;
-  static references to objects that hold class references.
-- **Silent data corruption**: catch blocks that swallow exceptions without
-  logging or rethrowing; result values that are silently ignored when they
-  signal failure.
+**Resource leaks** - streams, connections, readers, writers, executors must be closed:
+~~~java
+// ❌ BAD: Resource leak if read() throws exception
+FileInputStream fis = new FileInputStream(path);
+byte[] data = fis.readAllBytes();
+fis.close();
+
+// ✅ GOOD: Guaranteed closure
+try (FileInputStream fis = new FileInputStream(path)) {
+    byte[] data = fis.readAllBytes();
+}
+~~~
+
+**Classloader leaks** - ThreadLocal values must be removed:
+~~~java
+// ❌ BAD: ThreadLocal never cleaned up
+ThreadLocal<User> currentUser = new ThreadLocal<>();
+currentUser.set(user);
+
+// ✅ GOOD: Cleanup in finally
+ThreadLocal<User> currentUser = new ThreadLocal<>();
+try {
+    currentUser.set(user);
+    // use it
+} finally {
+    currentUser.remove();
+}
+~~~
+
+**Silent data corruption** - never swallow exceptions:
+~~~java
+// ❌ BAD: Exception swallowed, data marked processed
+try {
+    processPayment(order);
+    order.setStatus(PROCESSED);
+} catch (Exception e) { }
+
+// ✅ GOOD: Log and propagate
+try {
+    processPayment(order);
+    order.setStatus(PROCESSED);
+} catch (Exception e) {
+    LOG.error("Payment failed for order {}", order.getId(), e);
+    order.setStatus(FAILED);
+    throw e;
+}
+~~~
+
 - **Deadlock risk**: nested lock acquisition — flag any code that acquires
   more than one lock and verify ordering is documented.
 - **Unchecked nulls**: return values from external calls, CDI injections
@@ -134,14 +174,69 @@ digraph severity_flow {
 
 ### 🔴 Concurrency (CRITICAL if in shared/multi-threaded code)
 
+**Blocking on event loop** - I/O operations must not block Vert.x event thread:
+~~~java
+// ❌ BAD: Blocks event loop, freezes all concurrent requests
+@Path("/user")
+public class UserResource {
+    public User getUser(String id) {
+        return userRepository.findById(id);  // JDBC call on event loop
+    }
+}
+
+// ✅ GOOD: Dispatched to worker thread
+@Path("/user")
+public class UserResource {
+    @Blocking  // Executes on worker thread
+    public User getUser(String id) {
+        return userRepository.findById(id);
+    }
+}
+~~~
+
+**Non-thread-safe collections** - shared mutable state needs synchronization:
+~~~java
+// ❌ BAD: HashMap shared across threads without synchronization
+@ApplicationScoped
+public class CacheService {
+    private Map<String, Data> cache = new HashMap<>();  // Race conditions
+
+    public void put(String key, Data value) {
+        cache.put(key, value);
+    }
+}
+
+// ✅ GOOD: Thread-safe collection
+@ApplicationScoped
+public class CacheService {
+    private Map<String, Data> cache = new ConcurrentHashMap<>();
+
+    public void put(String key, Data value) {
+        cache.put(key, value);
+    }
+}
+~~~
+
+**ThreadLocal across async boundaries:**
+~~~java
+// ❌ BAD: ThreadLocal value lost across async boundary
+ThreadLocal<User> currentUser = new ThreadLocal<>();
+currentUser.set(user);
+return asyncService.process()  // Switches thread
+    .thenApply(result -> {
+        User u = currentUser.get();  // null - different thread
+        return transform(u, result);
+    });
+
+// ✅ GOOD: Capture value before async boundary
+ThreadLocal<User> currentUser = new ThreadLocal<>();
+currentUser.set(user);
+User capturedUser = user;  // Capture in local variable
+return asyncService.process()
+    .thenApply(result -> transform(capturedUser, result));
+~~~
+
 - Shared mutable state accessed without synchronisation.
-- Non-thread-safe collections (`HashMap`, `ArrayList`) used in a context
-  that could be accessed from multiple threads.
-- Blocking calls (I/O, `Thread.sleep`, `Object.wait`) on the Vert.x
-  event loop — must be dispatched to a worker thread (`@Blocking` or
-  `executeBlocking`).
-- `ThreadLocal` set in one context and read in another (e.g. across
-  async boundaries).
 - Hot-loop code added without a `// NOT thread-safe` comment.
 
 ### 🟡 Reproducibility (WARNING)
@@ -153,19 +248,89 @@ digraph severity_flow {
 
 ### 🟡 Performance (WARNING in hot paths, NOTE elsewhere)
 
-- `java.util.stream` chains in tight loops or per-request paths.
-- Unnecessary boxing (e.g. `Integer` where `int` suffices, streams over
-  primitives using boxed types).
+**Streams in hot paths** - functional overhead adds up at scale:
+~~~java
+// ❌ BAD: Stream allocation per request
+@Path("/items")
+public List<ItemDTO> getActiveItems() {
+    return items.stream()
+        .filter(Item::isActive)
+        .map(this::toDTO)
+        .collect(Collectors.toList());
+}
+
+// ✅ GOOD: Simple loop in hot path
+@Path("/items")
+public List<ItemDTO> getActiveItems() {
+    List<ItemDTO> result = new ArrayList<>(items.size());
+    for (Item item : items) {
+        if (item.isActive()) {
+            result.add(toDTO(item));
+        }
+    }
+    return result;
+}
+~~~
+
+**Unnecessary boxing** - primitives avoid GC pressure:
+~~~java
+// ❌ BAD: Boxing on every iteration
+List<Integer> counts = List.of(1, 2, 3, 4, 5);
+int sum = 0;
+for (Integer count : counts) {  // Unboxing overhead
+    sum += count;
+}
+
+// ✅ GOOD: Primitive array when possible
+int[] counts = {1, 2, 3, 4, 5};
+int sum = 0;
+for (int count : counts) {
+    sum += count;
+}
+~~~
+
 - Excessive object allocation inside loops (e.g. `new String(...)`,
   `String.format` in a hot path).
 - Reflection used where a simpler approach exists.
 
 ### 🟡 Testing (WARNING)
 
+**Prefer real implementations over mocks:**
+~~~java
+// ❌ BAD: Mockito masks real integration issues
+@QuarkusTest
+class OrderServiceTest {
+    @InjectMock
+    PaymentGateway gateway;
+
+    @Inject
+    OrderService service;
+
+    @Test
+    void should_process_order() {
+        when(gateway.charge(any())).thenReturn(success());
+        // Test passes but real gateway might fail differently
+    }
+}
+
+// ✅ GOOD: Use real database, in-memory implementations
+@QuarkusTest
+@QuarkusTestResource(PostgresResource.class)  // Real database
+class OrderServiceTest {
+    @Inject
+    OrderService service;
+
+    @Inject
+    TestPaymentGateway gateway;  // In-memory stub, predictable
+
+    @Test
+    void should_process_order() {
+        // Tests actual SQL, transaction handling, constraints
+    }
+}
+~~~
+
 - New non-trivial logic added with no corresponding test.
-- Test added that only duplicates existing integration test coverage
-  with heavy mocking — suggest removing or replacing with a
-  `@QuarkusComponentTest`.
 - `@QuarkusTest` used where `@QuarkusComponentTest` would suffice
   (unnecessary full container startup).
 
