@@ -292,6 +292,8 @@ quarkus.micrometer.export.prometheus.enabled=true
 
 ## Skill Chaining
 
+- **Invoked by `quarkus-flow-dev`**: When implementing workflows that need
+  observability (workflow tracing, MDC context propagation, metrics).
 - If adding OTel or Micrometer dependencies: invoke **dependency-update**
   to verify BOM alignment.
 - If this is the first time setting up observability for CaseHub: consider

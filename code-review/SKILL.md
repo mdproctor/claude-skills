@@ -38,6 +38,17 @@ and silent data corruption.
 - Second pair of eyes on concurrency correctness
 - Verification that tests actually test what they claim
 
+## Prerequisites
+
+**This skill builds on `java-dev`**. Apply all java-dev rules when reviewing:
+- **Safety**: Resource leaks, deadlocks, ThreadLocal cleanup, silent corruption
+- **Concurrency**: Thread model clarity, event loop blocking, lock ordering
+- **Performance**: Hot path optimization, avoiding unnecessary allocations
+- **Testing**: JUnit 5 + AssertJ, real CDI over mocking, integration test coverage
+- **Code Quality**: `final` parameters, minimal changes, clear documentation
+
+Review enforces these rules are followed in the code being committed.
+
 ## Workflow
 
 ### Step 1 — Collect staged changes

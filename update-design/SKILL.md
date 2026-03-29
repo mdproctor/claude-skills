@@ -196,3 +196,15 @@ Use this when DESIGN.md doesn't exist yet:
 | Skipping "Reason:" in proposals | User doesn't understand why change needed | Always explain rationale |
 | Not reading existing DESIGN.md first | Proposals conflict with structure | Always read full file before proposing |
 | Mentioning AI/tools in DESIGN.md | Breaks professional documentation standards | Never mention Claude, AI, or tooling in the doc itself |
+
+---
+
+## Skill Chaining
+
+- **Invoked automatically by `java-git-commit`**: Every Java commit triggers
+  update-design to keep DESIGN.md in sync with code changes before committing.
+- **Suggested by `adr`**: When an ADR documents a new component or integration,
+  adr suggests running update-design to keep DESIGN.md aligned with the
+  architectural decision.
+- **Can be invoked independently**: User can run `/update-design` directly when
+  they want to sync documentation without committing.

@@ -38,6 +38,15 @@ Determine what's being reviewed:
 
 Ask user to clarify scope if unclear.
 
+## Prerequisites
+
+**This skill builds on `java-dev`**. All java-dev safety and concurrency rules apply:
+- Resource management (try-with-resources for Closeable)
+- Thread safety and event loop awareness
+- Silent corruption prevention (never swallow exceptions)
+
+Security audit adds OWASP Top 10 vulnerability checks on top of general safety practices.
+
 ### Step 2 — Run the security checklist
 
 Work through each category below. For every finding, assign severity:

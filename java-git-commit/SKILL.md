@@ -21,6 +21,16 @@ in sync.
 
 For the core conventional commits workflow, refer to the `git-commit` skill.
 
+## Prerequisites
+
+**This skill builds on `git-commit`**. All core conventional commit rules apply:
+- Subject line: imperative mood, max 50 chars, no trailing period
+- Conventional Commits 1.0.0 specification (type[scope]: description)
+- Always wait for explicit user confirmation before committing
+- Never mention AI/tooling attribution in commit messages
+
+This skill adds Java-specific enhancements on top of that foundation.
+
 ## Core Rules
 
 - Follow all rules from `git-commit` skill
@@ -169,7 +179,7 @@ All pitfalls from `git-commit` apply, plus:
 
 ---
 
-## Integration with Other Skills
+## Skill Chaining
 
 - **Always invokes `update-design`** before proposing commit
 - **Chains from `code-review`** after all critical issues resolved
