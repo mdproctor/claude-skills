@@ -6,7 +6,7 @@ A curated collection of specialized skills for Claude Code that streamline Java 
 
 These skills transform Claude Code into an expert Java/Quarkus development assistant that understands enterprise-grade code quality, safety requirements, and modern cloud-native patterns. Each skill encodes best practices, common pitfalls, and project-specific conventions to ensure consistent, production-ready code.
 
-**Key improvements:**
+**Key Features:**
 - ✅ **Quick Reference tables** for instant lookup
 - ✅ **Red Flags sections** to prevent rationalizations
 - ✅ **Common Mistakes tables** documenting pitfalls
