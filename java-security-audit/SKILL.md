@@ -399,8 +399,8 @@ quarkus.rate-limiter.enabled=true
 
 ## Skill Chaining
 
-**Triggered by java-code-review:**
-When java-code-review encounters code handling authentication, authorization, payment processing, PII, or external API calls, it should offer to run java-security-audit for specialized OWASP Top 10 checks.
+**Offered by java-code-review (not automatic):**
+When java-code-review encounters code handling authentication, authorization, payment processing, PII, or external API calls, it offers to run java-security-audit for specialized OWASP Top 10 checks.
 
 **Chains from:**
 - **java-code-review**: Security audit is a specialized form of code review. Automatically offered for security-critical changes (auth, payment, PII handling).

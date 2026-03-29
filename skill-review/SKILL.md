@@ -256,8 +256,9 @@ fi
 
 ## Skill Chaining
 
-**Invoked before git-commit:**
-In skills repositories, invoke skill-review before committing SKILL.md changes.
+**Invoked by git-commit:**
+When SKILL.md files are detected in staged changes, git-commit automatically
+invokes skill-review before proceeding to commit.
 
 **Chains to git-commit:**
 After approval (or after fixing CRITICAL/WARNING issues), proceed to git-commit.

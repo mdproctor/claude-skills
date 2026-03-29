@@ -199,6 +199,10 @@ class WorkflowWithAITest {
 
 ## Skill Chaining
 
+**Invoked by quarkus-flow-dev:**
+When writing or debugging tests for quarkus-flow workflows.
+
+**Chains to:**
 - Before writing tests: understand workflow structure with **quarkus-flow-dev**
 - Apply **java-dev** testing rules (JUnit 5, AssertJ, real CDI)
 - When done: invoke **java-code-review** before committing

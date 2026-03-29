@@ -302,6 +302,8 @@ quarkus.micrometer.export.prometheus.enabled=true
 
 ## Skill Chaining
 
+- **Invoked by `java-dev`**: When implementing structured logging, tracing, or
+  metrics in Java applications.
 - **Invoked by `quarkus-flow-dev`**: When implementing workflows that need
   observability (workflow tracing, MDC context propagation, metrics).
 - If adding OTel or Micrometer dependencies: invoke **maven-dependency-update**
