@@ -1,11 +1,11 @@
 ---
 name: git-commit
 description: >
-  Use when user wants to create a commit NOW - says "commit this", "commit these
-  changes", "create a commit", or invokes /git-commit. Does NOT trigger on
-  discussions about past commits or asking "should I commit?". Creates
-  conventional commit messages (Conventional Commits 1.0.0). For Java projects
-  with DESIGN.md, use java-git-commit instead.
+  Use when user wants to create a commit NOW in non-Java repositories - says
+  "commit this", "commit these changes", "create a commit", or invokes
+  /git-commit. Does NOT trigger on discussions about past commits or asking
+  "should I commit?". For Java/Maven/Gradle repositories, use java-git-commit
+  instead (detects pom.xml or build.gradle).
 ---
 
 # Git Commit Helper
