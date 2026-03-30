@@ -210,6 +210,50 @@ def validate_document(filepath):
     return issues
 
 
+def validate_document_group(group):
+    """
+    Validate entire DocumentGroup (primary + modules).
+
+    Entry point for modular documentation validation. Delegates to
+    modular_validator.py for cross-module checks.
+
+    Args:
+        group: DocumentGroup (from document_discovery.py)
+
+    Returns:
+        dict with 'critical' and 'warnings' lists (aggregated from all checks)
+    """
+    try:
+        from modular_validator import validate_document_group as validate_group
+    except ImportError:
+        # Fallback if modular_validator not available
+        try:
+            # Try absolute import
+            import sys
+            from pathlib import Path
+            script_dir = Path(__file__).parent
+            sys.path.insert(0, str(script_dir))
+            from modular_validator import validate_document_group as validate_group
+        except ImportError:
+            # No modular validation available, fall back to single-file validation
+            return validate_document(group.primary_file)
+
+    # Run modular validation (returns list of ValidationResult objects)
+    results = validate_group(group)
+
+    # Aggregate into legacy format for backwards compatibility
+    aggregated = {
+        'critical': [],
+        'warnings': []
+    }
+
+    for result in results:
+        aggregated['critical'].extend(result.critical)
+        aggregated['warnings'].extend(result.warnings)
+
+    return aggregated
+
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python validate_document.py <filepath>", file=sys.stderr)

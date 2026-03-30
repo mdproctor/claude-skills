@@ -647,8 +647,246 @@ quarkus-observability
 - ✅ **Automatic CLAUDE.md sync** - Workflow docs stay current with convention changes
 - ✅ **Automatic README.md sync** - Skill catalog stays current (skills repos only)
 - ✅ **Universal document validation** - Automatic corruption detection prevents sync regressions across all project types
+- ✅ **Modular documentation support** - Split large docs into focused modules, sync all files together, validate cross-file integrity
 - ✅ **Quarkus/Vert.x specialized** - Event loop awareness, BOM patterns, reactive patterns
 - ✅ **RED-GREEN-REFACTOR validated** - Tested under pressure, prevents resource leaks
+
+---
+
+## Modular Documentation
+
+**Split large documentation into focused modules while keeping everything automatically synchronized.**
+
+### What Is Modular Documentation?
+
+Instead of maintaining a single 2000-line document, split it into focused files:
+
+**Before:**
+```
+docs/DESIGN.md (2000 lines)
+  - Overview, Architecture, Components, API, Data Model, Deployment...
+```
+
+**After:**
+```
+docs/DESIGN.md (200 lines - navigation)
+docs/design/architecture.md
+docs/design/components.md
+docs/design/api.md
+docs/design/data-model.md
+docs/design/deployment.md
+```
+
+**The sync workflows automatically discover all modules, update them together, and validate cross-file integrity.**
+
+### Why Use Modular Documentation?
+
+**Large single-file documents become unmaintainable:**
+- Hard to navigate (find specific section in 2000 lines)
+- Different concerns mixed together (architecture + API + deployment)
+- Merge conflicts when multiple people edit
+- Cognitive overload when updating one part
+
+**Modular structure solves this:**
+- Each file focused on one concern (easier to understand, edit, review)
+- Parallel editing (no merge conflicts between architecture and API changes)
+- Better navigation (jump directly to `api.md` instead of scrolling)
+- **Automatic synchronization** - sync workflows keep all files in sync
+
+### Hybrid Discovery Approach
+
+**Automatic discovery (preferred):**
+
+Sync workflows discover modules through multiple methods:
+
+**1. Markdown links:**
+```markdown
+See [Architecture](docs/design/architecture.md) for component structure.
+```
+
+**2. Include directives:**
+```markdown
+<!-- include: components.md -->
+```
+
+**3. Section references:**
+```markdown
+§ API Details in docs/design/api.md
+```
+
+**4. Directory patterns:**
+If your primary file is `DESIGN.md`, sync automatically checks `docs/design/*.md`
+
+**Caching for performance:**
+- First sync: Discovers structure, caches in `.doc-cache.json` (gitignored)
+- Subsequent syncs: Uses cache (<10ms, no re-parsing)
+- Automatic cache invalidation when you add/remove links
+
+### How Link Detection Works
+
+**When you create a link in your primary document, sync workflows automatically:**
+
+1. **Parse the link:** Extract file path from `[text](path.md)` or `§ Section in path.md`
+2. **Resolve path:** Make it absolute relative to primary document
+3. **Verify existence:** Check if the file actually exists
+4. **Add to group:** Include in the document group for synchronized updates
+5. **Cache structure:** Save for fast subsequent syncs
+
+**This happens automatically. You just add links, sync workflows handle the rest.**
+
+### Navigating Modular Documents
+
+**Primary file becomes navigation hub:**
+
+```markdown
+# Project Design
+
+## Overview
+High-level project summary...
+
+## Architecture
+See [Architecture](docs/design/architecture.md) for detailed component
+structure, data flow, and design decisions.
+
+## API
+See [API Endpoints](docs/design/api.md) for REST endpoint documentation,
+request/response schemas, and authentication.
+
+## Data Model
+See [Data Model](docs/design/data-model.md) for entity relationships,
+database schema, and migration strategy.
+```
+
+**Module files contain focused content:**
+
+```markdown
+# Architecture
+
+## Component Overview
+[Detailed architecture content here...]
+
+## Data Flow
+[Sequence diagrams, data flow descriptions...]
+
+## Design Decisions
+[Rationale for architectural choices...]
+```
+
+**Cross-references between modules:**
+
+```markdown
+# API Endpoints
+
+## Authentication
+See [Security Model](security.md) for authentication flows.
+
+## User API
+Interacts with [User Service](../design/components.md#user-service).
+```
+
+### When to Modularize
+
+**Use modular when:**
+- Document exceeds ~500 lines
+- Multiple distinct topics (architecture, API, data model, deployment)
+- Multiple contributors editing different sections
+- Frequent updates to specific sections
+
+**Keep single-file when:**
+- Document under ~300 lines
+- Single cohesive topic
+- Infrequent updates
+- Solo maintainer
+
+### Automatic Synchronization
+
+**When you commit changes, sync workflows:**
+
+1. **Discover modules** from your primary document (via links/includes/refs)
+2. **Analyze code changes** and map to sections across all files
+3. **Propose updates** grouped by file:
+   ```
+   ## Proposed DESIGN.md updates
+   [changes to primary]
+
+   ## Proposed docs/design/api.md updates
+   [changes to API module]
+   ```
+4. **Wait for your YES** before applying anything
+5. **Update all files together** (atomic operation)
+6. **Validate entire group** (link integrity, completeness, no corruption)
+7. **Revert ALL files** if validation fails (not just primary)
+
+**You see all proposed changes before they're applied. You approve once, all files update together.**
+
+### Universal Application
+
+**Works across all project types:**
+
+| Project Type | Documents | Example Modules |
+|--------------|-----------|-----------------|
+| **Java projects** | DESIGN.md, CLAUDE.md | `docs/design/architecture.md`, `docs/workflows/build.md` |
+| **Skills repositories** | README.md, CLAUDE.md | `docs/readme/skills.md`, `docs/workflows/ci.md` |
+| **Research projects** | THESIS.md | `docs/thesis/methodology.md`, `docs/thesis/results.md` |
+| **Working groups** | VISION.md | `docs/vision/projects.md`, `docs/vision/roadmap.md` |
+| **API documentation** | API.md | `docs/api/endpoints.md`, `docs/api/schemas.md` |
+
+Same discovery mechanism, same validation, same sync behavior - universal.
+
+### Backwards Compatible
+
+**No migration required.** Single-file documents work unchanged:
+
+- Sync workflows discover zero modules → work as before
+- No performance penalty (empty modules list is fast)
+- Opt-in by adding links when you're ready
+
+**Gradual migration:**
+
+```
+Week 1: Extract API section → docs/design/api.md, add link
+Week 2: Extract data model → docs/design/data-model.md, add link
+Week 3: Extract architecture → docs/design/architecture.md, add link
+```
+
+Each step is independently useful. No "all or nothing" migration.
+
+### Example: Modularizing DESIGN.md
+
+**Step 1: Create module file**
+```bash
+mkdir -p docs/design
+# Move API section content to docs/design/api.md
+```
+
+**Step 2: Add link in DESIGN.md**
+```markdown
+## API
+See [API Endpoints](docs/design/api.md) for REST endpoint documentation.
+```
+
+**Step 3: Commit**
+```bash
+git add DESIGN.md docs/design/api.md
+git commit -m "docs(design): modularize API section"
+```
+
+**That's it.** Next time sync runs:
+- Discovers `docs/design/api.md` via link
+- Caches structure
+- Updates both files when API-related code changes
+- Validates links between them
+
+### Quality Assurance
+
+**Automatic validation prevents corruption:**
+
+- ✅ **Link integrity:** Broken links block commit
+- ✅ **Completeness:** Warns about orphaned modules
+- ✅ **No duplication:** Detects duplicate content across files
+- ✅ **Document structure:** Validates each file individually
+
+**See QUALITY.md for complete validation framework.**
 
 ---
 

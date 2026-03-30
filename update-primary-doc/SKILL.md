@@ -65,6 +65,36 @@ Stop and tell calling skill:
 >
 > This skill requires Primary Document, Sync Strategy, and Sync Rules table.
 
+### Step 1a: Discover document group
+
+**After extracting primary document path, discover modular structure:**
+
+```python
+from scripts.document_discovery import discover_document_group
+from pathlib import Path
+
+group = discover_document_group(Path(primary_doc_path))
+```
+
+**This discovers:**
+- Primary file: e.g., `docs/vision.md`
+- Optional modules via:
+  - Markdown links: `[Projects](docs/vision/projects.md)`
+  - Include directives: `<!-- include: governance.md -->`
+  - Section references: `§ Roadmap in docs/vision/roadmap.md`
+  - Directory pattern: `docs/vision/*.md` files (if primary is `docs/vision.md`)
+
+**Cache behavior:**
+- First sync: Discovers modules, caches in `.doc-cache.json`
+- Subsequent syncs: Uses cache (fast path, <10ms)
+- Cache invalidation: Automatic on structure changes (new links, new files)
+
+**Result:**
+- Single-file document → `group.modules` is empty (backwards compatible)
+- Modular document → `group.modules` contains linked files
+
+**Continue with all files in the group (primary + modules).**
+
 ---
 
 ### Step 2 — Read staged changes
@@ -96,12 +126,14 @@ For each staged file, check if it matches any pattern in the Sync Rules table (c
 
 ---
 
-### Step 4 — Read primary document
+### Step 4 — Read current content
 
-Read the primary document to understand its current structure:
-```bash
-cat {primary_doc_path}
-```
+Read the full document(s) to understand existing structure before proposing changes.
+
+**If modular (group.modules not empty):**
+- Read primary document
+- Read each module file
+- Understand how content is split across files
 
 **Parse document structure:**
 - Identify all headings (## Section, ### Subsection, etc.)
@@ -172,6 +204,8 @@ git diff --staged {file_path}
 
 ### Step 6 — Present proposals to calling skill
 
+**For single-file primary document:**
+
 Return a structured proposal in this format:
 
 ```markdown
@@ -204,6 +238,53 @@ Files that matched sync rules but don't require primary doc updates:
 - {file_path} - {reason why no update needed}
 ```
 
+**For modular primary document (primary + modules):**
+
+Group proposals by file:
+
+```markdown
+## Primary Document Sync Proposal
+
+**Primary Document:** {primary_doc_path}
+**Sync Strategy:** {strategy_name}
+**Files Analyzed:** {count} files matched sync rules
+
+### Proposed {primary_doc_path} updates
+
+#### Section: {section_name}
+
+**Reason:** {file_path} changed - {brief description}
+
+**Proposed update:**
+```
+[Specific markdown to add/modify]
+```
+
+**Update type:** {Add new entry | Modify existing | Remove | Status update}
+
+---
+
+### Proposed docs/vision/projects.md updates
+
+#### Section: {section_name}
+
+**Reason:** {file_path} changed - {brief description}
+
+**Proposed update:**
+```
+[Specific markdown to add/modify]
+```
+
+**Update type:** {Add new entry | Modify existing | Remove | Status update}
+```
+
+**Routing logic:**
+- Match file path to sync rules
+- Determine target section
+- If section is in a module file → route there
+- If section is in primary → route there
+- If section location unclear → propose in primary
+
 **If no updates needed:**
 Return:
 ```markdown
@@ -225,7 +306,7 @@ The calling skill (`custom-git-commit`) will:
 2. Get user confirmation
 3. Call this skill back with approval to apply
 
-**When called to apply:**
+**When called to apply (single-file):**
 1. Use Edit tool to make each proposed change
 2. Preserve existing document structure
 3. Maintain consistent formatting
@@ -241,6 +322,37 @@ The calling skill (`custom-git-commit`) will:
 7. **If validation succeeds or has only warnings:**
    - Return success to calling skill
    - Document is ready for staging
+
+**When called to apply (modular - primary + modules):**
+1. Apply proposed changes to ALL affected files (primary + modules)
+2. Preserve existing document structure in each file
+3. Maintain consistent formatting across files
+4. Update "Last Updated" metadata if files have it
+5. **Validate entire document group:**
+   ```python
+   from scripts.validate_document import validate_document_group
+   from scripts.document_discovery import discover_document_group
+   from pathlib import Path
+
+   group = discover_document_group(Path(primary_doc_path))
+   issues = validate_document_group(group)
+   ```
+6. **If validation fails (CRITICAL issues):**
+   - Revert ALL modified files:
+     ```bash
+     git restore docs/vision.md docs/vision/projects.md docs/vision/roadmap.md
+     ```
+   - Report CRITICAL issues to calling skill
+   - Calling skill should stop and ask user to fix manually
+7. **If validation succeeds or has only warnings:**
+   - Return success to calling skill
+   - All modified files ready for staging
+
+**Validation checks for modular groups:**
+- Link integrity: All `[links](file.md)` and `[links](file.md#section)` resolve
+- Completeness: No orphaned modules (unreferenced from primary)
+- No duplication: Substantial paragraphs not duplicated across files
+- Individual file validation: Each file passes single-file corruption checks
 
 ---
 

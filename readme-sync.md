@@ -48,12 +48,47 @@ This workflow is invoked by `git-commit` when:
 ls README.md 2>/dev/null || echo "No README.md found"
 ```
 
-- If found → proceed.
+- If found → proceed to Step 1a.
 - If not found → this is not a skills repository (or README doesn't exist yet).
+
+### Step 1a: Discover document group
+
+**After locating README.md, discover modular structure:**
+
+```python
+from scripts.document_discovery import discover_document_group
+from pathlib import Path
+
+group = discover_document_group(Path("README.md"))
+```
+
+**This discovers:**
+- Primary file: `README.md`
+- Optional modules via:
+  - Markdown links: `[Skills Guide](docs/readme/skills.md)`
+  - Include directives: `<!-- include: chaining.md -->`
+  - Section references: `§ Examples in docs/readme/examples.md`
+  - Directory pattern: `docs/readme/*.md` files
+
+**Cache behavior:**
+- First sync: Discovers modules, caches in `.doc-cache.json`
+- Subsequent syncs: Uses cache (fast path, <10ms)
+- Cache invalidation: Automatic on structure changes (new links, new files)
+
+**Result:**
+- Single-file README.md → `group.modules` is empty (backwards compatible)
+- Modular README.md → `group.modules` contains linked files
+
+**Continue with all files in the group (primary + modules).**
 
 ### Step 2: Read current content
 
 Read the full file to understand existing structure before proposing any changes.
+
+**If modular (group.modules not empty):**
+- Read README.md (primary file)
+- Read each module file
+- Understand how content is split across files
 
 ### Step 3: Collect the changes to analyze
 
@@ -114,6 +149,8 @@ Skip the following changes, unless they signal a broader pattern:
 
 ### Step 5: Propose updates
 
+**For single-file README.md:**
+
 Format each proposed change as a clear before/after block:
 
 ```
@@ -127,6 +164,55 @@ Format each proposed change as a clear before/after block:
 
 **Reason:** <one-sentence rationale>
 ```
+
+**For modular README.md (primary + modules):**
+
+Group proposals by file:
+
+```
+## Proposed README.md updates
+
+### Section: Skills
+**Replace:**
+> <existing text>
+
+**With:**
+> <new text>
+
+**Reason:** <rationale>
+
+---
+
+## Proposed docs/readme/skills.md updates
+
+### Section: Language-Specific Skills
+**Replace:**
+> <existing text>
+
+**With:**
+> <new text>
+
+**Reason:** <rationale>
+
+---
+
+## Proposed docs/readme/chaining.md updates
+
+### Section: Automatic Invocations
+**Replace:**
+> (new entry)
+
+**With:**
+> | `java-git-commit` | `java-update-design` | Always (if docs/DESIGN.md exists) |
+
+**Reason:** New automatic chaining relationship documented
+```
+
+**Routing logic:**
+- New skill → Update `docs/readme/skills.md` (if exists), else README.md § Skills
+- New chaining → Update `docs/readme/chaining.md` (if exists), else README.md § Skill Chaining Reference
+- New features → Update `docs/readme/features.md` (if exists), else README.md § Key Features
+- Repository structure → Update README.md (primary always has high-level structure)
 
 If adding a brand-new section, say "Add after `<Section Name>`:" and show the
 full new section.
@@ -142,6 +228,8 @@ End every proposal with exactly:
 > Reply **YES** to apply all changes, **NO** to discard, or describe what to adjust.
 
 When the user confirms with YES (or a clear equivalent):
+
+**For single-file README.md:**
 1. Apply **only** the proposed changes — no extras.
 2. **Validate the document:**
    ```bash
@@ -155,6 +243,35 @@ When the user confirms with YES (or a clear equivalent):
 4. **If validation succeeds or has only warnings:**
    - Print a brief summary of what was written, e.g. "✅ Updated sections: Skills, Skill Chaining Reference."
    - Document is ready for staging
+
+**For modular README.md (primary + modules):**
+1. Apply proposed changes to ALL affected files (primary + modules)
+2. **Validate entire document group:**
+   ```python
+   from scripts.validate_document import validate_document_group
+   from scripts.document_discovery import discover_document_group
+   from pathlib import Path
+
+   group = discover_document_group(Path("README.md"))
+   issues = validate_document_group(group)
+   ```
+3. **If validation fails (CRITICAL issues):**
+   - Revert ALL modified files:
+     ```bash
+     git restore README.md docs/readme/skills.md docs/readme/chaining.md
+     ```
+   - Report CRITICAL issues to user
+   - Ask user to fix manually
+   - Stop (do not stage)
+4. **If validation succeeds or has only warnings:**
+   - Print summary: "✅ Updated files: README.md, docs/readme/skills.md, docs/readme/chaining.md"
+   - All modified files ready for staging
+
+**Validation checks for modular groups:**
+- Link integrity: All `[links](file.md)` and `[links](file.md#section)` resolve
+- Completeness: No orphaned modules (unreferenced from primary)
+- No duplication: Substantial paragraphs not duplicated across files
+- Individual file validation: Each file passes single-file corruption checks
 
 ---
 

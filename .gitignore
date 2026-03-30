@@ -5,5 +5,8 @@ __MACOSX
 # Claude Code local settings
 .claude/
 
+# Modular documentation cache
+.doc-cache.json
+
 #existing skill not added by me.
 skill-creator/
