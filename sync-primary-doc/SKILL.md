@@ -197,6 +197,17 @@ The calling skill (`custom-git-commit`) will:
 2. Preserve existing document structure
 3. Maintain consistent formatting
 4. Update "Last Updated" metadata if document has it
+5. **Validate the document:**
+   ```bash
+   python scripts/validate_document.py <primary-doc-path>
+   ```
+6. **If validation fails (exit code 1):**
+   - Revert changes: `git restore <primary-doc-path>`
+   - Report CRITICAL issues to calling skill
+   - Calling skill should stop and ask user to fix manually
+7. **If validation succeeds or has only warnings:**
+   - Return success to calling skill
+   - Document is ready for staging
 
 ---
 
@@ -323,6 +334,8 @@ Primary document sync proposal is complete when:
 - ✅ Document structure preserved
 - ✅ Formatting consistent
 - ✅ "Last Updated" metadata updated (if exists)
+- ✅ **Document validation passed** (no CRITICAL corruption)
+- ✅ Success returned to calling skill, document ready for staging
 
 ---
 

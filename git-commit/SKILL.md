@@ -228,7 +228,38 @@ git diff --staged --name-only | grep 'SKILL.md$'
 - If only WARNING/NOTE findings → hold them, continue to Step 2
 
 **If no SKILL.md files:**
-- Skip to Step 2
+- Skip to Step 1c
+
+### Step 1c — Validate documentation files
+
+Check for staged .md files (excluding SKILL.md which was validated in Step 1a):
+```bash
+git diff --staged --name-only | grep '\.md$' | grep -v 'SKILL\.md$'
+```
+
+**For each .md file found:**
+```bash
+python scripts/validate_document.py <file>
+```
+
+**Handle validation results:**
+- **Exit code 1 (CRITICAL issues):**
+  - BLOCK commit
+  - Show issues to user
+  - Ask user to fix corruption manually
+  - Stop workflow
+- **Exit code 2 (WARNING issues):**
+  - Show warnings to user
+  - Ask if they want to proceed anyway
+  - If NO → stop workflow
+  - If YES → continue to Step 2
+- **Exit code 0 (no issues):**
+  - Continue to Step 2
+
+**This step runs for ALL project types** (skills, java, custom, generic).
+
+**If no .md files found:**
+- Continue to Step 2
 
 ### Step 2 — Generate commit message
 

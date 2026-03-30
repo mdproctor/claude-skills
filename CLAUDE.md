@@ -1667,3 +1667,206 @@ jobs:
 - Regression test suite established
 - CI integration configured
 - Documentation reviewed and approved
+
+---
+
+## Document Sync Quality Assurance
+
+**CRITICAL: Universal validation for all .md files being synced across all project types.**
+
+Document corruption can occur during any sync operation (README.md, CLAUDE.md, DESIGN.md, custom primary docs). This framework prevents corruption before it reaches git commits.
+
+### When This Applies
+
+**All project types:**
+- **type: skills** → README.md, CLAUDE.md (via readme-sync.md, update-claude-md)
+- **type: java** → DESIGN.md, CLAUDE.md (via update-design, update-claude-md)
+- **type: custom** → Primary doc (VISION.md, THESIS.md, API.md, etc.), CLAUDE.md (via sync-primary-doc, update-claude-md)
+- **type: generic** → CLAUDE.md (via update-claude-md)
+
+**Any document being automatically synchronized is at risk.**
+
+### Validation Script
+
+**Location:** `scripts/validate_document.py`
+
+**Universal validation that works on any .md file:**
+
+```bash
+python scripts/validate_document.py <filepath>
+```
+
+**Exit codes:**
+- `0` - No issues (clean document)
+- `1` - CRITICAL issues (blocks commit)
+- `2` - WARNING issues (should review)
+
+**What it detects:**
+
+1. **Duplicate section headers** (CRITICAL)
+   - Same `## Header` appears multiple times
+   - Usually caused by copy-paste errors during sync
+
+2. **Corrupted table structures** (CRITICAL)
+   - Table header followed by prose instead of separator/data rows
+   - Example: `| Col1 | Col2 |` followed by "This is a description" instead of `|---|---|`
+
+3. **Orphaned sections** (WARNING)
+   - Section header with no content before next header
+   - May indicate incomplete sync or missing content
+
+4. **Large structural changes** (WARNING)
+   - More than 100 lines modified
+   - Requires manual structural review
+
+### Integration Points
+
+**All sync workflows MUST validate after applying changes:**
+
+#### update-claude-md Step 6 (after user confirms YES)
+
+```bash
+# Apply proposed changes
+# Then validate:
+python scripts/validate_document.py CLAUDE.md
+if [ $? -eq 1 ]; then
+  echo "❌ CRITICAL: Validation failed, reverting changes"
+  git restore CLAUDE.md
+  exit 1
+fi
+```
+
+#### update-design Step 6 (after user confirms YES)
+
+```bash
+# Apply proposed changes
+# Then validate:
+python scripts/validate_document.py docs/DESIGN.md
+if [ $? -eq 1 ]; then
+  echo "❌ CRITICAL: Validation failed, reverting changes"
+  git restore docs/DESIGN.md
+  exit 1
+fi
+```
+
+#### sync-primary-doc Step 6 (after user confirms YES)
+
+```bash
+# Apply proposed changes to primary doc
+# Then validate:
+python scripts/validate_document.py <primary-doc-path>
+if [ $? -eq 1 ]; then
+  echo "❌ CRITICAL: Validation failed, reverting changes"
+  git restore <primary-doc-path>
+  exit 1
+fi
+```
+
+#### readme-sync.md Step 6 (after user confirms YES)
+
+```bash
+# Apply proposed changes
+# Then validate:
+python scripts/validate_document.py README.md
+if [ $? -eq 1 ]; then
+  echo "❌ CRITICAL: Validation failed, reverting changes"
+  git restore README.md
+  exit 1
+fi
+```
+
+### Pre-Commit Gate (git-commit)
+
+**Before committing, validate ALL staged .md files:**
+
+```markdown
+### Step 1c — Validate documentation files
+
+Check for staged .md files (excluding SKILL.md):
+```bash
+git diff --staged --name-only | grep '\.md$' | grep -v 'SKILL\.md$'
+```
+
+**For each .md file found:**
+```bash
+python scripts/validate_document.py <file>
+```
+
+**If validation fails:**
+- **CRITICAL (exit code 1):** BLOCK commit, show issues, ask user to fix
+- **WARNING (exit code 2):** Show warnings, ask user to confirm before proceeding
+```
+
+**This runs in ALL project types** (skills, java, custom, generic).
+
+### Portable Implementation
+
+**The validation script is portable:**
+
+1. **Copy to any project using these skills:**
+   ```bash
+   cp scripts/validate_document.py <target-project>/scripts/
+   ```
+
+2. **Works standalone (no dependencies):**
+   - Pure Python 3
+   - No external libraries required
+   - Uses only stdlib (sys, re, pathlib, collections, subprocess)
+
+3. **Integrates with any sync workflow:**
+   - Language-agnostic (checks .md syntax, not content semantics)
+   - Works on any document type (README, DESIGN, VISION, THESIS, etc.)
+   - Project-type independent
+
+### Common Document Corruption Patterns
+
+**These patterns are detected automatically:**
+
+| Pattern | Example | Detection | Prevention |
+|---------|---------|-----------|------------|
+| **Duplicate headers during restructure** | Two "## Skills" sections | Duplicate header check | Validate before commit |
+| **Table header + prose** | `\| Col1 \| Col2 \|` followed by description text | Corrupted table check | Validate table format |
+| **Copy-paste from wrong section** | Section content pasted under wrong header | Orphaned section check | Review large diffs |
+| **Incomplete sync** | Section header added but content not synced | Orphaned section check | Validate completeness |
+| **Merge conflict corruption** | `<<<<<<< HEAD` markers in document | Git diff check | Pre-commit validation |
+
+### Regression Prevention
+
+**Add to Issue Registry:**
+
+```markdown
+## Issue #002: Document Corruption During Sync
+
+**Symptom:** Duplicate sections, corrupted tables, orphaned headers
+
+**Impact:** Unreadable documentation, broken links, user confusion
+
+**Root Cause:** Sync operations (update-claude-md, update-design, etc.) can introduce corruption when proposing large changes
+
+**Detection:** Automated - `validate_document.py` checks all .md files
+
+**Prevention:**
+- Universal validation in all sync workflows
+- Pre-commit gate in git-commit for all project types
+- Automated revert if validation fails
+- Documentation in CLAUDE.md "Document Sync Quality Assurance"
+
+**Test Coverage:** ✅ Automated validation on all sync operations
+```
+
+### Success Criteria
+
+Document sync quality assurance is working when:
+
+- ✅ All sync workflows validate before staging
+- ✅ git-commit validates all staged .md files (all project types)
+- ✅ CRITICAL corruption is automatically caught and reverted
+- ✅ Zero document corruption reaches commits
+- ✅ Validation script is portable to all projects using these skills
+- ✅ Users never need to manually check for corruption
+
+**Not complete until:**
+- validate_document.py created and tested
+- All 4 sync workflows updated (update-claude-md, update-design, sync-primary-doc, readme-sync.md)
+- git-commit updated to validate all .md files
+- CLAUDE.md documentation complete

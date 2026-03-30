@@ -122,8 +122,19 @@ End every proposal with exactly:
 > Reply **YES** to apply all changes, **NO** to discard, or describe what to adjust.
 
 When user confirms YES:
-- Apply **only** the proposed changes
-- Print brief summary: "✅ Updated sections: Build Commands, Testing"
+1. Apply **only** the proposed changes
+2. **Validate the document:**
+   ```bash
+   python scripts/validate_document.py CLAUDE.md
+   ```
+3. **If validation fails (exit code 1):**
+   - Revert changes: `git restore CLAUDE.md`
+   - Report CRITICAL issues to user
+   - Ask user to fix manually
+   - Stop (do not stage)
+4. **If validation succeeds or has only warnings:**
+   - Print brief summary: "✅ Updated sections: Build Commands, Testing"
+   - Document is ready for staging
 
 ---
 
@@ -149,9 +160,10 @@ CLAUDE.md update is complete when:
 - ✅ Proposed updates formatted as before/after blocks
 - ✅ User confirmed with explicit **YES**
 - ✅ Changes applied to CLAUDE.md
+- ✅ **Document validation passed** (no CRITICAL corruption)
 - ✅ File ready for staging (or user confirmed no changes needed)
 
-**Not complete until** all criteria met and CLAUDE.md reflects current workflows.
+**Not complete until** all criteria met, validation passed, and CLAUDE.md reflects current workflows.
 
 ## Skill Chaining
 

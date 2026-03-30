@@ -150,8 +150,19 @@ End every proposal with exactly:
 > Reply **YES** to apply all changes, **NO** to discard, or describe what to adjust.
 
 When the user confirms with YES (or a clear equivalent):
-- Apply **only** the proposed changes — no extras.
-- Print a brief summary of what was written, e.g. "✅ Updated sections: API, Data Model."
+1. Apply **only** the proposed changes — no extras.
+2. **Validate the document:**
+   ```bash
+   python scripts/validate_document.py docs/DESIGN.md
+   ```
+3. **If validation fails (exit code 1):**
+   - Revert changes: `git restore docs/DESIGN.md`
+   - Report CRITICAL issues to user
+   - Ask user to fix manually
+   - Stop (do not stage)
+4. **If validation succeeds or has only warnings:**
+   - Print a brief summary of what was written, e.g. "✅ Updated sections: API, Data Model."
+   - Document is ready for staging
 
 ---
 
@@ -180,9 +191,10 @@ DESIGN.md update is complete when:
 - ✅ Proposed updates formatted as before/after blocks
 - ✅ User confirmed with explicit **YES**
 - ✅ Changes applied to docs/DESIGN.md
+- ✅ **Document validation passed** (no CRITICAL corruption)
 - ✅ File ready for staging (or user confirmed no changes needed)
 
-**Not complete until** all criteria met and DESIGN.md reflects current architecture.
+**Not complete until** all criteria met, validation passed, and DESIGN.md reflects current architecture.
 
 ## Skill Chaining
 
