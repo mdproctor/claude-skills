@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 """
-Run functional tests for skills.
+Functional test runner for skills with git worktree isolation.
+
+TIER: CI (expensive operations, 5min budget)
 
 Executes test cases defined in skill-name/tests/test_cases.json and validates
-skill behavior against expected outcomes.
+skill behavior against expected outcomes in isolated git worktrees.
 
 Usage:
     python scripts/testing/run_skill_tests.py              # Run all
     python scripts/testing/run_skill_tests.py --skill git-commit  # Run specific skill
     python scripts/testing/run_skill_tests.py --json       # JSON output
+    python scripts/testing/run_skill_tests.py --no-isolation  # Skip worktree isolation (faster)
 """
 
 import sys
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -21,6 +25,40 @@ from typing import List, Dict, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from utils.common import find_skills_root
+
+
+def create_test_worktree(base_dir: Path) -> Path:
+    """Create isolated git worktree for testing."""
+    worktree_dir = tempfile.mkdtemp(prefix="skill_test_")
+    worktree_path = Path(worktree_dir)
+
+    try:
+        subprocess.run(
+            ["git", "worktree", "add", str(worktree_path), "HEAD"],
+            cwd=base_dir,
+            check=True,
+            capture_output=True,
+            text=True
+        )
+    except subprocess.CalledProcessError as e:
+        # Cleanup temp dir if worktree creation failed
+        import shutil
+        shutil.rmtree(worktree_path, ignore_errors=True)
+        raise RuntimeError(f"Failed to create worktree: {e.stderr}") from e
+
+    return worktree_path
+
+
+def cleanup_worktree(worktree_path: Path) -> None:
+    """Remove git worktree and cleanup."""
+    if not worktree_path.exists():
+        return
+
+    subprocess.run(
+        ["git", "worktree", "remove", str(worktree_path), "--force"],
+        check=False,
+        capture_output=True
+    )
 
 
 def find_skill_tests() -> List[Path]:
@@ -376,9 +414,13 @@ def run_test_case(test_case: Dict, skill_dir: Path) -> Dict:
     }
 
 
-def run_skill_tests(test_path: Path) -> Dict:
+def run_skill_tests(test_path: Path, use_isolation: bool = True) -> Dict:
     """
     Run all test cases for a skill.
+
+    Args:
+        test_path: Path to test_cases.json
+        use_isolation: If True, run tests in isolated git worktree (default: True)
 
     Returns:
         {
@@ -386,30 +428,53 @@ def run_skill_tests(test_path: Path) -> Dict:
             'test_cases': List[Dict],
             'passed': bool,
             'total_tests': int,
-            'passed_tests': int
+            'passed_tests': int,
+            'isolated': bool
         }
     """
     skill_dir = test_path.parent.parent
     skill_name = skill_dir.name
+    skills_root = find_skills_root()
 
     test_data = load_test_cases(test_path)
     test_cases = test_data.get('tests', [])
 
-    results = []
-    for test_case in test_cases:
-        result = run_test_case(test_case, skill_dir)
-        results.append(result)
+    # Use worktree isolation if requested
+    worktree_path = None
+    test_dir = skill_dir
 
-    all_passed = all(r['passed'] for r in results)
+    if use_isolation:
+        try:
+            worktree_path = create_test_worktree(skills_root)
+            # Update test_dir to point to skill directory in worktree
+            test_dir = worktree_path / skill_dir.relative_to(skills_root)
+        except Exception as e:
+            # Fall back to in-place testing if worktree creation fails
+            print(f"Warning: Failed to create worktree, running in-place: {e}", file=sys.stderr)
+            use_isolation = False
 
-    return {
-        'skill_name': skill_name,
-        'test_file': str(test_path),
-        'test_cases': results,
-        'passed': all_passed,
-        'total_tests': len(results),
-        'passed_tests': sum(1 for r in results if r['passed'])
-    }
+    try:
+        results = []
+        for test_case in test_cases:
+            result = run_test_case(test_case, test_dir)
+            results.append(result)
+
+        all_passed = all(r['passed'] for r in results)
+
+        return {
+            'skill_name': skill_name,
+            'test_file': str(test_path),
+            'test_cases': results,
+            'passed': all_passed,
+            'total_tests': len(results),
+            'passed_tests': sum(1 for r in results if r['passed']),
+            'isolated': use_isolation
+        }
+
+    finally:
+        # Always cleanup worktree if created
+        if worktree_path:
+            cleanup_worktree(worktree_path)
 
 
 def print_results(results: List[Dict], verbose: bool = False):
@@ -464,6 +529,8 @@ def main():
     parser.add_argument('--skill', help='Run tests for specific skill')
     parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
     parser.add_argument('--json', action='store_true', help='JSON output')
+    parser.add_argument('--no-isolation', action='store_true',
+                        help='Skip worktree isolation (faster, but modifies working directory)')
     args = parser.parse_args()
 
     # Find test files
@@ -480,12 +547,20 @@ def main():
             print(f"No tests found for skill: {args.skill}")
             sys.exit(1)
 
+    # Determine isolation mode
+    use_isolation = not args.no_isolation
+
+    if use_isolation and not args.json:
+        print("Running tests with git worktree isolation (TIER: CI)", file=sys.stderr)
+    elif not use_isolation and not args.json:
+        print("Running tests in-place (no isolation)", file=sys.stderr)
+
     # Run tests
     results = []
     for test_file in test_files:
         if not args.json:
             print(f"Running tests for {test_file.parent.parent.name}...", file=sys.stderr)
-        result = run_skill_tests(test_file)
+        result = run_skill_tests(test_file, use_isolation=use_isolation)
         results.append(result)
 
     # Output results
@@ -495,6 +570,7 @@ def main():
             'passed_skills': sum(1 for r in results if r['passed']),
             'total_tests': sum(r['total_tests'] for r in results),
             'passed_tests': sum(r['passed_tests'] for r in results),
+            'isolated': use_isolation,
             'results': results
         }
         print(json.dumps(output, indent=2))
