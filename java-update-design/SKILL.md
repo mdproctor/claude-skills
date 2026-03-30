@@ -24,8 +24,22 @@ This skill is invoked by `java-git-commit` when:
 
 **Do NOT use this skill for:**
 - type: skills repositories (skills are self-documenting, no DESIGN.md)
-- type: custom repositories (use sync-primary-doc with user-configured primary document)
+- type: custom repositories (use update-primary-doc with user-configured primary document)
 - type: generic repositories (no automatic DESIGN.md sync)
+
+## Prerequisites
+
+**This skill extends `update-primary-doc`** with Java-specific knowledge:
+
+- **update-primary-doc**: Generic document sync patterns (read path, match files, propose updates, validate)
+
+**Java-specific additions:**
+- Hardcoded Primary Document: `docs/DESIGN.md`
+- Hardcoded architecture mappings:
+  - New @Entity → Update "Domain Model" section
+  - New @Service/@Repository → Update "Services" or "Data Access" section
+  - New module in pom.xml → Update "Component Structure" section
+  - API changes → Update "Public API" section
 
 ## Core Rules
 

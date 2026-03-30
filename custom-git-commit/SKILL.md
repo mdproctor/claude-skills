@@ -151,7 +151,7 @@ Hold it — don't show it yet.
 Look for Sync Rules table in CLAUDE.md.
 
 **If Sync Rules table exists and has entries:**
-- Invoke `custom-update-primary-doc` skill, passing:
+- Invoke `update-primary-doc` skill, passing:
   - Primary document path
   - Sync strategy
   - Sync rules table
@@ -198,7 +198,7 @@ ls CLAUDE.md 2>/dev/null
 <optional footer>
 
 ## Proposed {primary_doc_name} updates (if any)
-<output from custom-update-primary-doc skill>
+<output from update-primary-doc skill>
 
 ## Proposed CLAUDE.md updates (if any)
 <output from update-claude-md skill>
@@ -225,7 +225,7 @@ Then ask exactly:
 ### Step 6 — Commit (only after explicit YES)
 
 **If documentation updates were proposed**, run in this exact order:
-1. Let custom-update-primary-doc apply its changes (if proposed)
+1. Let update-primary-doc apply its changes (if proposed)
 2. Let update-claude-md apply its changes (if proposed)
 3. Stage updated files: `git add {primary_doc_path} CLAUDE.md` (only files that were changed)
 4. Commit with the confirmed message:
@@ -264,7 +264,7 @@ digraph custom_commit_flow {
     "Stop: Create primary doc" [shape=box];
     "Generate commit message" [shape=box];
     "Sync configured?" [shape=diamond];
-    "Invoke custom-update-primary-doc" [shape=box];
+    "Invoke update-primary-doc" [shape=box];
     "Present proposal" [shape=box];
     "User confirms?" [shape=diamond];
     "Adjust proposal" [shape=box];
@@ -281,9 +281,9 @@ digraph custom_commit_flow {
     "Primary doc exists?" -> "Stop: Create primary doc" [label="no"];
     "Primary doc exists?" -> "Generate commit message" [label="yes"];
     "Generate commit message" -> "Sync configured?";
-    "Sync configured?" -> "Invoke custom-update-primary-doc" [label="yes"];
+    "Sync configured?" -> "Invoke update-primary-doc" [label="yes"];
     "Sync configured?" -> "Present proposal" [label="no"];
-    "Invoke custom-update-primary-doc" -> "Present proposal";
+    "Invoke update-primary-doc" -> "Present proposal";
     "Present proposal" -> "User confirms?";
     "User confirms?" -> "Adjust proposal" [label="no"];
     "Adjust proposal" -> "Present proposal";
@@ -323,7 +323,7 @@ Commit is complete when:
 **Invoked by:** User says "commit" in a type: custom project (after git-commit routes here)
 
 **Invokes:**
-- [`custom-update-primary-doc`] for primary document sync (automatic if Sync Rules configured)
+- [`update-primary-doc`] for primary document sync (automatic if Sync Rules configured)
 - [`update-claude-md`] for workflow sync (automatic if CLAUDE.md exists)
 
 **Can be invoked independently:** Yes, but git-commit will route here automatically for type: custom

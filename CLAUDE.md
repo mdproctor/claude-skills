@@ -209,7 +209,7 @@ java-git-commit (for type: java)
 custom-git-commit (for type: custom)
   ├─ Verify Primary Document exists (path from CLAUDE.md)
   ├─ Read Sync Rules table from CLAUDE.md
-  ├─ custom-update-primary-doc (generic, table-driven)
+  ├─ update-primary-doc (generic, table-driven)
   │   ├─ Match staged files against patterns
   │   └─ Propose updates to specified sections
   ├─ Optional validators (if configured)
@@ -835,7 +835,7 @@ When you identify a problem and prepare a solution, STOP and consider:
 **Workflow integrators** (chain multiple skills):
 - `git-commit` — automatically invokes `skill-review` (if SKILL.md staged), `update-claude-md` (if CLAUDE.md exists), and `skills-update-readme` (if README.md exists and skill changes). Routes to java-git-commit or custom-git-commit based on project type
 - `java-git-commit` — automatically invokes `java-update-design` and `update-claude-md` (if docs exist). For type: java projects only
-- `custom-git-commit` — automatically invokes `custom-update-primary-doc` (if Sync Rules configured) and `update-claude-md` (if exists). For type: custom projects (working groups, research, docs)
+- `custom-git-commit` — automatically invokes `update-primary-doc` (if Sync Rules configured) and `update-claude-md` (if exists). For type: custom projects (working groups, research, docs)
 - `java-code-review` — triggers `java-security-audit` for security-critical code
 - `skill-review` — blocks `git-commit` if CRITICAL findings exist
 
@@ -845,7 +845,7 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `maven-dependency-update` — Maven BOM management, builds on `dependency-management-principles`
 - `quarkus-observability` — Quarkus observability config, builds on `observability-principles`
 - `skill-review` — SKILL.md validation (frontmatter, CSO, cross-references, flowcharts), invoked by `git-commit`
-- `custom-update-primary-doc` — Generic table-driven primary document sync (VISION.md, THESIS.md, etc.), invoked by `custom-git-commit`. Reads Sync Rules from CLAUDE.md
+- `update-primary-doc` — Generic table-driven primary document sync (VISION.md, THESIS.md, etc.), invoked by `custom-git-commit`. Reads Sync Rules from CLAUDE.md
 - `java-update-design` — DESIGN.md synchronization (architecture documentation), invoked by `java-git-commit`. For type: java projects only
 - `update-claude-md` — CLAUDE.md synchronization (workflow documentation), invoked by `git-commit`, `java-git-commit`, and `custom-git-commit`
 - `skills-update-readme` — README.md synchronization (skills repository documentation), invoked by `git-commit`. For type: skills projects only
@@ -1743,7 +1743,7 @@ Document corruption can occur during any sync operation (README.md, CLAUDE.md, D
 **All project types:**
 - **type: skills** → README.md, CLAUDE.md (via skills-update-readme, update-claude-md)
 - **type: java** → DESIGN.md, CLAUDE.md (via java-update-design, update-claude-md)
-- **type: custom** → Primary doc (VISION.md, THESIS.md, API.md, etc.), CLAUDE.md (via custom-update-primary-doc, update-claude-md)
+- **type: custom** → Primary doc (VISION.md, THESIS.md, API.md, etc.), CLAUDE.md (via update-primary-doc, update-claude-md)
 - **type: generic** → CLAUDE.md (via update-claude-md)
 
 **Any document being automatically synchronized is at risk.**
@@ -1811,7 +1811,7 @@ if [ $? -eq 1 ]; then
 fi
 ```
 
-#### custom-update-primary-doc Step 6 (after user confirms YES)
+#### update-primary-doc Step 6 (after user confirms YES)
 
 ```bash
 # Apply proposed changes to primary doc
@@ -1929,6 +1929,6 @@ Document sync quality assurance is working when:
 
 **Not complete until:**
 - validate_document.py created and tested
-- All 4 sync workflows updated (update-claude-md, java-update-design, custom-update-primary-doc, skills-update-readme)
+- All 4 sync workflows updated (update-claude-md, java-update-design, update-primary-doc, skills-update-readme)
 - git-commit updated to validate all .md files
 - CLAUDE.md documentation complete

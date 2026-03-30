@@ -83,8 +83,8 @@ KNOWN_CORRECT = {
     'custom-git-commit': 'Router skill - documents other types but is custom-specific',
     'git-commit': 'Generic router - correctly has no prefix',
     'java-update-design': 'Java-specific - correctly prefixed',
-    'custom-update-primary-doc': 'Custom-specific - correctly prefixed',
     'skills-update-readme': 'Skills-specific - correctly prefixed',
+    'update-primary-doc': 'Generic base - correctly has no prefix',
 }
 
 

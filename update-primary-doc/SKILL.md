@@ -1,33 +1,40 @@
 ---
-name: custom-update-primary-doc
+name: update-primary-doc
 description: >
-  Use when custom-git-commit needs to synchronize a primary document (VISION.md,
-  THESIS.md, etc.) based on user-configured sync rules in CLAUDE.md. Generic
-  table-driven processor - no hardcoded project knowledge.
+  Generic base skill for synchronizing primary documents (DESIGN.md, VISION.md,
+  README.md, THESIS.md, etc.) with repository changes. Table-driven processor
+  with no hardcoded project knowledge. Extended by java-update-design and
+  skills-update-readme for project-specific mappings.
 ---
 
-# Primary Document Synchronization
+# Primary Document Synchronization (Generic Base)
 
 You are an expert in keeping primary documents synchronized with repository changes using user-configured sync strategies.
 
-**This skill is generic and table-driven.** It has no knowledge of specific project types. All sync logic comes from the Sync Rules table in CLAUDE.md.
+**This skill is generic and table-driven.** It has no knowledge of specific project types. All sync logic comes from the Sync Rules table in CLAUDE.md or from child skills that extend it.
 
 ## When to Use This Skill
 
-**Invoked by:** `custom-git-commit` when Sync Rules are configured in CLAUDE.md
+**This is a foundation skill.** It's extended by project-specific skills:
+- `java-update-design` - Extends with Java-specific mappings (DESIGN.md)
+- `skills-update-readme` - Extends with skills-specific mappings (README.md)
 
-**Do NOT use this skill if:**
-- No Sync Rules table in CLAUDE.md
+**Direct invocation by:** `custom-git-commit` when Sync Rules are configured in CLAUDE.md (type: custom projects)
+
+**Do NOT use this skill directly if:**
+- Project type is `java` (use `java-update-design` instead)
+- Project type is `skills` (use `skills-update-readme` instead)
+- No Sync Rules table in CLAUDE.md (for type: custom)
 - Sync Rules table is empty or template-only
-- Project type is not `custom` (use project-specific sync skills instead)
 
-## Prerequisites
+## Core Principles
 
-**This skill is invoked by `custom-git-commit`** and expects:
-- CLAUDE.md with type: custom declaration
-- Primary Document path specified in CLAUDE.md
-- Sync Strategy specified in CLAUDE.md
-- Sync Rules table with at least one non-template entry
+**Universal document sync patterns:**
+- Read Primary Document path from CLAUDE.md or child skill
+- Read Sync Rules from CLAUDE.md or child skill
+- Match changed files against patterns
+- Propose updates to appropriate document sections
+- Validate before staging
 
 ## Core Rules
 

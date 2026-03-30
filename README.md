@@ -205,7 +205,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **update-claude-md** | CLAUDE.md (workflows) | all | git-commit, java-git-commit, custom-git-commit |
 | **java-update-design** | DESIGN.md (architecture) | java | java-git-commit |
 | **skills-update-readme** | README.md (skill catalog) | skills | git-commit |
-| **custom-update-primary-doc** | User-configured doc | custom | custom-git-commit |
+| **update-primary-doc** | User-configured doc | custom | custom-git-commit |
 
 ### Layer 3: Review (3 skills)
 
@@ -344,7 +344,7 @@ Maintains README.md documentation in sync with skill collection changes in skill
 
 Invoked automatically by `git-commit` (if README.md exists and skill changes detected), or independently. Specific to skills repositories; for code repositories, use project-specific documentation tools.
 
-#### **custom-update-primary-doc**
+#### **update-primary-doc**
 Generic table-driven primary document synchronization for custom projects:
 - Syncs VISION.md, THESIS.md, or user-configured primary documents
 - Reads Sync Rules from CLAUDE.md (file patterns → document sections)
@@ -716,7 +716,7 @@ Each skill explicitly declares when to chain to other skills:
 | `java-git-commit` | `java-code-review` | Automatic (if not done this session) |
 | `java-git-commit` | `java-update-design` | Always (automatic) |
 | `java-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
-| `custom-git-commit` | `custom-update-primary-doc` | Sync Rules configured (automatic) |
+| `custom-git-commit` | `update-primary-doc` | Sync Rules configured (automatic) |
 | `custom-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
 | `java-code-review` | `java-security-audit` | Security-critical code detected |
 | `java-dev` | `java-code-review` | User triggers review |
@@ -787,7 +787,7 @@ All skills have been systematically improved following the [superpowers:writing-
 - ✅ CLAUDE.md after sync (update-claude-md)
 - ✅ DESIGN.md after sync (java-update-design)
 - ✅ README.md after sync (skills-update-readme)
-- ✅ Primary documents after sync (custom-update-primary-doc for VISION.md, THESIS.md, etc.)
+- ✅ Primary documents after sync (update-primary-doc for VISION.md, THESIS.md, etc.)
 
 **Validation checks:**
 | Check | Severity | Action |

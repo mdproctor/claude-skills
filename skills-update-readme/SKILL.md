@@ -24,6 +24,20 @@ This workflow is invoked by `git-commit` when:
 - type: custom repositories (no automatic README sync)
 - type: generic repositories (no automatic README sync)
 
+## Prerequisites
+
+**This skill extends `update-primary-doc`** with skills-repository-specific knowledge:
+
+- **update-primary-doc**: Generic document sync patterns (read path, match files, propose updates, validate)
+
+**Skills-specific additions:**
+- Hardcoded Primary Document: `README.md`
+- Hardcoded skill collection mappings:
+  - New/removed SKILL.md → Update "Skills" section
+  - Skill renamed → Update all references (Skills, Chaining table, Repository Structure)
+  - New skill chaining → Update "Skill Chaining Reference" table
+  - New features added → Update "Key Features" section
+
 ## Core Rules
 
 - **Only operates in type: skills repositories** — other project types don't use automatic README sync
