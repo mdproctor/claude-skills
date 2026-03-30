@@ -1180,7 +1180,7 @@ skill-name/
 
 #### 3.2 Test Execution Framework
 
-**Script location:** `scripts/run_skill_tests.py` (to be created)
+**Script location:** `scripts/testing/run_skill_tests.py`
 
 **Process:**
 1. Create isolated git worktree for each test
@@ -1193,13 +1193,13 @@ skill-name/
 **Execution:**
 ```bash
 # Run all tests for a skill
-python scripts/run_skill_tests.py java-git-commit
+python scripts/testing/run_skill_tests.py java-git-commit
 
 # Run specific test
-python scripts/run_skill_tests.py java-git-commit --test basic-commit
+python scripts/testing/run_skill_tests.py java-git-commit --test basic-commit
 
 # Run all skill tests in repository
-python scripts/run_skill_tests.py --all
+python scripts/testing/run_skill_tests.py --all
 ```
 
 #### 3.3 Regression Test Suite
@@ -1245,10 +1245,10 @@ tests/regression/
 **Regression test execution:**
 ```bash
 # Run all regression tests
-python scripts/run_regression_tests.py
+python scripts/testing/run_regression_tests.py
 
 # Verify specific issue is fixed
-python scripts/run_regression_tests.py --issue 001
+python scripts/testing/run_regression_tests.py --issue 001
 ```
 
 ---
@@ -1285,7 +1285,7 @@ python scripts/run_regression_tests.py --issue 001
 **Coverage tracking:**
 ```bash
 # Generate coverage report
-python scripts/test_coverage.py --report
+python scripts/testing/test_coverage.py --report
 
 # Output:
 # java-git-commit: 5/5 branches tested (100%)
@@ -1392,7 +1392,7 @@ jobs:
 
       - name: Run Regression Tests
         run: |
-          python scripts/run_regression_tests.py
+          python scripts/testing/run_regression_tests.py
 
       - name: Check Documentation Sync
         run: |

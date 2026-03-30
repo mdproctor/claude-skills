@@ -1,0 +1,163 @@
+{
+  "skill": "java-git-commit",
+  "description": "Functional tests for java-git-commit skill",
+  "tests": [
+    {
+      "name": "Blocks if DESIGN.md is missing (CRITICAL)",
+      "description": "Should block commit if docs/DESIGN.md doesn't exist in Java repository",
+      "setup": [
+        "git init /tmp/test-java-commit-1",
+        "cd /tmp/test-java-commit-1 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-1 && echo '<project/>' > pom.xml",
+        "cd /tmp/test-java-commit-1 && git add CLAUDE.md pom.xml"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-java-commit-1/CLAUDE.md"
+        },
+        {
+          "category": "file",
+          "type": "not_exists",
+          "path": "/tmp/test-java-commit-1/docs/DESIGN.md"
+        }
+      ]
+    },
+    {
+      "name": "Invokes update-design when DESIGN.md exists",
+      "description": "Should invoke update-design to sync DESIGN.md with code changes",
+      "setup": [
+        "git init /tmp/test-java-commit-2",
+        "cd /tmp/test-java-commit-2 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-2 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-2 && echo '<project/>' > pom.xml",
+        "cd /tmp/test-java-commit-2 && git add CLAUDE.md docs/DESIGN.md pom.xml"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-java-commit-2/docs/DESIGN.md"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "update-design"
+        }
+      ]
+    },
+    {
+      "name": "Invokes java-code-review if not done this session",
+      "description": "Should invoke java-code-review for first commit in session",
+      "setup": [
+        "git init /tmp/test-java-commit-3",
+        "cd /tmp/test-java-commit-3 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-3 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-3 && mkdir -p src/main/java/test",
+        "cd /tmp/test-java-commit-3 && echo 'public class Test {}' > src/main/java/test/Test.java",
+        "cd /tmp/test-java-commit-3 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-java-commit-3/src/main/java/test/Test.java"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "java-code-review"
+        }
+      ]
+    },
+    {
+      "name": "Uses Java-specific commit scopes",
+      "description": "Should use Java-appropriate scopes (domain, service, rest, config, etc.)",
+      "setup": [
+        "git init /tmp/test-java-commit-4",
+        "cd /tmp/test-java-commit-4 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-4 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-4 && mkdir -p src/main/java/test/domain",
+        "cd /tmp/test-java-commit-4 && echo '@Entity\\npublic class User {}' > src/main/java/test/domain/User.java",
+        "cd /tmp/test-java-commit-4 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-java-commit-4/src/main/java/test/domain/User.java",
+          "text": "@Entity"
+        }
+      ]
+    },
+    {
+      "name": "Invokes update-claude-md when CLAUDE.md exists",
+      "description": "Should invoke update-claude-md alongside update-design",
+      "setup": [
+        "git init /tmp/test-java-commit-5",
+        "cd /tmp/test-java-commit-5 && echo '## Project Type\\n\\n**Type:** java\\n\\n## Build\\n\\nmvn compile' > CLAUDE.md",
+        "cd /tmp/test-java-commit-5 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-5 && echo '<project/>' > pom.xml",
+        "cd /tmp/test-java-commit-5 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-java-commit-5/CLAUDE.md"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "update-claude-md"
+        }
+      ]
+    },
+    {
+      "name": "Generates conventional commit with Java context",
+      "description": "Should generate feat/fix/refactor commit with Java-specific scope",
+      "setup": [
+        "git init /tmp/test-java-commit-6",
+        "cd /tmp/test-java-commit-6 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-6 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-6 && mkdir -p src/main/java/test/service",
+        "cd /tmp/test-java-commit-6 && echo '@ApplicationScoped\\npublic class UserService {}' > src/main/java/test/service/UserService.java",
+        "cd /tmp/test-java-commit-6 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-java-commit-6/src/main/java/test/service/UserService.java",
+          "text": "@ApplicationScoped"
+        }
+      ]
+    },
+    {
+      "name": "Triggers java-security-audit for security-critical code",
+      "description": "Should invoke java-security-audit when auth/crypto code detected",
+      "setup": [
+        "git init /tmp/test-java-commit-7",
+        "cd /tmp/test-java-commit-7 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md",
+        "cd /tmp/test-java-commit-7 && mkdir -p docs && echo '# Design' > docs/DESIGN.md",
+        "cd /tmp/test-java-commit-7 && mkdir -p src/main/java/test/security",
+        "cd /tmp/test-java-commit-7 && echo 'import javax.crypto.*;\\npublic class Auth {}' > src/main/java/test/security/Auth.java",
+        "cd /tmp/test-java-commit-7 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-java-commit-7/src/main/java/test/security/Auth.java",
+          "text": "javax.crypto"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "java-security-audit"
+        }
+      ]
+    }
+  ]
+}

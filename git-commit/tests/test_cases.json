@@ -1,0 +1,157 @@
+{
+  "skill": "git-commit",
+  "description": "Functional tests for git-commit skill",
+  "tests": [
+    {
+      "name": "Detects missing CLAUDE.md and prompts user",
+      "description": "When CLAUDE.md is missing, git-commit should detect it and prompt for project type",
+      "setup": [
+        "git init /tmp/test-git-commit-1",
+        "cd /tmp/test-git-commit-1 && echo 'test' > test.txt && git add test.txt"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "not_exists",
+          "path": "CLAUDE.md"
+        }
+      ]
+    },
+    {
+      "name": "Routes to java-git-commit for type: java",
+      "description": "When CLAUDE.md declares type: java, git-commit should redirect to java-git-commit",
+      "setup": [
+        "git init /tmp/test-git-commit-2",
+        "cd /tmp/test-git-commit-2 && echo '## Project Type\\n\\n**Type:** java' > CLAUDE.md && git add CLAUDE.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "CLAUDE.md",
+          "text": "type: java"
+        }
+      ]
+    },
+    {
+      "name": "Routes to custom-git-commit for type: custom",
+      "description": "When CLAUDE.md declares type: custom, git-commit should redirect to custom-git-commit",
+      "setup": [
+        "git init /tmp/test-git-commit-3",
+        "cd /tmp/test-git-commit-3 && echo '## Project Type\\n\\n**Type:** custom' > CLAUDE.md && git add CLAUDE.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "CLAUDE.md",
+          "text": "type: custom"
+        }
+      ]
+    },
+    {
+      "name": "Handles type: skills directly",
+      "description": "When CLAUDE.md declares type: skills, git-commit should handle directly (not redirect)",
+      "setup": [
+        "git init /tmp/test-git-commit-4",
+        "cd /tmp/test-git-commit-4 && echo '## Project Type\\n\\n**Type:** skills' > CLAUDE.md && git add CLAUDE.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "CLAUDE.md",
+          "text": "type: skills"
+        }
+      ]
+    },
+    {
+      "name": "Handles type: generic directly",
+      "description": "When CLAUDE.md declares type: generic, git-commit should handle directly (basic mode)",
+      "setup": [
+        "git init /tmp/test-git-commit-5",
+        "cd /tmp/test-git-commit-5 && echo '## Project Type\\n\\n**Type:** generic' > CLAUDE.md && git add CLAUDE.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "CLAUDE.md",
+          "text": "type: generic"
+        }
+      ]
+    },
+    {
+      "name": "Invokes skill-review when SKILL.md staged (type: skills)",
+      "description": "When SKILL.md files are staged in a skills repo, git-commit should invoke skill-review",
+      "setup": [
+        "git init /tmp/test-git-commit-6",
+        "cd /tmp/test-git-commit-6 && echo '## Project Type\\n\\n**Type:** skills' > CLAUDE.md",
+        "cd /tmp/test-git-commit-6 && mkdir test-skill && echo '---\\nname: test-skill\\ndescription: Use when testing\\n---\\n# Test' > test-skill/SKILL.md",
+        "cd /tmp/test-git-commit-6 && git add CLAUDE.md test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "git",
+          "type": "staged",
+          "path": "test-skill/SKILL.md"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "skill-review"
+        }
+      ]
+    },
+    {
+      "name": "Invokes update-readme when README.md exists and skill changes (type: skills)",
+      "description": "When README.md exists and SKILL.md staged in skills repo, git-commit should invoke update-readme",
+      "setup": [
+        "git init /tmp/test-git-commit-7",
+        "cd /tmp/test-git-commit-7 && echo '## Project Type\\n\\n**Type:** skills' > CLAUDE.md",
+        "cd /tmp/test-git-commit-7 && echo '# README' > README.md",
+        "cd /tmp/test-git-commit-7 && mkdir test-skill && echo '---\\nname: test-skill\\ndescription: Use when testing\\n---\\n# Test' > test-skill/SKILL.md",
+        "cd /tmp/test-git-commit-7 && git add CLAUDE.md README.md test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "README.md"
+        },
+        {
+          "category": "git",
+          "type": "staged",
+          "path": "test-skill/SKILL.md"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "update-readme"
+        }
+      ]
+    },
+    {
+      "name": "Invokes update-claude-md when CLAUDE.md exists",
+      "description": "When CLAUDE.md exists, git-commit should invoke update-claude-md",
+      "setup": [
+        "git init /tmp/test-git-commit-8",
+        "cd /tmp/test-git-commit-8 && echo '## Project Type\\n\\n**Type:** generic' > CLAUDE.md",
+        "cd /tmp/test-git-commit-8 && echo 'test' > test.txt",
+        "cd /tmp/test-git-commit-8 && git add CLAUDE.md test.txt"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "CLAUDE.md"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "update-claude-md"
+        }
+      ]
+    }
+  ]
+}

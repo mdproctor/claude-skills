@@ -1,0 +1,169 @@
+{
+  "skill": "skill-review",
+  "description": "Functional tests for skill-review skill",
+  "tests": [
+    {
+      "name": "Detects missing frontmatter (CRITICAL)",
+      "description": "Should detect when SKILL.md is missing YAML frontmatter",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-1/test-skill",
+        "echo '# Test Skill\\n\\nNo frontmatter here' > /tmp/test-skill-review-1/test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-skill-review-1/test-skill/SKILL.md"
+        },
+        {
+          "category": "file",
+          "type": "not_contains",
+          "path": "/tmp/test-skill-review-1/test-skill/SKILL.md",
+          "text": "---"
+        }
+      ]
+    },
+    {
+      "name": "Detects CSO violation - workflow in description (CRITICAL)",
+      "description": "Should detect when description contains workflow steps instead of triggering conditions",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-2/test-skill",
+        "echo '---\\nname: test-skill\\ndescription: Use when testing - runs validation then commits\\n---\\n# Test' > /tmp/test-skill-review-2/test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-2/test-skill/SKILL.md",
+          "text": "runs validation then commits"
+        }
+      ]
+    },
+    {
+      "name": "Detects invalid Graphviz syntax (CRITICAL)",
+      "description": "Should detect when flowchart has invalid dot syntax",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-3/test-skill",
+        "echo '---\\nname: test-skill\\ndescription: Use when testing\\n---\\n# Test\\n\\n```dot\\ndigraph {\\n  invalid syntax here\\n```' > /tmp/test-skill-review-3/test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-3/test-skill/SKILL.md",
+          "text": "```dot"
+        }
+      ]
+    },
+    {
+      "name": "Detects naming convention violation (WARNING)",
+      "description": "Should detect when skill name doesn't follow pattern (uses underscore instead of hyphen)",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-4/test_skill",
+        "echo '---\\nname: test_skill\\ndescription: Use when testing\\n---\\n# Test' > /tmp/test-skill-review-4/test_skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-4/test_skill/SKILL.md",
+          "text": "name: test_skill"
+        }
+      ]
+    },
+    {
+      "name": "Detects broken cross-reference (WARNING)",
+      "description": "Should detect when skill references non-existent skill",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-5/test-skill",
+        "echo '---\\nname: test-skill\\ndescription: Use when testing\\n---\\n# Test\\n\\n## Skill Chaining\\n\\n**Chains to non-existent-skill**' > /tmp/test-skill-review-5/test-skill/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-5/test-skill/SKILL.md",
+          "text": "non-existent-skill"
+        }
+      ]
+    },
+    {
+      "name": "Detects missing Success Criteria for artifact-producing skill (NOTE)",
+      "description": "Should recommend Success Criteria section for skills that produce artifacts",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-6/git-commit-test",
+        "echo '---\\nname: git-commit-test\\ndescription: Use when committing\\n---\\n# Test\\n\\nNo Success Criteria section' > /tmp/test-skill-review-6/git-commit-test/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "not_contains",
+          "path": "/tmp/test-skill-review-6/git-commit-test/SKILL.md",
+          "text": "Success Criteria"
+        }
+      ]
+    },
+    {
+      "name": "Accepts valid skill with all requirements",
+      "description": "Should approve skill that meets all structural requirements",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-7/test-skill",
+        "cat > /tmp/test-skill-review-7/test-skill/SKILL.md << 'EOF'\n---\nname: test-skill\ndescription: Use when testing skills\n---\n\n# Test Skill\n\n## Workflow\n\nTest workflow\n\n## Skill Chaining\n\n**Invoked by:** git-commit\n\n## Success Criteria\n\n- ✅ Tests pass\n\n## Common Pitfalls\n\n| Mistake | Why It's Wrong | Fix |\n|---------|----------------|-----|\n| Example | Reason | Solution |\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-7/test-skill/SKILL.md",
+          "text": "name: test-skill"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-7/test-skill/SKILL.md",
+          "text": "Success Criteria"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-7/test-skill/SKILL.md",
+          "text": "Common Pitfalls"
+        }
+      ]
+    },
+    {
+      "name": "Deep analysis mode - validates all cross-references",
+      "description": "In deep analysis mode, should verify all referenced skills exist and cross-references are bidirectional",
+      "setup": [
+        "mkdir -p /tmp/test-skill-review-8/skill-a",
+        "mkdir -p /tmp/test-skill-review-8/skill-b",
+        "echo '---\\nname: skill-a\\ndescription: Use when A\\n---\\n# A\\n\\n## Skill Chaining\\n\\n**Chains to skill-b**' > /tmp/test-skill-review-8/skill-a/SKILL.md",
+        "echo '---\\nname: skill-b\\ndescription: Use when B\\n---\\n# B\\n\\n## Skill Chaining\\n\\n**Invoked by skill-a**' > /tmp/test-skill-review-8/skill-b/SKILL.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-skill-review-8/skill-a/SKILL.md"
+        },
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-skill-review-8/skill-b/SKILL.md"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-8/skill-a/SKILL.md",
+          "text": "skill-b"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-skill-review-8/skill-b/SKILL.md",
+          "text": "skill-a"
+        }
+      ]
+    }
+  ]
+}

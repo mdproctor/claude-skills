@@ -1,0 +1,133 @@
+{
+  "skill": "maven-dependency-update",
+  "description": "Functional tests for maven-dependency-update skill",
+  "tests": [
+    {
+      "name": "Detects missing pom.xml",
+      "description": "Should detect when pom.xml is missing and abort",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-1",
+        "cd /tmp/test-maven-dep-1 && echo 'no pom' > README.md"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "not_exists",
+          "path": "/tmp/test-maven-dep-1/pom.xml"
+        }
+      ]
+    },
+    {
+      "name": "Identifies BOM import in dependencyManagement",
+      "description": "Should find BOM import in dependencyManagement section",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-2",
+        "cat > /tmp/test-maven-dep-2/pom.xml << 'EOF'\n<project>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>io.quarkus.platform</groupId>\n        <artifactId>quarkus-bom</artifactId>\n        <version>3.6.0</version>\n        <type>pom</type>\n        <scope>import</scope>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-2/pom.xml",
+          "text": "quarkus-bom"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-2/pom.xml",
+          "text": "<scope>import</scope>"
+        }
+      ]
+    },
+    {
+      "name": "Detects version drift (dependency has explicit version when BOM exists)",
+      "description": "Should warn when dependency declares version that conflicts with BOM",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-3",
+        "cat > /tmp/test-maven-dep-3/pom.xml << 'EOF'\n<project>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>io.quarkus.platform</groupId>\n        <artifactId>quarkus-bom</artifactId>\n        <version>3.6.0</version>\n        <type>pom</type>\n        <scope>import</scope>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n  <dependencies>\n    <dependency>\n      <groupId>io.quarkus</groupId>\n      <artifactId>quarkus-resteasy</artifactId>\n      <version>3.5.0</version>\n    </dependency>\n  </dependencies>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-3/pom.xml",
+          "text": "<version>3.5.0</version>"
+        }
+      ]
+    },
+    {
+      "name": "Recommends BOM-aligned dependency (no version)",
+      "description": "Should recommend removing explicit version when BOM provides it",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-4",
+        "cat > /tmp/test-maven-dep-4/pom.xml << 'EOF'\n<project>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>io.quarkus.platform</groupId>\n        <artifactId>quarkus-bom</artifactId>\n        <version>3.6.0</version>\n        <type>pom</type>\n        <scope>import</scope>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n  <dependencies>\n    <dependency>\n      <groupId>io.quarkus</groupId>\n      <artifactId>quarkus-resteasy</artifactId>\n    </dependency>\n  </dependencies>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-4/pom.xml",
+          "text": "quarkus-resteasy"
+        },
+        {
+          "category": "file",
+          "type": "not_contains",
+          "path": "/tmp/test-maven-dep-4/pom.xml",
+          "text": "<dependency>\n      <groupId>io.quarkus</groupId>\n      <artifactId>quarkus-resteasy</artifactId>\n      <version>"
+        }
+      ]
+    },
+    {
+      "name": "Proposes BOM version update",
+      "description": "Should propose updating BOM version in dependencyManagement",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-5",
+        "cat > /tmp/test-maven-dep-5/pom.xml << 'EOF'\n<project>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>io.quarkus.platform</groupId>\n        <artifactId>quarkus-bom</artifactId>\n        <version>3.5.0</version>\n        <type>pom</type>\n        <scope>import</scope>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-5/pom.xml",
+          "text": "<version>3.5.0</version>"
+        }
+      ]
+    },
+    {
+      "name": "Runs mvn compile to verify build after changes",
+      "description": "Should run mvn compile to ensure changes don't break build",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-6/src/main/java",
+        "cat > /tmp/test-maven-dep-6/pom.xml << 'EOF'\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\">\n  <modelVersion>4.0.0</modelVersion>\n  <groupId>test</groupId>\n  <artifactId>test</artifactId>\n  <version>1.0</version>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "/tmp/test-maven-dep-6/pom.xml"
+        }
+      ]
+    },
+    {
+      "name": "Invokes ADR skill for major version updates",
+      "description": "Should invoke ADR skill when making major version updates (e.g., Quarkus 3.x → 4.x)",
+      "setup": [
+        "mkdir -p /tmp/test-maven-dep-7",
+        "cat > /tmp/test-maven-dep-7/pom.xml << 'EOF'\n<project>\n  <dependencyManagement>\n    <dependencies>\n      <dependency>\n        <groupId>io.quarkus.platform</groupId>\n        <artifactId>quarkus-bom</artifactId>\n        <version>3.6.0</version>\n        <type>pom</type>\n        <scope>import</scope>\n      </dependency>\n    </dependencies>\n  </dependencyManagement>\n</project>\nEOF\n"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "/tmp/test-maven-dep-7/pom.xml",
+          "text": "3.6.0"
+        },
+        {
+          "category": "skill",
+          "type": "invoked",
+          "skill": "adr"
+        }
+      ]
+    }
+  ]
+}
