@@ -21,13 +21,21 @@ from collections import Counter
 
 
 def find_duplicate_headers(filepath):
-    """Find duplicate ## section headers"""
+    """Find duplicate ## section headers (excluding code blocks)"""
     with open(filepath, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     headers = []
+    in_code_block = False
+
     for i, line in enumerate(lines, 1):
-        if line.startswith('## '):
+        # Track code block boundaries
+        if line.strip().startswith('```'):
+            in_code_block = not in_code_block
+            continue
+
+        # Only check headers outside code blocks
+        if not in_code_block and line.startswith('## '):
             header = line.strip()
             headers.append((header, i))
 
@@ -41,32 +49,43 @@ def find_duplicate_headers(filepath):
 
 
 def find_corrupted_tables(filepath):
-    """Find table headers followed by prose instead of separator/data rows"""
+    """Find table headers followed by prose instead of separator/data rows (excluding code blocks)"""
     with open(filepath, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     corrupted = []
+    in_code_block = False
     i = 0
+
     while i < len(lines):
         line = lines[i].strip()
 
-        # Check if this is a table header (has | ... | ... |)
-        if re.match(r'^\|.*\|.*\|$', line) and '---' not in line:
-            # Next line should be separator (|---|---|) or data row (| ... | ... |)
-            if i + 1 < len(lines):
-                next_line = lines[i + 1].strip()
+        # Track code block boundaries
+        if line.startswith('```'):
+            in_code_block = not in_code_block
+            i += 1
+            continue
 
-                # Check if next line is separator or table row
-                is_separator = re.match(r'^\|[-:\s]+\|[-:\s]+\|', next_line)
-                is_table_row = re.match(r'^\|.*\|.*\|$', next_line)
+        # Only check tables outside code blocks
+        if not in_code_block:
+            # Check if this is a table header (has | ... | ... |)
+            if re.match(r'^\|.*\|.*\|$', line) and '---' not in line:
+                # Next line should be separator (|---|---|) or data row (| ... | ... |)
+                if i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
 
-                if not is_separator and not is_table_row:
-                    # Next line is prose, not table content
-                    corrupted.append({
-                        'line': i + 1,
-                        'header': line,
-                        'invalid_next': next_line
-                    })
+                    # Check if next line is separator, table row, or blank (table end)
+                    is_separator = re.match(r'^\|[-:\s]+\|[-:\s]+\|', next_line)
+                    is_table_row = re.match(r'^\|.*\|.*\|$', next_line)
+                    is_blank = not next_line  # Blank line = table ended normally
+
+                    if not is_separator and not is_table_row and not is_blank:
+                        # Next line is prose, not table content or table end
+                        corrupted.append({
+                            'line': i + 1,
+                            'header': line,
+                            'invalid_next': next_line
+                        })
         i += 1
 
     return corrupted

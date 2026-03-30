@@ -1,0 +1,731 @@
+# Quality & Validation Framework
+
+**Comprehensive quality assurance for all project types using these skills.**
+
+This framework ensures reliability, consistency, and correctness across all documentation and code — whether you're maintaining Claude Code skills, building Java applications, writing research papers, or managing working group documentation.
+
+---
+
+## Table of Contents
+
+- [Why Quality Matters](#why-quality-matters)
+- [Quality Protection by Project Type](#quality-protection-by-project-type)
+- [The Architecture: Scripts + Claude](#the-architecture-scripts--claude)
+- [Tiered Validation](#tiered-validation)
+- [What Gets Checked](#what-gets-checked)
+- [When Validation Runs](#when-validation-runs)
+- [User Experience](#user-experience)
+- [Implementation Status](#implementation-status)
+
+---
+
+## Why Quality Matters
+
+**Quality issues in AI-guided development compound exponentially.** One bad instruction, one corrupted document, one missed safety check affects every subsequent decision.
+
+### Without This Framework
+
+**In Java projects:**
+- ❌ Resource leaks slip through (file handles, connections left open)
+- ❌ Blocking I/O on Vert.x event loop (runtime failures)
+- ❌ OWASP vulnerabilities undetected (SQL injection, XSS, auth bypass)
+- ❌ DESIGN.md drifts from code (architecture docs become lies)
+- ❌ BOM version drift (dependency hell, runtime classpath conflicts)
+
+**In custom projects:**
+- ❌ VISION.md out of sync with catalog (team works from stale understanding)
+- ❌ THESIS.md missing experimental results (research becomes incoherent)
+- ❌ API design doc diverges from OpenAPI spec (implementation confusion)
+
+**In skills projects:**
+- ❌ Invalid Graphviz → skill fails to load → workflow blocked
+- ❌ CSO violation → Claude ignores skill body → "expensive wallpaper"
+- ❌ Broken cross-references → runtime errors when skills chain
+
+**In all projects:**
+- ❌ Corrupted tables in README/CLAUDE.md → parsing fails, docs unusable
+- ❌ Duplicate headers → navigation breaks, search confusion
+- ❌ Stale workflow instructions → commands fail, frustration, lost time
+
+### With This Framework
+
+**In Java projects:**
+- ✅ java-code-review blocks commits with resource leaks (CRITICAL findings)
+- ✅ Event loop safety enforced (Red Flags section prevents rationalization)
+- ✅ Security audit catches OWASP Top 10 before merge
+- ✅ DESIGN.md auto-synced with architecture changes (validated before staging)
+- ✅ BOM alignment checked on every dependency update
+
+**In custom projects:**
+- ✅ Primary document stays synchronized (corruption detection prevents drift)
+- ✅ Sync rules enforced (file changes reflected in VISION/THESIS/API docs)
+- ✅ User-configured validation (project-specific consistency)
+
+**In skills projects:**
+- ✅ Structural errors caught at creation (pre-commit gates)
+- ✅ CSO compliance enforced (descriptions trigger correctly)
+- ✅ Cross-reference integrity verified bidirectionally
+
+**In all projects:**
+- ✅ Document corruption prevented automatically (pre-commit + post-sync)
+- ✅ Automatic revert on corruption (never reaches git history)
+- ✅ Consistent quality (regression prevention, pressure-tested)
+
+**Real impact:** The java-dev skill was tested under combined time pressure, authority pressure, and sunk cost bias — it successfully prevented resource leaks that baseline Claude (without the skill) introduced. This framework ensures that level of reliability across all project types.
+
+---
+
+## Quality Protection by Project Type
+
+**Every project using these skills gets comprehensive quality protection tailored to its needs.**
+
+### Universal Protection (All Project Types)
+
+**Applies to:** skills, java, custom, generic
+
+| Protection | What It Prevents | When It Runs |
+|------------|------------------|--------------|
+| **Document corruption detection** | Duplicate headers, broken tables, orphaned sections | Pre-commit (all .md files) + post-sync (all sync workflows) |
+| **CLAUDE.md sync accuracy** | Stale workflows, outdated commands, incorrect conventions | After update-claude-md applies changes |
+| **Pre-commit gates** | Committing broken documentation | git-commit Step 1c (all project types) |
+| **Automatic revert on corruption** | Corrupted docs reaching git history | All sync workflows validate before staging |
+| **Link validation** | Broken internal/external links, missing anchors | On-demand or CI |
+| **Example validation** | Code examples with syntax errors, broken commands | On-demand or CI |
+| **Cross-document consistency** | Contradictions across CLAUDE.md, README.md, docs | On-demand (deep analysis) |
+
+### Type: Java (Java/Maven/Gradle Projects)
+
+**Applies to:** Projects with `pom.xml` or `build.gradle` that declare `type: java` in CLAUDE.md
+
+| Protection | What It Prevents | When It Runs |
+|------------|------------------|--------------|
+| **java-code-review blocking** | Resource leaks, concurrency bugs, safety violations | Before commits (CRITICAL findings block) |
+| **java-security-audit** | OWASP Top 10 vulnerabilities (injection, auth, crypto) | When security-critical code detected |
+| **DESIGN.md sync accuracy** | Architecture docs drifting from code | After java-update-design applies changes |
+| **DESIGN.md enforcement** | Missing architecture documentation | java-git-commit blocks if docs/DESIGN.md doesn't exist |
+| **BOM alignment verification** | Version drift, dependency conflicts | maven-dependency-update workflow |
+| **Quarkus event loop safety** | Blocking I/O on event loop threads | java-dev Red Flags section |
+| **ADR enforcement** | Major upgrades without documenting decisions | maven-dependency-update detects major versions |
+
+**Example:** Your Java project commits are protected by code review that blocks on resource leaks, security audit for auth code, DESIGN.md kept in sync with architecture changes, and BOM alignment checks preventing version drift.
+
+### Type: Custom (Working Groups, Research, Documentation)
+
+**Applies to:** Projects that declare `type: custom` in CLAUDE.md with user-configured sync rules
+
+| Protection | What It Prevents | When It Runs |
+|------------|------------------|--------------|
+| **Primary doc sync accuracy** | VISION.md/THESIS.md/API.md drifting from work | After update-primary-doc applies changes |
+| **User-configured validation** | Project-specific consistency violations | Custom validators in CLAUDE.md |
+| **Sync rules enforcement** | File changes not reflected in primary doc | custom-git-commit reads Sync Rules table |
+| **Milestone tracking** | Work not aligned with current phase/chapter | Commit messages reference current milestone |
+
+**Example:** Your working group's VISION.md stays synchronized with catalog entries, research THESIS.md reflects experimental results, API design doc stays current with OpenAPI spec changes.
+
+### Type: Skills (Skills Repositories)
+
+**Applies to:** Repositories with `*/SKILL.md` files that declare `type: skills` in CLAUDE.md
+
+| Protection | What It Prevents | When It Runs |
+|------------|------------------|--------------|
+| **SKILL.md structural validation** | Invalid frontmatter, broken flowcharts, missing sections | skill-validation.md workflow (pre-commit) |
+| **CSO compliance** | "Expensive wallpaper" (Claude ignores skill body) | validate_cso.py checks descriptions |
+| **Cross-reference integrity** | Broken skill chains, dangling references | validate_references.py (bidirectional) |
+| **README.md sync accuracy** | Skill catalog drifting from actual skills | After readme-sync.md applies changes |
+| **Naming convention enforcement** | Inconsistent skill hierarchy | validate_naming.py checks prefixes |
+| **Flowchart validation** | Invalid Graphviz syntax | validate_flowcharts.py |
+
+**Example:** This skills repository prevents skills with workflow summaries in descriptions, invalid Graphviz syntax, broken cross-references, and README drift.
+
+### Type: Generic (Simple Projects)
+
+**Applies to:** Projects that declare `type: generic` in CLAUDE.md or have no type declaration
+
+| Protection | What It Prevents | When It Runs |
+|------------|------------------|--------------|
+| **Document corruption detection** | Same as universal | Pre-commit + post-sync |
+| **CLAUDE.md sync (optional)** | Workflow docs drifting | After update-claude-md (if exists) |
+
+---
+
+## The Architecture: Scripts + Claude
+
+**CRITICAL: Scripts cannot replace deep thought. This framework combines automated checks (fast, mechanical) with AI-assisted analysis (semantic, strategic).**
+
+### Division of Labor
+
+**Scripts** are **gatekeepers** — fast, always running, catch corruption:
+- Check syntax, structure, format
+- Validate links, references, file existence
+- Detect duplicate headers, broken tables, orphaned sections
+- Run in <2 seconds for commit-level checks
+- Block CRITICAL mechanical errors
+
+**Claude** is the **architect** — selective, deep analysis, ensure quality:
+- Semantic contradictions ("Always X" vs "Never X" in same doc)
+- Logical soundness (does workflow actually work?)
+- Strategic completeness (missing error handling, edge cases)
+- Cross-document consistency (do docs tell same story?)
+- Quality judgment (is this explanation clear? best structure?)
+
+**Hybrid approach** — scripts flag, Claude judges:
+- Scripts identify potential issues quickly
+- Claude provides semantic understanding and fixes
+- User controls when deep analysis runs
+- Both work together for comprehensive quality
+
+### What Scripts CAN Check (Automated)
+
+**Mechanical/Structural validation (no intelligence needed):**
+
+| Check Type | Example | Universal |
+|------------|---------|-----------|
+| **Syntax errors** | Broken markdown, invalid YAML, malformed tables | ✅ All .md files |
+| **Format violations** | Duplicate headers, missing sections, heading hierarchy | ✅ All .md files |
+| **Broken references** | Links to non-existent files/sections, missing anchors | ✅ All documentation |
+| **File existence** | "see docs/MISSING.md" when file doesn't exist | ✅ All referenced files |
+| **Pattern matching** | CSO violations (SKILL.md), code block language tags | ✅ Universal where applicable |
+| **Simple rules** | Frontmatter schema, table structure, list formatting | ✅ Type-specific + universal |
+
+**Type-specific automated checks:**
+
+| Project Type | Additional Checks | Why Type-Specific |
+|--------------|------------------|-------------------|
+| **type: skills** | SKILL.md frontmatter, CSO compliance, flowchart syntax | SKILL.md format is skills-specific |
+| **type: java** | Java syntax, import organization, DESIGN.md required sections | Code structure rules |
+| **type: custom** | User-defined validation rules (configurable) | User knows their domain |
+| **type: generic** | None (universal checks only) | Minimal overhead |
+
+### What Scripts CANNOT Check (Requires Claude)
+
+**Semantic/Strategic analysis (requires understanding):**
+
+| Check Type | Why Scripts Fail | Claude's Role |
+|------------|------------------|---------------|
+| **Semantic contradictions** | Scripts see valid paragraphs, can't detect "Always X" vs "Never X" conflict | Reads both, understands contradiction |
+| **Logical flow** | Scripts see numbers, can't detect missing Step 3 in "Step 1, 2, 4" | Simulates execution, notices gap |
+| **Nonsensical content** | Scripts see valid sentence, can't detect wrong tool for wrong job | Knows semantic meaning, detects error |
+| **Strategic completeness** | Scripts can't know what SHOULD be there | Knows best practices, identifies gaps |
+| **Cross-document consistency** | Scripts flag mentions, can't determine semantic conflict | Understands meaning, detects contradiction |
+| **Quality judgment** | Subjective assessment | Applies judgment, suggests improvements |
+
+### Example: Hybrid in Action
+
+**Scenario: Potential contradiction detected**
+
+```bash
+# Scripts run during pre-push
+python scripts/validate_consistency.py --level push
+
+⚠️  WARNING: Potential contradiction detected:
+   - git-commit/SKILL.md:24: "Never add attribution"
+   - CLAUDE.md:156: "All commits include Co-Authored-By"
+
+   Run deep analysis to verify? (Y/n)
+```
+
+**User invokes Claude:**
+```
+User: "Review git-commit skill for contradictions"
+
+Claude analyzes:
+1. Reads git-commit/SKILL.md full context
+2. Reads CLAUDE.md § Committing changes
+3. Understands git-commit changed rules recently
+4. Reports: CRITICAL - CLAUDE.md is stale, needs update
+```
+
+**Result:** Script flagged issue (pattern matching), Claude provided semantic fix.
+
+---
+
+## Tiered Validation
+
+**Proportional cost: light checks for small changes, heavy checks for big changes, heaviest for sharing.**
+
+### Level 1: Quick (On Save) — <100ms
+
+**When:** File save during editing (editor integration)
+**Goal:** Instant feedback, no friction
+
+**Checks:**
+- ✅ Heading hierarchy (no skipped levels)
+- ✅ Code blocks have language tags
+- ✅ Basic markdown syntax
+- ✅ Internal anchor links (within same file)
+
+**Exit:** Never blocks, warnings only
+
+**Example:**
+```bash
+python scripts/validate_document.py README.md --level quick
+# ✅ No issues (85ms)
+```
+
+### Level 2: Commit (Pre-commit Hook) — <2s
+
+**When:** Before `git commit`
+**Goal:** Catch corruption before git history
+
+**Checks:**
+- ✅ All Level 1 checks
+- ✅ **Duplicate section headers** (CRITICAL)
+- ✅ **Corrupted table structures** (CRITICAL)
+- ✅ **Orphaned sections** (WARNING)
+- ✅ **Dangling references** ("see § X" where X doesn't exist)
+- ✅ **Example syntax** (bash/python, no execution)
+- ✅ **Cross-file links** (CLAUDE.md#section exists)
+
+**Exit:** Blocks on CRITICAL, warns on WARNING (user can proceed)
+
+**Example:**
+```bash
+git commit -m "docs: update readme"
+
+# → Pre-commit hook runs automatically
+🔍 Running commit-level validation...
+✅ No duplicate headers
+✅ No corrupted tables
+✅ All links valid
+✅ Validation passed (1.2s)
+```
+
+### Level 3: Review (User-Invoked) — User-Driven
+
+**When:** User requests `/java-code-review`, `/skill-review`, or "deep analysis"
+**Goal:** Validate significant refactors, ensure quality
+
+**Checks:**
+- ✅ All Level 2 checks (scripts)
+- ✅ **Claude deep semantic analysis:**
+  - Logical soundness (workflow executable?)
+  - Semantic contradictions
+  - Strategic completeness
+  - Cross-document consistency
+  - Quality judgment
+
+**Exit:** Reports findings (CRITICAL/WARNING/NOTE), user decides next steps
+
+**Example:**
+```bash
+User: "/java-code-review"
+
+# → Scripts run all automated checks first
+# → Claude performs deep analysis
+Reading staged Java files...
+Comparing with DESIGN.md...
+
+❌ CRITICAL: Resource leak in UserService.java:45
+⚠️  WARNING: DESIGN.md says sync but code uses async
+ℹ️  NOTE: Consider adding example for gateway pattern
+```
+
+### Level 4: Push (Pre-push Hook) — <30s
+
+**When:** Before `git push`
+**Goal:** Ensure quality before sharing with others
+
+**Checks:**
+- ✅ All Level 2 checks
+- ✅ **Cross-document consistency** (CLAUDE.md vs README.md vs SKILL.md)
+- ✅ **Terminology consistency** ("primary doc" vs "main document")
+- ✅ **Duplication detection** (same content in multiple files)
+- ✅ **Structural quality** (markdownlint rules)
+- ✅ **Spelling** (aspell/hunspell)
+
+**Exit:** Blocks on CRITICAL, shows WARNING/NOTE summary
+
+**Example:**
+```bash
+git push origin main
+
+# → Pre-push hook runs
+🔍 Running push-level validation...
+✅ Cross-document consistency checked
+⚠️  Terminology inconsistency: "primary doc" vs "main document" (3 files)
+✅ Push validation passed (12s)
+```
+
+### Level 5: Full (CI/Scheduled) — Unlimited
+
+**When:** GitHub PR, scheduled nightly, before releases
+**Goal:** Comprehensive analysis, catch everything
+
+**Checks:**
+- ✅ All Level 4 checks
+- ✅ **External URL validation** (HTTP requests)
+- ✅ **Example execution** (run bash examples in sandbox)
+- ✅ **Readability scoring** (Flesch-Kincaid)
+- ✅ **Grammar** (LanguageTool)
+- ✅ **Accessibility** (WCAG guidelines)
+- ✅ **Self-testing examples** (CI integration)
+
+**Exit:** Fails PR if CRITICAL, comments with suggestions
+
+**Example:**
+```yaml
+# In CI (GitHub Actions)
+- name: Run full validation
+  run: python scripts/validate_all.py --level full --verbose
+
+# → Results posted as PR comment
+```
+
+### Performance Budget
+
+| Level | Target Time | Max Acceptable | Checks |
+|-------|-------------|----------------|--------|
+| Quick | <100ms | <500ms | ~4 |
+| Commit | <1s | <2s | ~10 |
+| Push | <10s | <30s | ~17 |
+| Full | <2min | <5min | ~25 |
+
+**Optimization strategies:**
+- Cache results (don't re-check unchanged files)
+- Parallel execution (multiple files concurrently)
+- Incremental mode (only changed sections)
+- Short-circuit on CRITICAL (fail fast)
+
+---
+
+## What Gets Checked
+
+### Universal Checks (All Project Types)
+
+**Document corruption (CRITICAL):**
+- Duplicate section headers
+- Corrupted table structures (header followed by prose)
+- Orphaned sections (header with no content)
+- Large structural changes (>100 lines modified)
+
+**Link integrity (WARNING):**
+- Internal anchor links (`[link](#section)`)
+- Cross-document links (`[link](CLAUDE.md#section)`)
+- File path references (`see docs/file.md`)
+- External URLs (optional, can be slow)
+
+**Code quality (WARNING):**
+- Code blocks have language tags
+- Bash/Python syntax validation
+- Example commands don't use deprecated flags
+
+**Structural quality (NOTE):**
+- Heading hierarchy (no skipped levels)
+- List formatting consistency
+- Table formatting
+- Line ending consistency (LF vs CRLF)
+
+### Type-Specific Checks
+
+**Type: skills only:**
+- SKILL.md frontmatter (name, description fields)
+- CSO compliance (description format)
+- Flowchart syntax (Graphviz validation)
+- Cross-reference integrity (bidirectional)
+- Naming conventions (prefixes, hierarchies)
+
+**Type: java only:**
+- DESIGN.md exists (blocks commit if missing)
+- DESIGN.md required sections present
+- Java code safety (resource leaks, concurrency)
+- OWASP Top 10 (for security-critical code)
+- BOM alignment (dependency version drift)
+
+**Type: custom only:**
+- Primary document exists (path from CLAUDE.md)
+- Sync Rules table format valid
+- User-configured consistency checks
+
+### Planned Checks (Roadmap)
+
+**Phase 1: High-Impact (Next)**
+- Cross-document consistency (contradictions)
+- Dangling references ("see § Missing")
+- Terminology consistency
+- Example validation (syntax + execution)
+
+**Phase 2: Medium-Impact**
+- Prose quality (passive voice, ambiguous pronouns)
+- Duplication across corpus (fuzzy matching)
+- Readability scoring (grade level)
+- Grammar checking (LanguageTool)
+
+**Phase 3: Aspirational**
+- Self-testing examples (CI runs them)
+- Accessibility compliance (alt text, WCAG)
+- Visual aids quality (diagrams, screenshots)
+
+---
+
+## When Validation Runs
+
+### Automated (Always Running)
+
+**Pre-commit (blocks CRITICAL issues):**
+```bash
+git commit -m "..."
+
+# → .git/hooks/pre-commit runs automatically
+# → validates all staged .md files
+# → blocks if CRITICAL corruption detected
+```
+
+**Applies to:**
+- All projects: Document corruption (git-commit Step 1c)
+- Type: skills: SKILL.md structural validation
+- Type: java: Code review (blocks on CRITICAL findings)
+
+**Post-sync (automatic revert on failure):**
+```bash
+# After any sync workflow applies changes:
+# → update-claude-md, java-update-design, update-primary-doc, readme-sync.md
+# → validates modified document
+# → if CRITICAL issues → git restore <file> + stop
+```
+
+**Applies to:**
+- All projects (if CLAUDE.md exists): update-claude-md
+- Type: java: java-update-design
+- Type: custom: update-primary-doc
+- Type: skills: readme-sync.md
+
+**Pre-push (cross-document checks):**
+```bash
+git push origin main
+
+# → .git/hooks/pre-push runs automatically
+# → cross-document consistency, terminology, duplication
+# → blocks if CRITICAL, warns on other issues
+```
+
+### User-Invoked (Selective)
+
+**On-demand deep analysis:**
+```bash
+# Review specific skill
+/skill-review java-code-review/SKILL.md
+
+# Review staged code
+/java-code-review
+
+# Full repository validation
+python scripts/validate_all.py
+
+# Validate specific document
+python scripts/validate_document.py docs/DESIGN.md
+```
+
+**When to invoke:**
+- Before major changes (refactoring, restructuring)
+- After significant additions (new skills, new features)
+- When scripts flag WARNING that needs judgment
+- Before releases or milestones
+- Scheduled (weekly/monthly quality checks)
+
+### CI/CD (Comprehensive)
+
+**GitHub Actions (on PR, push, schedule):**
+```yaml
+# .github/workflows/validate-docs.yml
+- name: Run full validation
+  run: python scripts/validate_all.py --level full
+
+# → Runs all automated checks
+# → Optionally runs Claude deep analysis
+# → Posts results as PR comment or artifact
+```
+
+---
+
+## User Experience
+
+### Developer Workflow
+
+**Scenario: Editing README.md**
+
+```bash
+# 1. Edit file
+vim README.md
+
+# 2. Save triggers quick validation (editor plugin, optional)
+# ✅ Quick checks pass (100ms)
+
+# 3. Git add and commit
+git add README.md
+git commit -m "docs: update readme"
+
+# → Pre-commit hook runs
+# 🔍 Running commit-level validation...
+# ✅ Validation passed
+
+# 4. Push
+git push origin main
+
+# → Pre-push hook runs
+# 🔍 Running push-level validation...
+# ⚠️  Warnings:
+#   - Terminology inconsistency: "primary doc" vs "main document" (3 files)
+# ✅ Push validation passed (warnings don't block)
+
+# 5. PR triggers CI
+# → Full validation runs in GitHub Actions
+# → Results posted as PR comment
+```
+
+**Scenario: Quick fix, bypass checks**
+
+```bash
+# Emergency typo fix
+git commit -m "fix: typo in readme"
+git push --no-verify  # Skip pre-push for urgent fix
+
+# CI will still catch issues, but doesn't block immediate push
+```
+
+**Scenario: Deep analysis before release**
+
+```bash
+# Before major release, run comprehensive validation
+python scripts/validate_all.py --level full --verbose
+
+# Outputs comprehensive report:
+# - 0 CRITICAL issues
+# - 3 WARNING issues (terminology inconsistencies)
+# - 12 NOTE suggestions (could improve examples)
+# - Readability: Grade 11.2 (target: 10-12) ✅
+# - Accessibility: 94% compliant
+```
+
+### Claude Deep Analysis Workflow
+
+**When scripts flag potential issue:**
+
+```bash
+python scripts/validate_consistency.py
+
+⚠️  WARNING: Possible contradiction:
+   - git-commit/SKILL.md: "Never add attribution"
+   - CLAUDE.md: "All commits include Co-Authored-By"
+
+Run deep analysis? (Y/n) Y
+```
+
+**User invokes Claude:**
+
+```
+User: "Review git-commit for contradictions"
+
+Claude:
+1. Reads git-commit/SKILL.md full context
+2. Reads CLAUDE.md § Committing changes
+3. Semantic analysis: CLAUDE.md is stale
+4. Reports fix: Update CLAUDE.md line 156
+```
+
+**Result:** Scripts identified potential issue, Claude provided understanding and fix.
+
+---
+
+## Implementation Status
+
+### Currently Implemented ✅
+
+**Universal (all project types):**
+- ✅ `validate_document.py` — Document corruption detection
+- ✅ Pre-commit validation (git-commit Step 1c)
+- ✅ Post-sync validation (all sync workflows)
+- ✅ Automatic revert on corruption
+
+**Type: skills:**
+- ✅ SKILL.md frontmatter validation (skill-validation.md workflow)
+- ✅ CSO compliance checking
+- ✅ Flowchart syntax validation (Graphviz)
+- ✅ Cross-reference integrity
+- ✅ README.md sync (readme-sync.md)
+
+**Type: java:**
+- ✅ Code review (java-code-review)
+- ✅ Security audit (java-security-audit)
+- ✅ DESIGN.md sync (java-update-design)
+- ✅ DESIGN.md enforcement (blocks if missing)
+- ✅ BOM alignment (maven-dependency-update)
+
+**Type: custom:**
+- ✅ Primary document sync (update-primary-doc)
+- ✅ Sync Rules enforcement (custom-git-commit)
+
+### Planned Implementation 🚧
+
+**Phase 1: High-Impact (Next)**
+- 🚧 `validate_links.py` — Link validation (internal, cross-doc, external)
+- 🚧 `validate_examples.py` — Code example syntax + optional execution
+- 🚧 `validate_consistency.py` — Cross-document contradiction detection
+- 🚧 `check_terminology.py` — Terminology consistency
+- 🚧 Dangling reference detection (add to validate_document.py)
+
+**Phase 2: Medium-Impact**
+- 🚧 Prose quality analysis (passive voice, pronouns)
+- 🚧 `find_duplicates.py` — Corpus-wide duplication detection
+- 🚧 markdownlint integration
+- 🚧 Spelling/grammar (aspell, LanguageTool)
+- 🚧 Advanced corruption detection (encoding, line endings)
+
+**Phase 3: Aspirational**
+- 🚧 Self-testing examples (CI integration)
+- 🚧 Readability scoring (textstat)
+- 🚧 Accessibility compliance (WCAG)
+- 🚧 Visual aids quality checks
+
+### Configuration
+
+**scripts/validation_config.yaml** (planned):
+```yaml
+levels:
+  quick:
+    max_time_ms: 500
+    exit_on: []
+
+  commit:
+    max_time_ms: 2000
+    exit_on: [CRITICAL]
+
+  push:
+    max_time_ms: 30000
+    exit_on: [CRITICAL]
+
+  full:
+    max_time_ms: 300000
+    exit_on: [CRITICAL]
+
+checks:
+  spelling:
+    enabled_levels: [push, full]
+    dictionary: .aspell.en.pws
+
+  external_urls:
+    enabled_levels: [full]
+    timeout_seconds: 5
+```
+
+---
+
+## Summary
+
+**This framework provides:**
+
+1. ✅ **Universal protection** — All .md files, all project types
+2. ✅ **Type-specific validation** — Java code, SKILL.md, primary docs
+3. ✅ **Tiered approach** — Fast for small, heavy for big, heaviest for sharing
+4. ✅ **Hybrid validation** — Scripts catch corruption, Claude ensures quality
+5. ✅ **Proportional cost** — Quick checks don't slow iteration
+6. ✅ **Safety gates** — Corruption never reaches git history
+7. ✅ **Continuous improvement** — Roadmap for world-class quality
+
+**Benefits:**
+- Developer-friendly (fast feedback, can bypass for emergencies)
+- Comprehensive (nothing escapes CI full validation)
+- Incremental (fix CRITICAL now, NOTE later)
+- Extensible (add checks as needed)
+- Universal (same principles, all project types)
+
+**Result:** Production-grade quality by default, not by remembering to check.

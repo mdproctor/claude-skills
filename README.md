@@ -17,7 +17,7 @@ These skills transform Claude Code into an expert Java/Quarkus development assis
 - ✅ **Automatic DESIGN.md sync** with every commit
 - ✅ **Quarkus/Vert.x specialized** (event loop, BOM, reactive patterns)
 - ✅ **RED-GREEN-REFACTOR validated** (tested under pressure scenarios)
-- ✅ **Multi-layered quality assurance** (automated validation, pre-commit gates, document corruption prevention) — see [Quality & Validation Framework](#quality--validation-framework)
+- ✅ **Multi-layered quality assurance** (automated validation, pre-commit gates, document corruption prevention)
 
 ## Getting Started: Project Type Setup
 
@@ -764,301 +764,62 @@ These skills are tailored for specific project conventions. When adapting for yo
 
 ## Quality & Validation Framework
 
+📖 **[Full Documentation: QUALITY.md](QUALITY.md)** — Comprehensive guide to validation tiers, division of labor between scripts and Claude, and implementation details.
+
 **Every project using these skills gets comprehensive quality protection.** This multi-layered framework ensures reliability, consistency, and correctness across all 4 project types — not just for the skills repository itself, but for **your Java projects, custom documentation, and generic repositories**.
 
-### Quality Protection Across All Project Types
+### Quick Reference: Running Validation
 
-**Universal (all projects: skills/java/custom/generic):**
-
-| Protection | What It Prevents | When It Runs |
-|------------|------------------|--------------|
-| **Document corruption detection** | Duplicate headers, broken tables, orphaned sections | Pre-commit (all .md files) + post-sync (all sync workflows) |
-| **CLAUDE.md sync accuracy** | Stale workflows, outdated commands, incorrect conventions | After update-claude-md applies changes |
-| **Pre-commit gates** | Committing broken documentation | git-commit Step 1c (all project types) |
-| **Automatic revert on corruption** | Corrupted docs reaching git history | All sync workflows validate before staging |
-
-**Type: java projects get:**
-
-| Protection | What It Prevents | When It Runs |
-|------------|------------------|--------------|
-| **java-code-review blocking** | Resource leaks, concurrency bugs, safety violations | Before commits (CRITICAL findings block) |
-| **java-security-audit** | OWASP Top 10 vulnerabilities (injection, auth, crypto) | When security-critical code detected |
-| **DESIGN.md sync accuracy** | Architecture docs drifting from code | After java-update-design applies changes |
-| **BOM alignment verification** | Version drift, dependency conflicts | maven-dependency-update workflow |
-| **Quarkus event loop safety** | Blocking I/O on event loop threads | java-dev Red Flags section |
-| **ADR enforcement** | Major upgrades without documenting decisions | maven-dependency-update detects major versions |
-
-**Example:** Your Java project commits are protected by code review that blocks on resource leaks, security audit for auth code, DESIGN.md kept in sync with architecture changes, and BOM alignment checks preventing version drift.
-
-**Type: custom projects get:**
-
-| Protection | What It Prevents | When It Runs |
-|------------|------------------|--------------|
-| **Primary doc sync accuracy** | VISION.md/THESIS.md/API.md drifting from work | After update-primary-doc applies changes |
-| **User-configured validation** | Project-specific consistency violations | Custom validators in CLAUDE.md |
-| **Sync rules enforcement** | File changes not reflected in primary doc | custom-git-commit reads Sync Rules table |
-
-**Example:** Your working group's VISION.md stays synchronized with catalog entries, research THESIS.md reflects experimental results, API design doc stays current with OpenAPI spec changes.
-
-**Type: skills projects get:**
-
-| Protection | What It Prevents | When It Runs |
-|------------|------------------|--------------|
-| **SKILL.md structural validation** | Invalid frontmatter, broken flowcharts, missing sections | skill-validation.md workflow (pre-commit) |
-| **CSO compliance** | "Expensive wallpaper" (Claude ignores skill body) | validate_cso.py checks descriptions |
-| **Cross-reference integrity** | Broken skill chains, dangling references | validate_references.py (bidirectional) |
-| **README.md sync accuracy** | Skill catalog drifting from actual skills | After readme-sync.md applies changes |
-| **Naming convention enforcement** | Inconsistent skill hierarchy | validate_naming.py checks prefixes |
-
-**Example:** This skills repository prevents skills with workflow summaries in descriptions, invalid Graphviz syntax, broken cross-references, and README drift.
-
-**Type: generic projects get:**
-
-| Protection | What It Prevents | When It Runs |
-|------------|------------------|--------------|
-| **Document corruption detection** | Same as universal | Pre-commit + post-sync |
-| **CLAUDE.md sync (optional)** | Workflow docs drifting | After update-claude-md (if exists) |
-
-### How The Framework Works
-
-**Automated Validation (runs via scripts):**
-
-| Script | What It Validates | Project Types | Severity |
-|--------|-------------------|---------------|----------|
-| `validate_frontmatter.py` | SKILL.md YAML structure, required fields | skills only | CRITICAL |
-| `validate_cso.py` | Description format (WHEN not HOW) | skills only | CRITICAL |
-| `validate_flowcharts.py` | Graphviz syntax validity | skills only | CRITICAL |
-| `validate_references.py` | Cross-reference resolution | skills only | WARNING |
-| `validate_naming.py` | Type prefixes, hierarchical patterns | skills only | WARNING |
-| `validate_sections.py` | Required sections by skill type | skills only | NOTE |
-| `validate_structure.py` | File organization | skills only | NOTE |
-| **`validate_document.py`** | **.md corruption detection** | **all (universal)** | **CRITICAL** |
-| **`validate_all.py`** | **Master orchestrator** | **skills only** | **ALL** |
-
-**Workflow Validation (runs during commits/syncs):**
-
-| Workflow | Validates | Project Types | Triggers |
-|----------|-----------|---------------|----------|
-| **git-commit Step 1c** | **All staged .md files** | **all (universal)** | **Any .md file staged** |
-| skill-validation.md | SKILL.md structure/CSO | skills only | SKILL.md files staged |
-| java-code-review | Safety, concurrency, resources | java only | Before java-git-commit |
-| java-security-audit | OWASP Top 10 | java only | Security-critical code |
-| update-claude-md | CLAUDE.md integrity | all (if exists) | After sync applies |
-| java-update-design | DESIGN.md integrity | java only | After sync applies |
-| update-primary-doc | Primary doc integrity | custom only | After sync applies |
-| readme-sync.md | README.md integrity | skills only | After sync applies |
-
-### How Validation Works
-
-**Automated Validation (scripts/validation/):**
-| Script | What It Validates | Severity |
-|--------|-------------------|----------|
-| `validate_frontmatter.py` | YAML structure, required fields, name/directory match | CRITICAL |
-| `validate_cso.py` | Description format (WHEN not HOW), no workflow keywords | CRITICAL |
-| `validate_flowcharts.py` | Graphviz syntax validity, semantic node labels | CRITICAL |
-| `validate_references.py` | Cross-reference resolution, bidirectional links | WARNING |
-| `validate_naming.py` | Type prefixes, hierarchical patterns | WARNING |
-| `validate_sections.py` | Required sections by skill type | NOTE |
-| `validate_structure.py` | File organization, no orphaned files | NOTE |
-| **`validate_all.py`** | **Master orchestrator - runs all checks** | **ALL** |
-
-**Document Validation (scripts/):**
-| Script | What It Validates | Used By |
-|--------|-------------------|---------|
-| `validate_document.py` | .md corruption (duplicates, broken tables, orphans) | All sync workflows + git-commit |
-
-**Workflow Validation:**
-| Workflow | Triggers | Validates |
-|----------|----------|-----------|
-| `skill-validation.md` | SKILL.md files staged (type: skills) | All SKILL.md checks above |
-| `git-commit` Step 1c | Any .md file staged (all project types) | Document corruption |
-
-### When Validation Runs
-
-**Pre-commit gates** (blocks commit on failure):
-- All staged .md files validated for corruption (git-commit Step 1c)
-- All staged SKILL.md files validated for structure/CSO (skill-validation.md)
-- CRITICAL findings block commit, WARNING findings ask user
-
-**Post-sync validation** (automatic revert on failure):
-- CLAUDE.md validated after update-claude-md applies changes
-- DESIGN.md validated after java-update-design applies changes
-- README.md validated after readme-sync.md applies changes
-- Primary docs validated after update-primary-doc applies changes
-
-**On-demand validation:**
-- Run `python scripts/validate_all.py` to check all skills
-- Run `python scripts/validate_document.py <file>` for specific .md file
-- Deep analysis reviews before releases (manual systematic procedures)
-
-### When Validation Runs
-
-**Pre-commit gates (blocks commit on failure):**
-- **All projects:** All staged .md files validated for corruption (git-commit Step 1c)
-- **Type: skills:** All staged SKILL.md files validated for structure/CSO (skill-validation.md)
-- **Type: java:** Code review blocks on CRITICAL findings (java-code-review)
-- CRITICAL findings → commit blocked, WARNING findings → user asked to confirm
-
-**Post-sync validation (automatic revert on failure):**
-- **All projects (if CLAUDE.md exists):** Validated after update-claude-md
-- **Type: java:** DESIGN.md validated after java-update-design
-- **Type: custom:** Primary doc validated after update-primary-doc
-- **Type: skills:** README.md validated after readme-sync.md
-- Corruption detected → automatic `git restore <file>` + error report + stop
-
-**On-demand validation:**
-- Run `python scripts/validate_all.py` to check all skills (skills repo only)
-- Run `python scripts/validate_document.py <file>` for any .md file (all projects)
-- Deep analysis reviews before releases (manual systematic procedures)
-
-### Document Corruption Prevention (Universal)
-
-Document synchronization workflows (update-claude-md, java-update-design, update-primary-doc, readme-sync.md) automatically update documentation to match code changes. Without validation, these updates can introduce corruption.
-
-**Protection mechanisms:**
-
-**Pre-commit validation (git-commit Step 1c):**
-- Runs on ALL staged .md files across all project types
-- Detects: duplicate headers, corrupted tables, orphaned sections
-- CRITICAL issues → blocks commit + shows errors
-- WARNING issues → asks user to confirm or abort
-- Example: Prevents committing README.md with 341 lines of duplicate content
-
-**Post-sync validation (all sync workflows):**
-- Runs immediately after applying proposed changes
-- Same corruption checks as pre-commit
-- CRITICAL issues → automatic `git restore <file>` + reports error + stops
-- WARNING issues → shows warnings + continues if user confirms
-- Example: Detects when update-claude-md accidentally duplicates a section
-
-**Implementation:**
-- `scripts/validate_document.py` - portable Python 3 (no dependencies)
-- Exit codes: 0 (clean), 1 (CRITICAL → block), 2 (WARNING → ask)
-- Works universally: README, CLAUDE, DESIGN, VISION, THESIS, any .md file
-
-**Why this matters:**
-Documentation corruption is insidious - it passes code review visually but breaks programmatic parsing, search, and future AI processing. Early validation prevents corruption from reaching git history.
-
-**Coverage:** All project types (skills/java/custom/generic) × All .md files × All sync points (pre-commit + post-sync) = comprehensive protection.
-
-### Why This Framework Matters
-
-**Quality issues in AI-guided development compound exponentially.** One bad instruction, one corrupted document, one missed safety check affects every subsequent decision.
-
-**Without this framework (what you'd experience):**
-
-**In Java projects:**
-- ❌ Resource leaks slip through (file handles, connections left open)
-- ❌ Blocking I/O on Vert.x event loop (runtime failures)
-- ❌ OWASP vulnerabilities undetected (SQL injection, XSS, auth bypass)
-- ❌ DESIGN.md drifts from code (architecture docs become lies)
-- ❌ BOM version drift (dependency hell, runtime classpath conflicts)
-
-**In custom projects:**
-- ❌ VISION.md out of sync with catalog (team works from stale understanding)
-- ❌ THESIS.md missing experimental results (research becomes incoherent)
-- ❌ API design doc diverges from OpenAPI spec (implementation confusion)
-
-**In skills projects:**
-- ❌ Invalid Graphviz → skill fails to load → workflow blocked
-- ❌ CSO violation → Claude ignores skill body → "expensive wallpaper"
-- ❌ Broken cross-references → runtime errors when skills chain
-
-**In all projects:**
-- ❌ Corrupted tables in README/CLAUDE.md → parsing fails, docs unusable
-- ❌ Duplicate headers → navigation breaks, search confusion
-- ❌ Stale workflow instructions → commands fail, frustration, lost time
-
-**With this framework (what you get):**
-
-**In Java projects:**
-- ✅ java-code-review blocks commits with resource leaks (CRITICAL findings)
-- ✅ Event loop safety enforced (Red Flags section prevents rationalization)
-- ✅ Security audit catches OWASP Top 10 before merge
-- ✅ DESIGN.md auto-synced with architecture changes (validated before staging)
-- ✅ BOM alignment checked on every dependency update
-
-**In custom projects:**
-- ✅ Primary document stays synchronized (corruption detection prevents drift)
-- ✅ Sync rules enforced (file changes reflected in VISION/THESIS/API docs)
-- ✅ User-configured validation (project-specific consistency)
-
-**In skills projects:**
-- ✅ Structural errors caught at creation (pre-commit gates)
-- ✅ CSO compliance enforced (descriptions trigger correctly)
-- ✅ Cross-reference integrity verified bidirectionally
-
-**In all projects:**
-- ✅ Document corruption prevented automatically (pre-commit + post-sync)
-- ✅ Automatic revert on corruption (never reaches git history)
-- ✅ Consistent quality (regression prevention, pressure-tested)
-
-**Real impact:** The java-dev skill was tested under combined time pressure, authority pressure, and sunk cost bias — it successfully prevented resource leaks that baseline Claude (without the skill) introduced. This framework ensures that level of reliability across all project types.
-
-### How Skills Are Built (Quality Standards)
-
-Skills themselves follow rigorous quality standards using the [superpowers:writing-skills](https://github.com/anthropics/superpowers) methodology:
-
-**Structural requirements:**
-- CSO-optimized descriptions (trigger-focused, under 500 chars, no workflow summaries)
-- Common Pitfalls tables (3-column format: Mistake | Why It's Wrong | Fix)
-- Success Criteria (for artifact-producing skills: commits, updates, ADRs)
-- Decision flowcharts (for complex logic, Graphviz-validated)
-
-**Content quality:**
-- ❌/✅ Code examples (wrong vs. right approaches)
-- Quick Reference tables (scannable summaries)
-- Real-World Impact sections (production incidents demonstrating why rules matter)
-- Red Flags (java-dev: patterns that indicate rationalization)
-
-**Testing methodology:**
-- RED-GREEN-REFACTOR validation (baseline without skill → with skill → verify compliance)
-- Pressure scenario testing (time pressure + authority pressure + sunk cost)
-- Example: java-dev successfully prevented resource leaks under all three pressures
-
-**Consistency enforcement:**
-- Naming conventions (hierarchical: generic base → language-specific → tool-specific)
-- Section ordering (Prerequisites → Core Rules → Workflow → Common Pitfalls → Success Criteria → Skill Chaining)
-- Cross-reference format (backticks for skill names, bidirectional documentation)
-- Flowchart conventions (semantic labels, decision diamonds, action boxes)
-
-These standards ensure skills provide reliable guidance. But standards alone aren't enough — validation enforcement prevents drift.
-
-### Running Validation
-
-**For document corruption (all project types):**
+**Validate specific documents:**
 ```bash
-# Validate any .md file
 python scripts/validate_document.py README.md
-python scripts/validate_document.py CLAUDE.md
 python scripts/validate_document.py docs/DESIGN.md
 python scripts/validate_document.py docs/vision.md
 ```
 
-**For skills repository only:**
+**For skills repository:**
 ```bash
-# Validate all skills (comprehensive check)
-python scripts/validate_all.py
-
-# Validate specific skill
-python scripts/validate_all.py maven-dependency-update/
-
-# Validate specific aspect
-python scripts/validation/validate_cso.py
-python scripts/validation/validate_flowcharts.py
+python scripts/validate_all.py                    # All skills
+python scripts/validation/validate_cso.py         # CSO compliance
+python scripts/validation/validate_flowcharts.py  # Graphviz syntax
 ```
 
-**Automatic validation (happens without manual invocation):**
-- **Pre-commit:** git-commit validates all staged .md files (all project types)
-- **Post-sync:** All sync workflows validate their target documents before staging
-- **CRITICAL failures:** Automatic revert + error message
-- **WARNING failures:** User asked to confirm or abort
+**Automatic validation:** Pre-commit gates block CRITICAL issues. Post-sync validation auto-reverts corruption. See [QUALITY.md § When Validation Runs](QUALITY.md#when-validation-runs).
 
-**Deep analysis (manual, skills repository):**
-See **CLAUDE.md § Quality Assurance Framework** for complete procedures including:
-- Manual verification protocols (reference accuracy, logic soundness, completeness)
-- Functional testing procedures (test case structure, execution, regression tests)
-- Regression prevention strategies
+### Quality Protection by Project Type
+
+| Project Type | Universal Protection | Type-Specific Protection |
+|--------------|---------------------|-------------------------|
+| **java** | Document corruption, CLAUDE.md sync | Code review, security audit, DESIGN.md sync, BOM alignment |
+| **custom** | Document corruption, CLAUDE.md sync | Primary doc sync, user-configured validation, sync rules |
+| **skills** | Document corruption, CLAUDE.md sync | SKILL.md validation, CSO compliance, README sync |
+| **generic** | Document corruption, CLAUDE.md sync | (universal only) |
+
+See [QUALITY.md § Quality Protection by Project Type](QUALITY.md#quality-protection-by-project-type) for detailed before/after comparisons.
+
+### Validation Tiers
+
+| Level | When | Time Budget | Key Checks |
+|-------|------|-------------|-----------|
+| **Quick** | File save | <100ms | Syntax, heading hierarchy |
+| **Commit** | Pre-commit | <2s | Structure, corruption (blocks CRITICAL) |
+| **Review** | User-invoked | User-driven | Scripts + Claude deep analysis |
+| **Push** | Pre-push | <30s | Cross-document consistency |
+| **Full** | CI/Scheduled | <5min | Everything + external URLs |
+
+See [QUALITY.md § Tiered Validation](QUALITY.md#tiered-validation) for complete details.
+
+### Why This Framework Matters
+
+Quality issues in AI-guided development compound exponentially. This framework prevents:
+- **Code issues:** Resource leaks, concurrency bugs, security vulnerabilities
+- **Documentation drift:** DESIGN.md, VISION.md, THESIS.md become lies
+- **Corruption:** Duplicate headers, broken tables slip into git history
+- **Expensive wallpaper:** Skills with bad descriptions get ignored by Claude
+
+**Result:** Production-grade quality by default. The java-dev skill was pressure-tested and successfully prevented resource leaks that baseline Claude introduced. This framework ensures that reliability across all project types.
+
+See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for complete before/after comparisons and real incident examples.
 
 ## Repository Structure
 
