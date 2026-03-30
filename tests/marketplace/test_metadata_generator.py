@@ -330,6 +330,17 @@ description: No name field
 class TestMainCLI(unittest.TestCase):
     """Test main CLI function"""
 
+    def test_main_returns_zero_when_no_skills_found(self):
+        """Main should return 0 when no skills found in directory"""
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            from scripts.generate_skill_metadata import main
+
+            result = main(root_dir=tmpdir)
+
+            assert result == 0
+
     def test_main_generates_metadata_for_all_skills(self):
         """Main function should generate skill.json for all discovered skills"""
         import json
@@ -369,6 +380,100 @@ name: {skill_name}
             assert data["name"] == "java-dev"
             assert data["version"] == "1.0.0"
             assert data["repository"] == "https://github.com/test/repo"
+
+    def test_main_processes_dependencies(self):
+        """Main should extract and format dependencies correctly"""
+        import json
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            # Create skill with dependencies
+            skill_dir = tmpdir / "test-skill"
+            skill_dir.mkdir()
+            (skill_dir / "SKILL.md").write_text("""---
+name: test-skill
+---
+
+## Prerequisites
+
+This skill builds on [`base-skill`] and extends [`other-skill`].
+""")
+
+            from scripts.generate_skill_metadata import main
+
+            main(root_dir=tmpdir, repository_url="https://example.com/repo")
+
+            # Verify skill.json contains correctly formatted dependencies
+            with open(skill_dir / "skill.json") as f:
+                data = json.load(f)
+
+            assert len(data["dependencies"]) == 2
+            assert data["dependencies"][0]["name"] == "base-skill"
+            assert data["dependencies"][0]["repository"] == "https://example.com/repo"
+            assert data["dependencies"][0]["ref"] == "main"
+            assert data["dependencies"][1]["name"] == "other-skill"
+            assert data["dependencies"][1]["repository"] == "https://example.com/repo"
+            assert data["dependencies"][1]["ref"] == "main"
+
+    def test_main_continues_processing_after_corrupted_skill(self):
+        """Main should skip corrupted skills and continue processing others"""
+        import json
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            # Create valid skill
+            skill1_dir = tmpdir / "valid-skill"
+            skill1_dir.mkdir()
+            (skill1_dir / "SKILL.md").write_text("""---
+name: valid-skill
+---
+
+# Valid Skill
+""")
+
+            # Create corrupted skill (missing name in frontmatter)
+            skill2_dir = tmpdir / "corrupted-skill"
+            skill2_dir.mkdir()
+            (skill2_dir / "SKILL.md").write_text("""---
+description: No name field
+---
+
+# Corrupted Skill
+""")
+
+            # Create another valid skill
+            skill3_dir = tmpdir / "another-valid-skill"
+            skill3_dir.mkdir()
+            (skill3_dir / "SKILL.md").write_text("""---
+name: another-valid-skill
+---
+
+# Another Valid Skill
+""")
+
+            from scripts.generate_skill_metadata import main
+
+            # Should process 2 out of 3 skills
+            result = main(root_dir=tmpdir, repository_url="https://example.com/repo")
+
+            # Should have processed 2 valid skills
+            assert result == 2
+
+            # Valid skills should have skill.json
+            assert (skill1_dir / "skill.json").exists()
+            assert (skill3_dir / "skill.json").exists()
+
+            # Corrupted skill should NOT have skill.json
+            assert not (skill2_dir / "skill.json").exists()
+
+            # Verify valid skills were processed correctly
+            with open(skill1_dir / "skill.json") as f:
+                data = json.load(f)
+            assert data["name"] == "valid-skill"
+
+            with open(skill3_dir / "skill.json") as f:
+                data = json.load(f)
+            assert data["name"] == "another-valid-skill"
 
 
 if __name__ == '__main__':

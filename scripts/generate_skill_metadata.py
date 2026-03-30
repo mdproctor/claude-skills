@@ -190,39 +190,45 @@ def main(
 
     print("Generating skill metadata...")
 
+    processed_count = 0
     for skill_dir in skills:
-        skill_md_path = skill_dir / "SKILL.md"
-        skill_md_content = skill_md_path.read_text()
+        try:
+            skill_md_path = skill_dir / "SKILL.md"
+            skill_md_content = skill_md_path.read_text()
 
-        # Extract name
-        name = parse_frontmatter(skill_md_content)
+            # Extract name
+            name = parse_frontmatter(skill_md_content)
 
-        # Extract dependencies
-        dep_names = parse_dependencies(skill_md_content)
+            # Extract dependencies
+            dep_names = parse_dependencies(skill_md_content)
 
-        # Build dependency objects (simplified for v1 - all same repo, version TBD)
-        dependencies = [
-            {
-                "name": dep_name,
-                "repository": repository_url,
-                "ref": "main"  # Snapshot for now
-            }
-            for dep_name in dep_names
-        ]
+            # Build dependency objects (simplified for v1 - all same repo, version TBD)
+            dependencies = [
+                {
+                    "name": dep_name,
+                    "repository": repository_url,
+                    "ref": "main"  # Snapshot for now
+                }
+                for dep_name in dep_names
+            ]
 
-        # Generate skill.json
-        generate_skill_json(
-            skill_dir=skill_dir,
-            repository_url=repository_url,
-            version=version,
-            dependencies=dependencies
-        )
+            # Generate skill.json
+            generate_skill_json(
+                skill_dir=skill_dir,
+                repository_url=repository_url,
+                version=version,
+                dependencies=dependencies
+            )
 
-        deps_str = f", {len(dependencies)} dependencies" if dependencies else ", 0 dependencies"
-        print(f"  ✓ {name}/skill.json (v{version}{deps_str})")
+            deps_str = f", {len(dependencies)} dependencies" if dependencies else ", 0 dependencies"
+            print(f"  ✓ {name}/skill.json (v{version}{deps_str})")
+            processed_count += 1
+        except (FileNotFoundError, ValueError, IOError) as e:
+            print(f"  ✗ {skill_dir.name} - Error: {e}")
+            continue
 
-    print(f"\nGenerated metadata for {len(skills)} skills.")
-    return len(skills)
+    print(f"\nGenerated metadata for {processed_count} skills.")
+    return processed_count
 
 
 if __name__ == "__main__":
