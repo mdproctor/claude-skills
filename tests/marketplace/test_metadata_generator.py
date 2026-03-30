@@ -279,6 +279,53 @@ description: No name field
                     dependencies=[]
                 )
 
+    def test_generate_skill_json_raises_on_file_instead_of_dir(self):
+        """Generator should raise ValueError if skill_dir is a file"""
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            # Create a FILE instead of directory
+            skill_file = tmpdir / "not-a-dir"
+            skill_file.write_text("I'm a file")
+
+            from scripts.generate_skill_metadata import generate_skill_json
+
+            with self.assertRaisesRegex(ValueError, "Not a directory"):
+                generate_skill_json(
+                    skill_dir=skill_file,
+                    repository_url="https://github.com/mdproctor/claude-skills",
+                    version="1.0.0",
+                    dependencies=[]
+                )
+
+    def test_generate_skill_json_raises_on_permission_error(self):
+        """Generator should raise IOError if SKILL.md cannot be read"""
+        import os
+        with TemporaryDirectory() as tmpdir:
+            tmpdir = Path(tmpdir)
+
+            skill_dir = tmpdir / "test-skill"
+            skill_dir.mkdir()
+            skill_md = skill_dir / "SKILL.md"
+            skill_md.write_text("---\nname: test\n---")
+
+            # Remove read permissions
+            os.chmod(skill_md, 0o000)
+
+            from scripts.generate_skill_metadata import generate_skill_json
+
+            try:
+                with self.assertRaisesRegex(IOError, "Failed to read"):
+                    generate_skill_json(
+                        skill_dir=skill_dir,
+                        repository_url="https://github.com/mdproctor/claude-skills",
+                        version="1.0.0",
+                        dependencies=[]
+                    )
+            finally:
+                # Restore permissions for cleanup
+                os.chmod(skill_md, 0o644)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -150,7 +150,10 @@ def generate_skill_json(
         "dependencies": dependencies
     }
 
-    # Write skill.json
+    # Write skill.json with error handling
     skill_json_path = skill_dir / "skill.json"
-    with open(skill_json_path, 'w') as f:
-        json.dump(metadata, f, indent=2)
+    try:
+        with open(skill_json_path, 'w') as f:
+            json.dump(metadata, f, indent=2)
+    except (OSError, PermissionError) as e:
+        raise IOError(f"Failed to write {skill_json_path}: {e}")
