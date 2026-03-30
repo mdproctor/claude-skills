@@ -250,6 +250,78 @@ custom-git-commit (for type: custom)
 
 **This type is for ANYTHING with a primary document and sync needs that aren't skills or Java.**
 
+#### Growing Your Sync Rules: Evolution Example
+
+**Scenario:** Your custom project starts small, then grows.
+
+**Initial Sync Rules (Phase 1 - Discovery):**
+
+```markdown
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `docs/catalog/*.md` | Section 2 "Projects" | Add/update catalog entries |
+| `examples/*/README.md` | Section 3 "Examples" | Mark completed examples |
+```
+
+**Project grows. Phase 2 adds decision tracking:**
+
+```markdown
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `docs/catalog/*.md` | Section 2 "Projects" | Add/update catalog entries |
+| `examples/*/README.md` | Section 3 "Examples" | Mark completed examples |
+| `decisions/*.md` | Section 4 "Decisions" | Document architectural choices |
+```
+
+**Phase 3 adds integration demos:**
+
+```markdown
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `docs/catalog/*.md` | Section 2 "Projects" | Add/update catalog entries |
+| `examples/*/README.md` | Section 3 "Examples" | Mark completed examples |
+| `decisions/*.md` | Section 4 "Decisions" | Document architectural choices |
+| `integrations/*/config.yaml` | Section 5 "Integrations" | Add integration patterns |
+| `docs/roadmap.md` | Section 6 "Future Work" | Sync upcoming milestones |
+```
+
+**How to expand safely:**
+
+1. **Add new rows, don't replace the table**
+   - Existing rules continue working
+   - New patterns are additive
+   - No disruption to current sync behavior
+
+2. **Test with one new row first**
+   - Make a change matching the new pattern
+   - Run custom-git-commit
+   - Verify primary doc updates correctly
+   - Then add more rules
+
+3. **Update milestone when appropriate**
+   - Phase 1 → Phase 2: Update milestone
+   - Helps track progress in commit messages
+   - Documents evolution of the project
+
+4. **Keep Consistency Checks current**
+   - Add checks for new sections: "All integrations reference valid catalog entries"
+   - Remove checks for deprecated sections
+   - Ensures primary doc stays coherent
+
+**Common mistakes to avoid:**
+
+| Mistake | Why It's Wrong | Fix |
+|---------|----------------|-----|
+| Replacing entire table | Loses existing sync patterns | Add new rows at bottom |
+| Overlapping patterns | Two rules match same file → conflict | Make patterns mutually exclusive |
+| Vague "Update Type" | `update-primary-doc` doesn't know what to do | Be specific: "Add entry", "Update status", "Document pattern" |
+| Not testing incrementally | All 5 new rules at once → hard to debug | Add 1 rule, test, then add next |
+
+**Result:** Your Sync Rules evolve with your project. Start simple, grow as needed, no skill changes required.
+
 ---
 
 ### Type 4: Generic (Fallback)
@@ -450,6 +522,60 @@ User configures in their CLAUDE.md:
 
 **No new skills needed. Just use existing `custom-git-commit`.**
 
+#### Real-World Example: Adding Python Support
+
+**Scenario:** User wants commit workflow for Python project with architecture docs.
+
+**Question:** Should we create `python-git-commit` (new built-in type)?
+
+**Analysis:**
+1. **Do we understand Python architecture universally?**
+   - ❌ No — Python projects vary wildly (Django apps, FastAPI services, data pipelines, ML projects, CLI tools)
+   - Some use Clean Architecture, others use package-based, others use monolithic
+   - No single "Python architecture pattern" like Java's layered approach
+
+2. **Can we hardcode sync logic?**
+   - ❌ No — we don't know if architecture doc should track modules, packages, classes, or something else
+   - Django projects might document apps vs services vs models
+   - FastAPI might document routers vs dependencies vs schemas
+   - Data science might document pipelines vs transformers vs models
+
+3. **Is there a standard Python architecture documentation pattern?**
+   - ❌ No — unlike Java (where DESIGN.md typically has Layers/Components/Domain Model), Python has no standard
+
+**Decision: Use `type: custom`, NOT a new built-in type.**
+
+**Why this is correct:**
+- Python is too diverse to hardcode sync logic
+- Every Python project structures docs differently
+- User knows their architecture better than we do
+- One `custom-git-commit` with user's Sync Rules handles ALL Python variants
+
+**How user would configure:**
+
+```markdown
+## Project Type
+
+**Type:** custom
+**Primary Document:** docs/architecture.md
+
+**Sync Strategy:** bidirectional-consistency
+
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `src/api/*.py` | "API Routers" | Document new endpoints |
+| `src/models/*.py` | "Domain Models" | Update model descriptions |
+| `src/services/*.py` | "Business Logic" | Document service changes |
+| `requirements.txt` | "Dependencies" | Update dependency list |
+
+**Current Milestone:** Version 2.1.0
+```
+
+**Result:** Works perfectly without creating `python-git-commit`, `python-update-design`, etc.
+
+**Key insight:** If you can't answer "what does architecture doc mean for ALL X projects", it's not a built-in type.
+
 ---
 
 ### Interactive Setup: Helping Users Declare Type
@@ -581,6 +707,61 @@ Skills follow a hierarchical naming pattern:
 - `quarkus-observability` — extends `observability-principles` for Quarkus
 
 **Why this matters:** The naming pattern makes it clear which skills are generic foundations vs. language/tool-specific implementations. When adding support for new languages, create skills like `go-code-review` (extends `code-review-principles`), `gradle-dependency-update` (extends `dependency-management-principles`), etc.
+
+#### Extending to New Languages: Pattern Examples
+
+**When adding support for new languages/frameworks, follow established patterns to maintain consistency.**
+
+**Python ecosystem:**
+- `python-dev` — NOT `python-development` (keep 1-word suffix for consistency with `java-dev`)
+- `python-code-review` — extends `code-review-principles` for Python (consistent with `java-code-review`)
+- `pytest-runner` — NOT just `pytest` (suffix clarifies it's a test runner skill)
+- `pip-dependency-update` — extends `dependency-management-principles` for pip
+
+**Go ecosystem:**
+- `go-dev` — NOT `golang-dev` (use language's canonical name)
+- `go-code-review` — extends `code-review-principles` for Go
+- `go-security-audit` — extends `security-audit-principles` for Go-specific issues
+- `gomod-dependency-update` — extends `dependency-management-principles` for go.mod
+
+**Rust ecosystem:**
+- `rust-dev` — follows same pattern
+- `rust-code-review` — extends `code-review-principles` for Rust
+- `cargo-dependency-update` — extends `dependency-management-principles` for Cargo.toml
+
+**JavaScript/TypeScript ecosystem:**
+- `ts-dev` — TypeScript development (abbreviated to avoid `typescript-dev` length)
+- `ts-code-review` — extends `code-review-principles` for TypeScript
+- `npm-dependency-update` — extends `dependency-management-principles` for package.json
+- `react-dev` — framework-specific (follows `quarkus-flow-dev` pattern)
+
+**Common naming mistakes to avoid:**
+
+| Mistake | Why Wrong | Correct |
+|---------|-----------|---------|
+| `python-development` | Inconsistent with `java-dev` | `python-dev` |
+| `golang-dev` | "Go" is canonical name | `go-dev` |
+| `python-review` | Doesn't match `java-code-review` pattern | `python-code-review` |
+| `pytest` | Ambiguous (skill or tool?) | `pytest-runner` or `pytest-dev` |
+| `javascript-dev` | Too long, TypeScript more common | `ts-dev` (covers both) |
+| `react` | Just framework name | `react-dev` |
+
+**Key principles:**
+1. **Consistency over brevity** — match existing patterns even if longer
+2. **1-word base** — `*-dev`, `*-code-review`, `*-security-audit` (NOT `*-development`, `*-reviewing`)
+3. **Canonical names** — Go not Golang, Python not Py, TypeScript not JavaScript
+4. **Tool prefix for tool-specific** — `cargo-*`, `npm-*`, `pip-*`, `gomod-*`
+5. **Framework prefix for framework-specific** — `react-*`, `vue-*`, `django-*`
+
+**Testing consistency:**
+```bash
+# List all language-specific skills
+ls -d *-dev *-code-review *-security-audit 2>/dev/null
+
+# Should show consistent patterns:
+# java-dev, python-dev, go-dev (NOT python-development, golang-dev)
+# java-code-review, python-code-review, go-code-review (NOT python-review)
+```
 
 ### Skill Chaining
 
@@ -878,6 +1059,341 @@ Skills are infrastructure code that guides AI behavior across millions of invoca
 | **Functional** | Workflow execution, command correctness, actual usability | Test cases with real Claude instances |
 
 **All three are required.** Automated tests catch mechanical errors fast. Manual reviews catch semantic errors. Functional tests catch real-world failures.
+
+---
+
+### Division of Labor: Automated vs AI-Assisted Validation
+
+**CRITICAL: Scripts cannot replace deep thought. This framework combines automated checks (fast, mechanical) with AI-assisted analysis (semantic, strategic).**
+
+**Universal across ALL project types** — this architecture applies whether you're maintaining skills, Java code, research docs, or any other repository.
+
+#### What Scripts CAN Check (Automated)
+
+**Mechanical/Structural validation (no intelligence needed):**
+
+| Check Type | Example | All Project Types |
+|------------|---------|-------------------|
+| **Syntax errors** | Broken markdown, invalid YAML, malformed tables | ✅ README.md, DESIGN.md, CLAUDE.md, VISION.md, THESIS.md, etc. |
+| **Format violations** | Duplicate headers, missing sections, heading hierarchy | ✅ Any .md file in any repository |
+| **Broken references** | Links to non-existent files/sections, missing anchors | ✅ Internal links across all documentation |
+| **File existence** | "see docs/MISSING.md" when file doesn't exist | ✅ Verify referenced files exist |
+| **Pattern matching** | CSO violations (SKILL.md only), code block language tags | ✅ Skills repos get CSO check, all repos get code block check |
+| **Simple rules** | Frontmatter schema (SKILL.md), table structure, list formatting | ✅ Type-specific where needed, universal where possible |
+
+**Exit behavior:** Blocks on CRITICAL mechanical errors. Fast (<2s for commit-level checks).
+
+**Type-specific automated checks:**
+
+| Project Type | Additional Automated Checks | Why Type-Specific |
+|--------------|----------------------------|-------------------|
+| **type: skills** | SKILL.md frontmatter validation, CSO compliance | SKILL.md format is skills-specific |
+| **type: java** | Java syntax validation, import organization | Code structure rules |
+| **type: custom** | User-defined validation rules (configurable) | User knows their domain rules |
+| **type: generic** | None (universal checks only) | Minimal overhead |
+
+**Universal automated checks (ALL project types):**
+- Document corruption (duplicate headers, broken tables, orphaned sections)
+- Link validation (internal anchors, cross-document links)
+- Code block syntax (bash, python, java examples)
+- Spelling and basic grammar
+- Structural quality (heading hierarchy, list formatting)
+
+#### What Scripts CANNOT Check (Requires AI)
+
+**Semantic/Strategic analysis (requires understanding):**
+
+| Check Type | Why Scripts Fail | Requires Human/AI |
+|------------|------------------|-------------------|
+| **Semantic contradictions** | "Always use X" in one section, "Never use X" in another → scripts see valid paragraphs, can't detect conflict | ✅ Claude reads both, understands contradiction |
+| **Logical flow** | Workflow says "Step 1, Step 2, Step 4" → scripts see numbers, can't detect missing Step 3 | ✅ Claude simulates execution, notices gap |
+| **Nonsensical content** | "Use maven-dependency-update when upgrading Java versions" → scripts see valid sentence, can't detect wrong tool for wrong job | ✅ Claude knows semantic meaning, detects error |
+| **Strategic completeness** | Workflow missing error handling → scripts can't know what SHOULD be there | ✅ Claude knows best practices, identifies gaps |
+| **Cross-document consistency** | CLAUDE.md says "always sync", skill says "optional" → scripts can flag both mention sync, can't determine contradiction | ✅ Claude understands semantics, detects conflict |
+| **Quality judgment** | Is this explanation clear? Best way to structure this? → subjective | ✅ Claude applies judgment, suggests improvements |
+
+**Example: Scripts Flag, Claude Judges**
+
+**Scenario: Potential contradiction in git-commit workflow**
+
+```bash
+# Scripts run during pre-push
+python scripts/validate_consistency.py --level push
+
+⚠️  WARNING: Potential contradiction detected:
+   - git-commit/SKILL.md:24: "Never add attribution"
+   - CLAUDE.md:156: "All commits include Co-Authored-By"
+
+   These statements may conflict. Run deep analysis? (Y/n)
+```
+
+**User invokes Claude for semantic analysis:**
+
+```
+User: "Review git-commit skill for contradictions"
+
+Claude:
+1. Reads git-commit/SKILL.md full context:
+   - Core Rules: "Never add attribution UNLESS user explicitly requests it"
+
+2. Reads CLAUDE.md § Committing changes:
+   - "All commits include Co-Authored-By: Claude"
+
+3. Semantic analysis:
+   - git-commit changed to "never add attribution" (recent update)
+   - CLAUDE.md has stale text from before this change
+
+4. Reports finding:
+   ❌ CRITICAL: CLAUDE.md is stale. git-commit now says "never add
+   attribution unless requested" but CLAUDE.md still says all commits
+   include Co-Authored-By.
+
+   Fix: Update CLAUDE.md line 156 to match git-commit's current behavior.
+```
+
+**Result:** Script identified potential issue (string matching), Claude provided semantic understanding and fix.
+
+#### Universal Application Across Project Types
+
+**This division of labor applies to ALL repositories using these skills:**
+
+**Type: skills (this repository):**
+- **Scripts validate:** SKILL.md frontmatter, README.md structure, CLAUDE.md syntax
+- **Claude validates:** Skill chaining logic, workflow completeness, cross-skill consistency
+- **Hybrid:** Scripts flag CSO violations, Claude assesses if description actually summarizes workflow
+
+**Type: java (Java/Maven/Gradle projects):**
+- **Scripts validate:** DESIGN.md structure, CLAUDE.md syntax, Java code formatting
+- **Claude validates:** DESIGN.md architecture accuracy, code review for logic errors, DESIGN.md vs code consistency
+- **Hybrid:** Scripts flag missing DESIGN.md sections, Claude assesses if architecture description matches actual code
+
+**Type: custom (working groups, research, documentation):**
+- **Scripts validate:** Primary doc structure (VISION.md, THESIS.md, etc.), CLAUDE.md syntax, Sync Rules table format
+- **Claude validates:** Primary doc coherence, research methodology soundness, claim accuracy
+- **Hybrid:** Scripts flag broken references, Claude assesses if referenced sections actually support claims
+
+**Type: generic (simple projects):**
+- **Scripts validate:** CLAUDE.md syntax (if exists), basic markdown quality
+- **Claude validates:** Commit message quality, documentation clarity
+- **Hybrid:** Scripts flag spelling errors, Claude judges if corrections change meaning
+
+#### When to Use Automated vs AI-Assisted
+
+**Automated validation (scripts) — ALWAYS RUNNING:**
+
+| Trigger | Level | Time Budget | Purpose |
+|---------|-------|-------------|---------|
+| **File save** | Quick | <100ms | Instant feedback (editor integration) |
+| **Pre-commit** | Commit | <2s | Block corruption before git history |
+| **Pre-push** | Push | <30s | Cross-document checks before sharing |
+| **CI/CD** | Full | <5min | Comprehensive mechanical validation |
+
+**AI-assisted validation (Claude) — SELECTIVE INVOCATION:**
+
+| Trigger | Scope | Time Budget | Purpose |
+|---------|-------|-------------|---------|
+| **User requests review** | `/skill-review`, `/java-code-review` | User-driven | On-demand deep analysis |
+| **Major changes** | User judgment call | User-driven | Validate significant refactors |
+| **Scripts flag WARNING** | Specific issue | Quick check | Semantic confirmation needed |
+| **Before releases** | Full repository | Comprehensive | Ensure quality before publishing |
+| **Scheduled deep analysis** | Weekly/monthly | Comprehensive | Prevent quality drift |
+
+**Decision matrix:**
+
+```
+Issue detected → Is it mechanical/structural?
+                 ├─ YES → Script should catch it (add check if missing)
+                 └─ NO → Requires semantic analysis
+                          ├─ Simple → Script can flag, Claude confirms
+                          └─ Complex → Claude deep analysis required
+```
+
+#### Concrete Examples by Project Type
+
+**Example 1: Type: skills — SKILL.md validation**
+
+**Scripts check (automated):**
+- ✅ Frontmatter has `name` and `description` fields
+- ✅ Description doesn't contain "step 1, step 2" (CSO violation pattern)
+- ✅ Cross-referenced skills exist (file existence check)
+- ✅ Flowchart has valid Graphviz syntax
+- ✅ No duplicate section headers
+
+**Claude checks (AI-assisted):**
+- ❓ Does description summarize workflow? (semantic CSO violation)
+- ❓ Is workflow logically sound? (can it execute as written?)
+- ❓ Are cross-references accurate? (does referenced skill actually do what's claimed?)
+- ❓ Is flowchart semantically correct? (do decision branches make sense?)
+- ❓ Are examples consistent with rules? (do examples illustrate the point?)
+
+**Example 2: Type: java — DESIGN.md sync**
+
+**Scripts check (automated):**
+- ✅ DESIGN.md file exists (blocks commit if missing)
+- ✅ Required sections present (Architecture, Components, etc.)
+- ✅ No duplicate headers
+- ✅ Code examples have syntax highlighting tags
+- ✅ Internal links resolve
+
+**Claude checks (AI-assisted):**
+- ❓ Does architecture description match actual code structure?
+- ❓ When @Service added, is it documented in "Business Logic" section?
+- ❓ When new module added to pom.xml, is it in "Component Structure"?
+- ❓ Are design decisions explained (not just described)?
+- ❓ Do sequence diagrams match actual code flow?
+
+**Example 3: Type: custom — Research project (THESIS.md)**
+
+**Scripts check (automated):**
+- ✅ THESIS.md structure valid (chapters, sections)
+- ✅ Bibliography references exist
+- ✅ Figure references point to existing files
+- ✅ No duplicate section numbering
+- ✅ Citations formatted consistently
+
+**Claude checks (AI-assisted):**
+- ❓ Does Methodology section describe experiments in `experiments/`?
+- ❓ Do claims in Results match data in tables?
+- ❓ Are conclusions supported by presented evidence?
+- ❓ Is literature review comprehensive (all cited works discussed)?
+- ❓ Does chapter flow logically build argument?
+
+**Example 4: Type: generic — Simple project (CLAUDE.md only)**
+
+**Scripts check (automated):**
+- ✅ CLAUDE.md syntax valid
+- ✅ Code examples are valid bash/commands
+- ✅ Project Type declared
+- ✅ No broken internal links
+
+**Claude checks (AI-assisted):**
+- ❓ Do build commands actually work?
+- ❓ Is testing guidance accurate?
+- ❓ Are conventions clearly explained?
+- ❓ Is repository structure description current?
+
+#### Integration: Scripts + Claude Working Together
+
+**Tiered validation with hybrid approach:**
+
+```
+Level 1: Quick (on save)
+  → Scripts only: Syntax, heading hierarchy
+  → 100ms, never blocks
+
+Level 2: Commit (pre-commit hook)
+  → Scripts: Structure, format, broken links
+  → Blocks on CRITICAL mechanical errors
+  → 2s budget
+
+Level 3: Review (user-invoked)
+  → Scripts run all checks first
+  → Claude performs deep semantic analysis
+  → Reports findings with CRITICAL/WARNING/NOTE
+  → User-driven timing
+
+Level 4: Push (pre-push hook)
+  → Scripts: Cross-document checks, terminology consistency
+  → If scripts flag WARNING → optionally invoke Claude
+  → 30s budget
+
+Level 5: Full (CI, scheduled)
+  → Scripts: Everything automated
+  → Claude: Comprehensive deep analysis
+  → Generate combined report
+  → 5min budget
+```
+
+**Workflow example:**
+
+```bash
+# 1. Developer edits DESIGN.md
+vim docs/DESIGN.md
+
+# 2. On save → scripts validate (quick level)
+✅ No syntax errors (100ms)
+
+# 3. Git commit
+git add docs/DESIGN.md
+git commit -m "docs(design): update architecture"
+
+# → Pre-commit hook runs scripts (commit level)
+🔍 Running commit-level validation...
+✅ No duplicate headers
+✅ No corrupted tables
+✅ All links valid
+✅ Validation passed
+
+# 4. Developer requests review before push
+/java-code-review
+
+# → Claude performs deep analysis
+Reading docs/DESIGN.md...
+Comparing with actual code structure...
+
+❌ CRITICAL: DESIGN.md says "3-tier architecture" but code has 4 layers
+   - Missing documentation for new "gateway" layer added in src/gateway/
+
+⚠️  WARNING: Sequence diagram shows sync call but code uses async
+   - Lines 45-67 in DESIGN.md need update
+
+ℹ️  NOTE: Could add example for new gateway pattern
+
+# 5. Developer fixes issues, commits again
+git add docs/DESIGN.md
+git commit -m "docs(design): add gateway layer, fix sequence diagram"
+
+# 6. Push
+git push origin main
+
+# → Pre-push hook runs scripts (push level)
+🔍 Running push-level validation...
+✅ Cross-document consistency checked
+✅ Terminology consistent
+✅ No duplication detected
+✅ Push validation passed
+
+# 7. CI runs full validation
+# → Scripts run all automated checks
+# → Claude runs comprehensive deep analysis (if configured)
+# → Results posted as PR comment or artifact
+```
+
+#### Key Principles for Universal Quality
+
+**1. Scripts are gatekeepers (universal):**
+- Fast, mechanical checks on ALL .md files
+- Block CRITICAL corruption before git history
+- Run automatically (pre-commit, pre-push, CI)
+- Type-specific where needed (SKILL.md frontmatter), universal where possible (duplicate headers)
+
+**2. Claude is architect (universal):**
+- Semantic analysis on ANY documentation
+- Strategic completeness assessment
+- Quality judgment and improvement suggestions
+- Invoked selectively (user requests, major changes, releases)
+
+**3. Hybrid approach (universal):**
+- Scripts identify potential issues quickly
+- Claude provides semantic understanding and fixes
+- User controls when deep analysis runs
+- Both work together for comprehensive quality
+
+**4. Proportional cost (universal):**
+- Light checks for small changes (quick)
+- Heavy checks for big changes (commit/push)
+- Heaviest checks for sharing (CI/release)
+- Users can bypass for emergencies (`--no-verify`)
+
+**5. Type-specific where needed, universal where possible:**
+- SKILL.md frontmatter → skills only
+- DESIGN.md sync → java only
+- Primary doc sync → custom only
+- Document corruption detection → ALL project types
+- Semantic coherence analysis → ALL project types
+- Cross-document consistency → ALL project types
+
+**This ensures every project type gets appropriate validation without unnecessary overhead.**
 
 ---
 
@@ -1780,6 +2296,107 @@ python scripts/validate_document.py <filepath>
 4. **Large structural changes** (WARNING)
    - More than 100 lines modified
    - Requires manual structural review
+
+### Running Validators Locally
+
+**Before committing changes, test them locally to catch issues early:**
+
+#### Validating a Single Document
+
+```bash
+# Validate README.md before staging
+python scripts/validate_document.py README.md
+
+# Validate DESIGN.md after editing
+python scripts/validate_document.py docs/DESIGN.md
+
+# Validate custom primary doc
+python scripts/validate_document.py docs/vision.md
+```
+
+**Output examples:**
+
+**Clean document (exit code 0):**
+```
+✅ No issues found in README.md
+```
+
+**Critical issues (exit code 1):**
+```
+❌ CRITICAL issues found in DESIGN.md:
+  - Line 45: Duplicate header "## Architecture Overview"
+  - Line 127: Corrupted table (header followed by prose)
+
+Fix these issues before committing.
+```
+
+**Warnings (exit code 2):**
+```
+⚠️  WARNING issues found in CLAUDE.md:
+  - Line 234: Orphaned section header (no content before next section)
+  - Large structural change: 156 lines modified
+
+Review recommended but not blocking.
+```
+
+#### Validating All Staged Files
+
+```bash
+# Validate all .md files about to be committed
+git diff --staged --name-only | grep '\.md$' | while read file; do
+  python scripts/validate_document.py "$file"
+done
+```
+
+#### Validating Specific Project Type Docs
+
+**For type: skills repositories:**
+```bash
+# Validate README.md and CLAUDE.md
+python scripts/validate_document.py README.md
+python scripts/validate_document.py CLAUDE.md
+```
+
+**For type: java repositories:**
+```bash
+# Validate DESIGN.md and CLAUDE.md
+python scripts/validate_document.py docs/DESIGN.md
+python scripts/validate_document.py CLAUDE.md
+```
+
+**For type: custom repositories:**
+```bash
+# Validate your primary doc (example: vision.md)
+python scripts/validate_document.py docs/vision.md
+python scripts/validate_document.py CLAUDE.md
+```
+
+#### Common Workflow: Edit → Validate → Stage → Commit
+
+```bash
+# 1. Edit document
+vim README.md
+
+# 2. Validate locally
+python scripts/validate_document.py README.md
+
+# 3. If clean, stage
+git add README.md
+
+# 4. Commit (validation runs again automatically)
+# git-commit invokes validation as pre-commit gate
+```
+
+**Why validate locally:**
+- Catch corruption before staging
+- Faster feedback loop (no need to attempt commit)
+- Understand issues in context (see the file while fixing)
+- Learn document quality patterns over time
+
+**Integration with workflows:**
+- Local validation is **optional** (but recommended)
+- Pre-commit validation is **mandatory** (runs automatically)
+- Both use the same `validate_document.py` script (consistent rules)
 
 ### Integration Points
 

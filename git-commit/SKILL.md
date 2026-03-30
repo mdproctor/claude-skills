@@ -523,6 +523,29 @@ Commit is complete when:
 
 > **When in doubt, omit the scope.** A clear description is better than a forced/inaccurate scope.
 
+#### Real Scope Decisions: Good vs Skip
+
+**Examples from actual commits showing when scope adds value vs when to omit:**
+
+| Situation | With Scope | Without Scope | Decision | Why |
+|-----------|------------|---------------|----------|-----|
+| Single file: `README.md` only | `docs(readme): add install guide` | `docs: add install guide` | **Use scope** | Specific, searchable, future readers can filter |
+| One module: 3 files in `api/` | `feat(api): add export endpoint` | `feat: add export endpoint` | **Use scope** | All changes are API-related, scope is accurate |
+| Cross-cutting: 13 files across 7 dirs | `feat(skills): add project taxonomy` | `feat: add project type taxonomy` | **Omit scope** | No single scope covers all changes, forced scope misleads |
+| Refactor: 4 skills + README + CLAUDE.md | `refactor(docs): modularize sync` | `refactor: modularize readme sync` | **Omit scope** | Affects skills AND docs, `(docs)` is only partial truth |
+| Mixed changes: 2 unrelated fixes | `fix(skills): implement adr + update readme` | Split into 2 commits | **Split commits** | Each fix should be separate commit, not forced into one scope |
+| Vague grouping: "various cleanup" | `chore(misc): cleanup` | `chore: cleanup validation scripts` | **Omit scope, be specific** | `(misc)` adds no value, better description is the fix |
+| Deep module: `auth/tokens/refresh.ts` | `fix(auth): handle token expiry` | `fix: handle token expiry in refresh flow` | **Use scope** | `auth` is the module, readers searching auth issues find this |
+
+**Key pattern:** Scope is good when it's a **search filter** ("show me all API changes"). Omit when it's just **ceremony** (forced to fit format but doesn't help).
+
+**Common mistakes to avoid:**
+- ❌ `feat(skills): <something not about skills>` — scope is wrong
+- ❌ `refactor(various): <description>` — `(various)` tells us nothing
+- ❌ `fix(commit): improve scope guidance` when 7 files changed — too broad, omit scope
+- ✅ `fix(cli): handle empty input` — one component, scope is accurate and useful
+- ✅ `feat: add project type taxonomy` — 13 files, no single scope fits, description is clear
+
 ### Breaking changes
 
 Add `!` after the type/scope and a `BREAKING CHANGE:` footer:
