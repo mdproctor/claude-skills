@@ -10,107 +10,517 @@ This is a skill collection for Claude Code, providing specialized guidance for J
 
 **CRITICAL: Skills must handle different project types with appropriate workflows.**
 
-The skills in this repository support multiple project types, each with different documentation requirements and commit workflows. When evolving skills, always consider that new project types will be added over time.
+### The Four Project Types
 
-### Current Supported Project Types
+All repositories using these skills declare their type in CLAUDE.md. This enables appropriate commit workflows, documentation sync, and validation.
 
-#### 1. Skills Repository (this repository)
-**Detection:** Contains `*/SKILL.md` files in skill directories
-**Commit Workflow:** `git-commit` skill
-**Documentation Requirements:**
-- CLAUDE.md (repository guidance) — auto-synced via `update-claude-md`
-- README.md (skill collection overview) — auto-synced via `update-readme`
-- NO DESIGN.md requirement (skills are self-documenting)
+**Type Declaration (Required in CLAUDE.md):**
+```markdown
+## Project Type
 
-**Pre-commit Validation:**
-- `skill-review` validates SKILL.md structure, CSO compliance, cross-references
-- Blocks commits on CRITICAL findings
-
-**Pattern:**
-```
-git-commit → skill-review (if SKILL.md staged)
-          → update-claude-md (if CLAUDE.md exists)
-          → update-readme (if README.md exists and skill changes)
+**Type:** [skills | java | custom | generic]
 ```
 
-#### 2. Java/Maven/Gradle Projects
-**Detection:** Contains `pom.xml` or `build.gradle` in repository root
-**Commit Workflow:** `java-git-commit` skill
-**Documentation Requirements:**
-- **DESIGN.md (REQUIRED)** — architecture documentation at `docs/DESIGN.md`
-- CLAUDE.md (optional) — project-specific guidance, auto-synced via `update-claude-md`
-- NO README.md auto-sync (typically framework-generated)
+**The Four Types:**
 
-**Pre-commit Validation:**
-- Blocks if `docs/DESIGN.md` is missing (java-git-commit enforces from first commit)
-- `java-code-review` runs automatically if not done in current session
-- `java-security-audit` triggered for security-critical changes
+| Type | Description | Sync Behavior | When to Use |
+|------|-------------|---------------|-------------|
+| **`skills`** | Skills repository | Built-in (we know how skills work) | This repository |
+| **`java`** | Java/Maven/Gradle | Built-in (we know Java architecture patterns) | Java projects |
+| **`custom`** | User-configured | User defines sync strategy | Everything else with special needs |
+| **`generic`** | No special handling | Basic conventional commits | Simple projects, no sync needed |
 
-**Pattern:**
+---
+
+### Why These Four Types Exist
+
+#### The Architectural Insight: Built-in vs User-Configured
+
+**We learned through iteration that there are only TWO patterns:**
+
+1. **Built-in Types** (skills, java)
+   - We understand the domain deeply
+   - We know what DESIGN.md means for Java architecture
+   - We know what SKILL.md validation requires
+   - We can hardcode the sync logic because it's universal for that domain
+
+2. **User-Configured Types** (custom)
+   - Every project is different (working groups, research, API docs, standards)
+   - We CAN'T know what "vision document" means across all projects
+   - User declares their sync strategy in CLAUDE.md
+   - One `custom` type handles infinite variations
+
+3. **No-Op Type** (generic)
+   - Fallback for simple projects
+   - No special requirements
+
+**Key Lesson: Don't create `working-group-git-commit`, `research-git-commit`, `api-docs-git-commit`.**
+
+Instead: One `custom-git-commit` reads user's config. Infinite flexibility, zero skill explosion.
+
+---
+
+### Why Explicit Declaration Over Auto-Detection
+
+**We tried auto-detection. It failed.**
+
+**Problems we encountered:**
+- Java project with extensive markdown docs → Detected as "docs project"
+- Skills repo with example Java code → Detected as "Java project"
+- Research project with code samples → Ambiguous
+- Edge cases everywhere
+
+**Solution: User declares explicitly in CLAUDE.md.**
+
+**Benefits:**
+- Zero ambiguity
+- User controls behavior
+- Clear intent
+- Easy to understand
+- Self-documenting
+
+**Implementation:**
+- `git-commit` reads CLAUDE.md first thing
+- Routes to appropriate skill based on declared type
+- If missing, interactively prompts user to declare it
+
+---
+
+### Type 1: Skills Repository (Built-in)
+
+**Why this type exists:**
+- Skills have specific structure (YAML frontmatter, CSO requirements)
+- SKILL.md files need validation (frontmatter, cross-references, flowcharts)
+- README.md must stay in sync with skill changes
+- We understand skills deeply (we built this system)
+
+**Declaration:**
+```markdown
+## Project Type
+
+**Type:** skills
 ```
-java-git-commit → Check DESIGN.md exists (BLOCKS if missing)
-                → update-design (syncs DESIGN.md with code changes)
-                → update-claude-md (if CLAUDE.md exists)
+
+**What we know about skills:**
+- `*/SKILL.md` files define skills
+- Frontmatter must have `name` and `description`
+- CSO rules: descriptions = WHEN to use, not HOW it works
+- Cross-references must be bidirectional
+- Flowcharts use Graphviz dot notation
+- README.md documents the skill collection
+
+**Built-in Behavior:**
+```
+git-commit (for type: skills)
+  ├─ skill-review (validates SKILL.md if staged)
+  │   └─ Blocks on CRITICAL findings
+  ├─ update-readme (syncs README.md if skill changes)
+  ├─ update-claude-md (syncs CLAUDE.md if exists)
+  └─ Conventional commit
 ```
 
-#### 3. Generic/Other Projects
-**Detection:** No `pom.xml`, `build.gradle`, or `*/SKILL.md` files
-**Commit Workflow:** `git-commit` skill
-**Documentation Requirements:**
-- CLAUDE.md (optional) — auto-synced via `update-claude-md`
-- README.md (optional) — NO auto-sync (generic projects vary too much)
-- NO DESIGN.md requirement
+**Sync Logic (Hardcoded):**
+- `update-readme` knows: SKILL.md changes → update Skills section, chaining table
+- `skill-review` knows: Check frontmatter format, CSO compliance, cross-refs
 
-**Pattern:**
+**This type is ONLY for skills repositories.** Don't use for other documentation projects.
+
+---
+
+### Type 2: Java/Maven/Gradle (Built-in)
+
+**Why this type exists:**
+- Java architecture has known patterns (layers, components, modules)
+- DESIGN.md serves specific purpose (architecture documentation)
+- We understand Java domain models (@Entity, @Service, @Repository, etc.)
+- We can map code changes to architectural concepts
+
+**Declaration:**
+```markdown
+## Project Type
+
+**Type:** java
 ```
-git-commit → update-claude-md (if CLAUDE.md exists)
+
+**What we know about Java projects:**
+- `pom.xml` or `build.gradle` define build
+- `docs/DESIGN.md` documents architecture (REQUIRED)
+- Code organized in packages/modules
+- Annotations indicate architectural roles (@Entity, @Service, etc.)
+- Dependencies managed via BOM patterns
+
+**Built-in Behavior:**
+```
+java-git-commit (for type: java)
+  ├─ Check DESIGN.md exists (BLOCKS if missing)
+  ├─ java-code-review (if not done this session)
+  │   └─ java-security-audit (for security-critical code)
+  ├─ update-design (syncs DESIGN.md with code changes)
+  │   └─ Maps .java changes to architecture sections
+  ├─ update-claude-md (syncs CLAUDE.md if exists)
+  └─ Conventional commit with Java-specific scopes
 ```
 
-### Adding New Project Types
+**Sync Logic (Hardcoded):**
+- `update-design` knows: New @Entity → Update "Domain Model" section
+- `update-design` knows: New module in pom.xml → Update "Component Structure"
+- `java-code-review` knows: Check for safety violations, concurrency bugs
 
-**When adding support for new project types** (e.g., advocacy/evangelization, Python, Go, documentation-only):
+**This type is ONLY for Java/Maven/Gradle projects.** Don't use for other code projects.
 
-1. **Create project-type-specific commit skill** (extends `git-commit`):
-   - Name: `<type>-git-commit` (e.g., `advocacy-git-commit`, `python-git-commit`)
-   - Frontmatter: Clear detection criteria (file patterns, directory structure)
-   - Reference `git-commit` in Prerequisites
+---
 
-2. **Define documentation requirements**:
-   - What docs are REQUIRED vs optional?
-   - What gets auto-synced?
-   - Example: Advocacy projects might require `CONTENT-GUIDE.md` instead of `DESIGN.md`
+### Type 3: Custom (User-Configured)
 
-3. **Create sync skills if needed**:
-   - Pattern: `update-<doc-name>` (e.g., `update-content-guide`)
-   - Chain from project-type commit skill
-   - Follow `update-design` pattern
+**Why this type exists:**
+- Catch-all for projects with special documentation needs
+- Every project is different (working groups ≠ research ≠ API docs)
+- We CAN'T hardcode sync logic for all possible project types
+- User knows their domain, we provide the mechanism
 
-4. **Update git-commit frontmatter**:
-   - Add new project type to exclusion list
-   - Example: "For advocacy/evangelization projects, use advocacy-git-commit instead"
+**Declaration (Full Configuration Required):**
+```markdown
+## Project Type
 
-5. **Document in this file**:
-   - Add new section under "Current Supported Project Types"
-   - Update README.md Skill Chaining Reference table
+**Type:** custom
+**Primary Document:** docs/vision.md  # Path to main document
 
-### Evolution Guidance
+**Sync Strategy:** bidirectional-consistency  # Built-in or custom
 
-**When modifying existing skills, always ask:**
-- Does this change affect project type detection?
-- Does this introduce assumptions about a specific project type?
-- Should this be in a project-type-specific skill instead of generic?
-- Are we adding documentation requirements that don't fit all project types?
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `docs/catalog/*.md` | Section 2 "Projects" | Add/update entries |
+| `examples/*/` | Section 3 "Examples" | Mark completed |
 
-**Red flags for project-type coupling:**
-- Hardcoding paths like `docs/DESIGN.md` in generic skills
-- Assuming build tools exist (Maven, npm, etc.)
-- Requiring specific documentation formats across all projects
+**Consistency Checks:**
+- All catalog entries referenced in vision exist
+- Metadata headers present on major docs
 
-**Correct approach:**
-- Keep `git-commit` generic and extensible
-- Put project-type logic in `<type>-git-commit` skills
-- Use clear detection criteria (file existence, not heuristics)
-- Document assumptions explicitly
+**Current Milestone:** Phase 1 - Discovery
+```
+
+**User-Configured Behavior:**
+```
+custom-git-commit (for type: custom)
+  ├─ Verify Primary Document exists (path from CLAUDE.md)
+  ├─ Read Sync Rules table from CLAUDE.md
+  ├─ sync-primary-doc (generic, table-driven)
+  │   ├─ Match staged files against patterns
+  │   └─ Propose updates to specified sections
+  ├─ Optional validators (if configured)
+  │   ├─ validate-milestone-alignment
+  │   └─ validate-metadata
+  ├─ update-claude-md (syncs CLAUDE.md)
+  └─ Conventional commit
+```
+
+**Sync Logic (User-Defined):**
+- We read the Sync Rules table
+- Match files using patterns in column 1
+- Propose updates to sections in column 2
+- Follow guidance in column 3
+- NO hardcoded knowledge of the project
+
+**Examples of Custom Projects:**
+
+**Working Group (e.g., Quarkus AI Initiative):**
+- Primary Document: `docs/quarkus-ai-vision.md`
+- Sync: catalog entries → Vision Section 2, examples → Section 3
+- Milestone: Phase-based (Phase 1, Phase 2, etc.)
+
+**Research Project:**
+- Primary Document: `THESIS.md`
+- Sync: experiments → Methodology, papers → Bibliography
+- Milestone: Chapter-based (Chapter 3, Chapter 4, etc.)
+
+**API Documentation:**
+- Primary Document: `docs/api-design.md`
+- Sync: openapi.yaml → API Endpoints, examples → Examples section
+- Milestone: Version-based (v2.1.0, v3.0.0, etc.)
+
+**Standards/Specification:**
+- Primary Document: `SPECIFICATION.md`
+- Sync: implementations → Adoption, issues → Decisions
+- Milestone: Draft status (WD, CR, PR, REC)
+
+**This type is for ANYTHING with a primary document and sync needs that aren't skills or Java.**
+
+---
+
+### Type 4: Generic (Fallback)
+
+**Why this type exists:**
+- Simple projects without special documentation requirements
+- Default fallback when no type declared
+- Minimal overhead, maximum simplicity
+
+**Declaration (Optional):**
+```markdown
+## Project Type
+
+**Type:** generic
+```
+
+Or simply omit the Project Type section entirely (defaults to generic).
+
+**Behavior:**
+```
+git-commit (for type: generic)
+  ├─ update-claude-md (if CLAUDE.md exists)
+  └─ Conventional commit (basic)
+```
+
+**No sync logic, no validation, just commits.**
+
+**Use for:**
+- Simple scripts or utilities
+- Personal projects
+- Experiments
+- Anything without special documentation needs
+
+---
+
+### Decision Matrix: When to Create a New Built-in Type
+
+**Question: Should I create a new `<type>-git-commit` skill?**
+
+**Ask these questions:**
+
+1. **Do we understand this domain universally?**
+   - ✅ Java: Yes (architecture patterns are well-known)
+   - ✅ Skills: Yes (we built the skill system)
+   - ❌ Working groups: No (every group is different)
+   - ❌ Research: No (every thesis is different)
+
+2. **Can we hardcode the sync logic?**
+   - ✅ Java: Yes (DESIGN.md sections map to code concepts)
+   - ✅ Skills: Yes (README sections map to skill structure)
+   - ❌ Vision docs: No (sections vary by project)
+   - ❌ Thesis: No (chapter organization varies)
+
+3. **Is this a well-established, widely-used pattern?**
+   - ✅ Java/Maven: Yes (industry standard)
+   - ✅ Skills: Yes (our standard)
+   - ❌ Working groups: No (varies widely)
+   - ❌ Your specific use case: Probably not universal
+
+**Decision Tree:**
+
+```
+Can we hardcode sync logic universally?
+├─ YES → Create built-in type (<type>-git-commit)
+│        Examples: java, skills
+│
+└─ NO → Use type: custom
+         Examples: working groups, research, API docs, standards
+```
+
+**If you answered NO to any question: Use `type: custom`, not a new built-in type.**
+
+---
+
+### Lessons Learned: What NOT to Do
+
+**❌ Don't create `working-group-git-commit`:**
+- Not all working groups have vision documents
+- Section names vary (some have "Projects", others "Members", others "Deliverables")
+- Milestones vary (phases vs chapters vs versions vs sprints)
+- **Solution:** One `custom-git-commit` with user config
+
+**❌ Don't create `research-git-commit`:**
+- Not all theses have the same structure
+- Some have Methodology → Results, others have Theory → Application
+- Citation styles vary (APA, MLA, Chicago, IEEE)
+- **Solution:** One `custom-git-commit` with user config
+
+**❌ Don't create `api-docs-git-commit`:**
+- Some use OpenAPI, others use GraphQL schemas, others use custom formats
+- Some sync with code, others don't
+- Section organization varies
+- **Solution:** One `custom-git-commit` with user config
+
+**❌ Don't try to auto-detect project types:**
+- Too many edge cases
+- Fails when projects mix concerns
+- User knows best what their project is
+- **Solution:** Explicit declaration in CLAUDE.md
+
+**The Pattern: Two built-in types (skills, java) + one configurable type (custom) + one fallback (generic) = handles everything.**
+
+---
+
+### How Routing Works
+
+**git-commit reads CLAUDE.md first:**
+
+```
+Step 1: Read CLAUDE.md
+  └─ Extract: Type: [skills | java | custom | generic]
+
+Step 2: Route based on type
+  ├─ skills → Continue with git-commit (skills mode)
+  │           ├─ skill-review
+  │           ├─ update-readme
+  │           └─ update-claude-md
+  │
+  ├─ java → STOP: "Use java-git-commit instead"
+  │
+  ├─ custom → STOP: "Use custom-git-commit instead"
+  │
+  └─ generic → Continue with git-commit (basic mode)
+              └─ update-claude-md (if exists)
+
+Step 3: If CLAUDE.md missing or no type
+  └─ Interactive setup:
+     "What kind of project is this? [1-4]"
+     Create/update CLAUDE.md based on answer
+```
+
+**Each specialized skill verifies its type:**
+
+```
+java-git-commit:
+  Step 0: Verify CLAUDE.md declares type: java
+          If wrong/missing → Offer to fix or redirect
+
+custom-git-commit:
+  Step 0: Verify CLAUDE.md declares type: custom
+          If missing config → Interactive setup
+```
+
+---
+
+### Adding Support for a New Domain (Future Claudes)
+
+**Scenario: You want to add support for Python projects.**
+
+**Ask: Is this a built-in or custom type?**
+
+**Decision criteria:**
+1. Do we understand Python architecture universally?
+2. Can we hardcode how to sync architecture docs?
+3. Is there a standard Python architecture documentation pattern?
+
+**If YES to all three:**
+
+**Option A: Create `python-git-commit` (new built-in type)**
+
+```markdown
+## Project Type
+
+**Type:** python
+```
+
+**You must create:**
+- `python-git-commit` skill (like java-git-commit)
+- `update-architecture-doc` skill for Python (like update-design)
+- Define what "architecture doc" means for Python
+- Hardcode sync logic (what code changes map to what doc sections)
+
+**Add to CLAUDE.md:**
+- New section under "Current Supported Project Types"
+- Document sync logic
+- Update routing in git-commit
+
+**If NO to any question:**
+
+**Option B: Use `type: custom` (recommended)**
+
+User configures in their CLAUDE.md:
+
+```markdown
+## Project Type
+
+**Type:** custom
+**Primary Document:** docs/architecture.md
+
+**Sync Strategy:** bidirectional-consistency
+
+**Sync Rules:**
+| Changed Files | Document Section | Update Type |
+|---------------|------------------|-------------|
+| `src/**/*.py` | "Modules" | Document new modules |
+| `requirements.txt` | "Dependencies" | Update dependency list |
+```
+
+**No new skills needed. Just use existing `custom-git-commit`.**
+
+---
+
+### Interactive Setup: Helping Users Declare Type
+
+**When CLAUDE.md missing or no type declared:**
+
+```
+I notice this repository doesn't have a Project Type declared in CLAUDE.md.
+Let me help you set this up - it only takes a moment.
+
+**What kind of project is this?**
+
+1. **Skills repository** - Claude Code skills (has */SKILL.md files)
+2. **Java project** - Maven/Gradle (has pom.xml or build.gradle)
+3. **Custom project** - Working groups, research, docs, etc.
+4. **Generic project** - No special handling needed
+
+Reply with the number (1-4) or type the name.
+```
+
+**Based on response, create CLAUDE.md:**
+
+**For 1 (skills):**
+```markdown
+## Project Type
+
+**Type:** skills
+```
+
+**For 2 (java):**
+```markdown
+## Project Type
+
+**Type:** java
+```
+Plus check for DESIGN.md, offer to create if missing.
+
+**For 3 (custom):**
+Prompt for:
+- Primary document path
+- Current milestone
+Create CLAUDE.md with template sync rules.
+
+**For 4 (generic):**
+```markdown
+## Project Type
+
+**Type:** generic
+```
+
+**Then stage CLAUDE.md and continue with commit.**
+
+**This ensures every project gets properly configured, not just blocked.**
+
+---
+
+### Summary for Future Claudes
+
+**The Four Types (Memorize This):**
+
+| Type | Hardcoded Logic? | User Config? | Use When |
+|------|------------------|--------------|----------|
+| `skills` | ✅ Yes | ❌ No | This skills repo |
+| `java` | ✅ Yes | ❌ No | Java/Maven/Gradle |
+| `custom` | ❌ No | ✅ Yes | Everything else with special needs |
+| `generic` | ❌ No | ❌ No | Simple projects |
+
+**Key Insights:**
+1. **Explicit > Auto-detection** - User declares type in CLAUDE.md
+2. **Built-in types are rare** - Only create if logic is universal and hardcodable
+3. **Custom type handles variations** - One skill, infinite configurations
+4. **Interactive setup helps users** - Don't just block, guide them
+5. **Routing happens in git-commit** - Read type, route to specialized skill
+
+**When in doubt: Use `type: custom` with user configuration, not a new built-in type.**
 
 ## Skill Architecture
 
