@@ -2187,22 +2187,23 @@ python scripts/testing/test_coverage.py --report
 
 **How validation integrates into development workflows:**
 
-#### Pre-Commit Validation
+#### Pre-Commit Validation (Tier: COMMIT, <2s budget)
 
 **Triggered by:** `git-commit` when SKILL.md files are staged
 
 **Workflow:**
 ```
 git-commit (for type: skills)
-  ├─ Run automated validation (Level 1)
+  ├─ Run COMMIT tier validation (<2s budget)
   │   ├─ validate_frontmatter.py
   │   ├─ validate_cso.py
   │   ├─ validate_flowcharts.py
   │   ├─ validate_references.py
   │   ├─ validate_naming.py
-  │   └─ validate_sections.py
+  │   ├─ validate_sections.py
+  │   └─ validate_structure.py
   │
-  ├─ skill-review (Level 2 checks)
+  ├─ skill-review (manual deep checks, optional)
   │   ├─ Reference accuracy
   │   ├─ Logical soundness
   │   ├─ Completeness
@@ -2212,10 +2213,69 @@ git-commit (for type: skills)
   └─ update-claude-md (if exists)
 ```
 
+**Command executed:**
+```bash
+python3 scripts/validate_all.py --tier commit
+```
+
 **Exit behavior:**
 - ❌ **CRITICAL findings → Block commit** (frontmatter invalid, flowchart broken, references missing)
 - ⚠️ **WARNING findings → Show but allow** (naming convention violation, missing Common Pitfalls)
 - ℹ️ **NOTE findings → Log only** (could add examples, could improve clarity)
+
+#### Pre-Push Validation (Tier: PUSH, <30s budget)
+
+**Triggered by:** `git push` hook (to be configured)
+
+**Workflow:**
+```
+git push
+  ├─ Run PUSH tier validation (<30s budget)
+  │   ├─ All COMMIT tier validators (from above)
+  │   ├─ validate_cross_document.py
+  │   ├─ validate_temporal.py
+  │   ├─ validate_usability.py
+  │   ├─ validate_edge_cases.py
+  │   ├─ validate_behavior.py
+  │   └─ validate_readme_sync.py
+  │
+  ├─ Run regression tests
+  │   └─ run_regression_tests.py
+  │
+  └─ Run test coverage
+      └─ test_coverage.py
+```
+
+**Command executed:**
+```bash
+python3 scripts/validate_all.py --tier push
+```
+
+**Why pre-push:** Cross-document consistency checks, prevents stale state reaching remote, moderate cost (<30s).
+
+#### CI Validation (Tier: CI, <5min budget)
+
+**Triggered by:** GitHub Actions on push to main or PR
+
+**Workflow:**
+```
+CI Pipeline
+  ├─ Run CI tier validation (<5min budget)
+  │   ├─ All COMMIT tier validators
+  │   ├─ All PUSH tier validators
+  │   ├─ validate_python_quality.py (mypy, flake8, bandit)
+  │   └─ run_skill_tests.py (functional tests with worktrees)
+  │
+  └─ Generate comprehensive report
+      └─ generate_report.py
+```
+
+**Command executed:**
+```bash
+python3 scripts/validate_all.py --tier ci --json
+```
+
+**Why CI:** Expensive operations (git worktrees, static analysis), comprehensive validation before merging.
 
 #### Deep Analysis Review
 
@@ -2297,40 +2357,78 @@ jobs:
 
 ### Validation Script Roadmap
 
-**Scripts to create (in priority order):**
+**Scripts organized by validation tier for optimal performance:**
 
-#### Phase 1: Critical Automated Checks
-1. ✅ **`validate_frontmatter.py`** - YAML structure, required fields
-2. ✅ **`validate_cso.py`** - Description compliance
-3. ✅ **`validate_flowcharts.py`** - Graphviz syntax, semantic labels
-4. ✅ **`validate_references.py`** - Cross-reference integrity
+#### PRE-COMMIT Tier (<2s budget)
 
-#### Phase 2: Structural Validation
-5. ✅ **`validate_naming.py`** - Naming conventions
-6. ✅ **`validate_sections.py`** - Required sections
-7. ✅ **`validate_structure.py`** - File organization
+**Existing validators (mechanical/structural checks):**
+1. ✅ **`validate_frontmatter.py`** - YAML structure, required fields [PRE-COMMIT]
+2. ✅ **`validate_cso.py`** - Description compliance [PRE-COMMIT]
+3. ✅ **`validate_flowcharts.py`** - Graphviz syntax, semantic labels [PRE-COMMIT]
+4. ✅ **`validate_references.py`** - Cross-reference integrity [PRE-COMMIT]
+5. ✅ **`validate_naming.py`** - Naming conventions [PRE-COMMIT]
+6. ✅ **`validate_sections.py`** - Required sections [PRE-COMMIT]
+7. ✅ **`validate_structure.py`** - File organization [PRE-COMMIT]
 
-#### Phase 3: Test Execution
-8. ✅ **`run_skill_tests.py`** - Functional test runner
-9. ✅ **`run_regression_tests.py`** - Regression test runner
-10. ✅ **`test_coverage.py`** - Coverage reporting
+**Why pre-commit:** Fast (<2s total), block corruption before git history.
 
-#### Phase 4: Deep Analysis Tools
-11. ✅ **`analyze_references.py`** - Reference staleness detection
-12. ✅ **`detect_contradictions.py`** - Cross-skill consistency
-13. ✅ **`check_completeness.py`** - Gap analysis
+#### PRE-PUSH Tier (<30s budget)
 
-#### Phase 5: Integration & Reporting
-14. ✅ **`validate_all.py`** - Master validation orchestrator
-15. ✅ **`generate_report.py`** - Comprehensive reporting
-16. ✅ **`check_readme_sync.py`** - README accuracy validation
-17. ✅ **`check_claude_md_sync.py`** - CLAUDE.md accuracy validation
+**New validators (cross-document/semantic checks - TO BE CREATED):**
+8. **`validate_cross_document.py`** - Cross-document consistency [PRE-PUSH]
+9. **`validate_temporal.py`** - Temporal consistency (stale references) [PRE-PUSH]
+10. **`validate_usability.py`** - Usability/UX validator [PRE-PUSH]
+11. **`validate_edge_cases.py`** - Edge case coverage validator [PRE-PUSH]
+12. **`validate_behavior.py`** - Behavioral consistency validator [PRE-PUSH]
+
+**Test infrastructure (TO BE CREATED):**
+13. **`validate_readme_sync.py`** - README/CLAUDE sync validator [PRE-PUSH]
+14. **`run_regression_tests.py`** - Regression test runner [PRE-PUSH]
+15. **`test_coverage.py`** - Coverage reporting [PRE-PUSH]
+16. **`run_skill_tests.py`** - Functional test runner (git worktrees) [CI]
+
+**Why pre-push:** Moderate cost (<30s), cross-file checks, prevents bad state reaching remote.
+
+#### CI/Scheduled Tier (<5min budget)
+
+**Expensive tests (TO BE CREATED):**
+17. **`validate_python_quality.py`** - mypy, flake8, bandit [CI]
+
+**Orchestration & Reporting (TO BE CREATED):**
+18. **`validate_all.py`** - Master orchestrator with `--tier` support [UNIVERSAL]
+19. **`generate_report.py`** - Comprehensive reporting [CI]
+
+**Why CI:** Expensive operations (worktrees, static analysis), comprehensive validation before merging.
+
+#### Validation Tiering Strategy
+
+**validate_all.py usage:**
+```bash
+# Pre-commit: fast mechanical checks only
+python3 scripts/validate_all.py --tier commit
+
+# Pre-push: commit validators + cross-document + tests
+python3 scripts/validate_all.py --tier push
+
+# CI: all validators + functional tests + python quality
+python3 scripts/validate_all.py --tier ci
+```
+
+**Tiers are accumulative:**
+- `push` includes `commit` validators
+- `ci` includes `commit` + `push` validators
+
+**Performance budgets enforced:**
+- Commit: <2s (immediate feedback)
+- Push: <30s (before sharing)
+- CI: <5min (comprehensive)
 
 **Each script should:**
 - Exit with code 0 (pass) or non-zero (fail)
 - Output JSON results for parsing
 - Support `--verbose` flag for detailed output
 - Support `--fix` flag for auto-fixable issues (where safe)
+- Include TIER annotation in docstring
 - Include unit tests for the validator itself
 
 ---
