@@ -1,282 +1,227 @@
 #!/usr/bin/env python3
 """
-Master validation orchestrator - runs all validation scripts.
-
-Usage:
-    python scripts/validate_all.py                  # Run all validations
-    python scripts/validate_all.py --verbose        # Detailed output
-    python scripts/validate_all.py --json           # JSON output
-    python scripts/validate_all.py --fix            # Auto-fix where possible
-    python scripts/validate_all.py skill-name/      # Validate specific skill
+Master validation orchestrator with tier support.
+Runs appropriate validators based on tier (commit, push, ci).
 """
 
 import sys
-import json
 import subprocess
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Any
+import json
 
-# Add to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Validator tier assignments
+VALIDATORS = {
+    'commit': [
+        # Pre-commit tier: <2s budget, fast mechanical checks
+        {'script': 'validate_frontmatter.py', 'name': 'Frontmatter', 'target': '.'},
+        {'script': 'validate_cso.py', 'name': 'CSO Compliance', 'target': '.'},
+        {'script': 'validate_flowcharts.py', 'name': 'Flowcharts', 'target': '.'},
+        {'script': 'validate_references.py', 'name': 'References', 'target': '.'},
+        {'script': 'validate_naming.py', 'name': 'Naming', 'target': '.'},
+        {'script': 'validate_sections.py', 'name': 'Sections', 'target': '.'},
+        {'script': 'validate_structure.py', 'name': 'Structure', 'target': '.'},
+    ],
+    'push': [
+        # Pre-push tier: <30s budget, moderate validators + regression
+        {'script': 'validate_cross_document.py', 'name': 'Cross-Document', 'target': '.'},
+        {'script': 'validate_temporal.py', 'name': 'Temporal', 'target': '.'},
+        {'script': 'validate_usability.py', 'name': 'Usability', 'target': '.'},
+        {'script': 'validate_edge_cases.py', 'name': 'Edge Cases', 'target': '.'},
+        {'script': 'validate_behavior.py', 'name': 'Behavior', 'target': '.'},
+        {'script': 'validate_readme_sync.py', 'name': 'README Sync', 'target': '.'},
+    ],
+    'ci': [
+        # CI tier: <5min budget, expensive tests
+        {'script': 'validate_python_quality.py', 'name': 'Python Quality', 'target': 'scripts/'},
+    ]
+}
 
-from utils.common import (
-    ValidationResult, Severity,
-    find_all_skill_files, print_summary
-)
-
-
-# Validation scripts in order of execution
-VALIDATORS = [
-    {
-        'name': 'Frontmatter',
-        'script': 'validation/validate_frontmatter.py',
-        'critical': True,
-        'description': 'YAML structure, required fields, CSO compliance'
-    },
-    {
-        'name': 'CSO Compliance',
-        'script': 'validation/validate_cso.py',
-        'critical': True,
-        'description': 'Description focuses on WHEN not HOW'
-    },
-    {
-        'name': 'Flowcharts',
-        'script': 'validation/validate_flowcharts.py',
-        'critical': True,
-        'description': 'Graphviz syntax, semantic labels'
-    },
-    {
-        'name': 'Cross-References',
-        'script': 'validation/validate_references.py',
-        'critical': True,
-        'description': 'All references resolve, bidirectional links'
-    },
-    {
-        'name': 'Naming Conventions',
-        'script': 'validation/validate_naming.py',
-        'critical': False,
-        'description': 'Skill name patterns'
-    },
-    {
-        'name': 'Required Sections',
-        'script': 'validation/validate_sections.py',
-        'critical': False,
-        'description': 'Skill Chaining, Success Criteria, Common Pitfalls'
-    },
-    {
-        'name': 'File Structure',
-        'script': 'validation/validate_structure.py',
-        'critical': False,
-        'description': 'Referenced files exist, no orphans'
-    }
-]
-
-
-def run_validator(validator: Dict, files: List[str], verbose: bool = False) -> Dict:
-    """
-    Run a single validator script.
-
-    Returns:
-        Result dictionary with exit_code, output, issues
-    """
-    script_path = Path(__file__).parent / validator['script']
-
-    cmd = [sys.executable, str(script_path), '--json']
-    if files:
-        cmd.extend(files)
+def run_validator(validator: Dict[str, str]) -> Dict[str, Any]:
+    """Run a single validator and return results."""
+    script_path = Path('scripts/validation') / validator['script']
 
     try:
         result = subprocess.run(
-            cmd,
+            ['python3', str(script_path), validator['target']],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=120
         )
 
-        # Parse JSON output
-        if result.stdout:
-            output = json.loads(result.stdout)
-        else:
-            output = {
-                'validator_name': validator['name'],
-                'files_checked': 0,
-                'critical_count': 0,
-                'warning_count': 0,
-                'note_count': 0,
-                'passed': False,
-                'issues': []
-            }
-
         return {
+            'name': validator['name'],
+            'passed': result.returncode == 0,
             'exit_code': result.returncode,
-            'output': output,
-            'stderr': result.stderr
+            'output': result.stdout + result.stderr
         }
-
     except subprocess.TimeoutExpired:
         return {
-            'exit_code': 4,
-            'output': None,
-            'stderr': f"{validator['name']} timed out"
+            'name': validator['name'],
+            'passed': False,
+            'exit_code': -1,
+            'output': 'Timeout exceeded'
         }
     except Exception as e:
         return {
-            'exit_code': 4,
-            'output': None,
-            'stderr': f"Error running {validator['name']}: {str(e)}"
+            'name': validator['name'],
+            'passed': False,
+            'exit_code': -1,
+            'output': str(e)
         }
 
+def run_tier(tier: str, verbose: bool = False) -> List[Dict[str, Any]]:
+    """Run all validators for a given tier."""
+    validators = []
 
-def aggregate_results(results: List[Dict]) -> Dict:
-    """Aggregate results from all validators."""
-    total_files = 0
-    total_critical = 0
-    total_warning = 0
-    total_note = 0
-    all_issues = []
-    failed_validators = []
+    # Accumulate validators up to and including this tier
+    if tier in ['push', 'ci']:
+        validators.extend(VALIDATORS['commit'])
+    if tier in ['ci']:
+        validators.extend(VALIDATORS['push'])
+    validators.extend(VALIDATORS.get(tier, []))
 
-    for result in results:
-        if result['output']:
-            output = result['output']
-            total_files = max(total_files, output.get('files_checked', 0))
-            total_critical += output.get('critical_count', 0)
-            total_warning += output.get('warning_count', 0)
-            total_note += output.get('note_count', 0)
-            all_issues.extend(output.get('issues', []))
+    results = []
+    for validator in validators:
+        if verbose:
+            print(f"Running {validator['name']}...", file=sys.stderr)
+        result = run_validator(validator)
+        results.append(result)
 
-            if not output.get('passed', True):
-                failed_validators.append(output.get('validator_name', 'Unknown'))
+        if not result['passed'] and verbose:
+            print(f"  ❌ FAILED", file=sys.stderr)
 
-    return {
-        'files_checked': total_files,
-        'total_critical': total_critical,
-        'total_warning': total_warning,
-        'total_note': total_note,
-        'passed': total_critical == 0,
-        'failed_validators': failed_validators,
-        'all_issues': all_issues
+    return results
+
+def run_tests(tier: str, verbose: bool = False) -> Dict[str, Any]:
+    """Run test execution for a given tier."""
+    results = {
+        'regression': None,
+        'coverage': None,
+        'functional': None
     }
 
+    if tier in ['push', 'ci']:
+        # Run regression tests (pre-push)
+        if verbose:
+            print("Running regression tests...", file=sys.stderr)
+        try:
+            result = subprocess.run(
+                ['python3', 'scripts/testing/run_regression_tests.py', '--json'],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            results['regression'] = {
+                'passed': result.returncode == 0,
+                'output': json.loads(result.stdout) if result.stdout else {}
+            }
+        except Exception as e:
+            results['regression'] = {'passed': False, 'error': str(e)}
 
-def print_report(results: List[Dict], aggregate: Dict, verbose: bool = False):
-    """Print validation report."""
-    print("\n" + "=" * 70)
-    print("SKILL VALIDATION REPORT")
-    print("=" * 70)
+        # Run test coverage (pre-push)
+        if verbose:
+            print("Running test coverage...", file=sys.stderr)
+        try:
+            result = subprocess.run(
+                ['python3', 'scripts/testing/test_coverage.py', '--json'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            results['coverage'] = {
+                'passed': result.returncode == 0,
+                'output': json.loads(result.stdout) if result.stdout else {}
+            }
+        except Exception as e:
+            results['coverage'] = {'passed': False, 'error': str(e)}
 
-    print(f"\nFiles checked: {aggregate['files_checked']}")
-    print(f"Total issues: {aggregate['total_critical'] + aggregate['total_warning'] + aggregate['total_note']}")
-    print(f"  Critical: {aggregate['total_critical']}")
-    print(f"  Warning:  {aggregate['total_warning']}")
-    print(f"  Note:     {aggregate['total_note']}")
+    if tier == 'ci':
+        # Run functional tests (CI only, expensive)
+        if verbose:
+            print("Running functional tests...", file=sys.stderr)
+        # Will be implemented when functional tests are ready
+        results['functional'] = {'passed': True, 'skipped': 'Not yet implemented'}
 
-    # Print validator results
-    print("\n" + "-" * 70)
-    print("VALIDATOR RESULTS")
-    print("-" * 70)
+    return results
 
-    for i, (validator, result) in enumerate(zip(VALIDATORS, results), 1):
-        output = result.get('output')
-        if output:
-            status = "✅ PASS" if output.get('passed') else "❌ FAIL"
-            critical = output.get('critical_count', 0)
-            warning = output.get('warning_count', 0)
-            note = output.get('note_count', 0)
+def print_results(validation_results: List[Dict[str, Any]], test_results: Dict[str, Any], tier: str):
+    """Print validation results."""
+    print(f"\n{'='*60}")
+    print(f"Validation Results - Tier: {tier.upper()}")
+    print(f"{'='*60}\n")
 
-            print(f"\n{i}. {validator['name']}: {status}")
-            print(f"   {validator['description']}")
-            if critical > 0 or warning > 0 or note > 0:
-                print(f"   Issues: {critical} critical, {warning} warning, {note} note")
-        else:
-            print(f"\n{i}. {validator['name']}: ⚠️  ERROR")
-            if result.get('stderr'):
-                print(f"   {result['stderr']}")
+    # Validation results
+    passed = sum(1 for r in validation_results if r['passed'])
+    total = len(validation_results)
+    print(f"Validators: {passed}/{total} passed\n")
 
-    # Overall result
-    print("\n" + "=" * 70)
-    if aggregate['passed']:
-        print("✅ ALL VALIDATIONS PASSED")
-        print("=" * 70)
-        return 0
-    else:
-        print("❌ VALIDATION FAILED")
-        print(f"Failed validators: {', '.join(aggregate['failed_validators'])}")
-        print("=" * 70)
-        return 1
+    for result in validation_results:
+        status = "✅" if result['passed'] else "❌"
+        print(f"{status} {result['name']}")
+        if not result['passed'] and result['exit_code'] != 0:
+            # Show first 3 lines of output
+            lines = result['output'].split('\n')[:3]
+            for line in lines:
+                if line.strip():
+                    print(f"    {line}")
 
+    # Test results
+    print(f"\nTests:")
+    if test_results['regression']:
+        status = "✅" if test_results['regression']['passed'] else "❌"
+        print(f"{status} Regression Tests")
+    if test_results['coverage']:
+        status = "✅" if test_results['coverage']['passed'] else "❌"
+        print(f"{status} Test Coverage")
+    if test_results['functional'] and not test_results['functional'].get('skipped'):
+        status = "✅" if test_results['functional']['passed'] else "❌"
+        print(f"{status} Functional Tests")
+
+    print()
 
 def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description='Run all skill validations',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python scripts/validate_all.py                    # Validate all skills
-  python scripts/validate_all.py --verbose          # Detailed output
-  python scripts/validate_all.py --json             # JSON output
-  python scripts/validate_all.py java-dev/          # Validate specific skill
-        """
-    )
-    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
-    parser.add_argument('--json', action='store_true', help='JSON output only')
-    parser.add_argument('--fix', action='store_true', help='Auto-fix where possible (not implemented yet)')
-    parser.add_argument('--strict', action='store_true', help='Fail on warnings, not just critical')
-    parser.add_argument('files', nargs='*', help='Specific files or directories to validate')
+    parser = argparse.ArgumentParser(description='Run validation checks with tier support')
+    parser.add_argument('--tier', choices=['commit', 'push', 'ci'], default='commit',
+                        help='Validation tier (commit: <2s, push: <30s, ci: <5min)')
+    parser.add_argument('--json', action='store_true', help='Output JSON')
+    parser.add_argument('--verbose', action='store_true', help='Verbose output')
     args = parser.parse_args()
 
-    # Resolve file arguments
-    file_args = []
-    if args.files:
-        for file_arg in args.files:
-            path = Path(file_arg)
-            if path.is_dir():
-                # If directory, find SKILL.md in it
-                skill_md = path / 'SKILL.md'
-                if skill_md.exists():
-                    file_args.append(str(skill_md))
-            elif path.exists():
-                file_args.append(str(path))
+    # Run validations
+    validation_results = run_tier(args.tier, args.verbose)
 
-    # Run all validators
-    results = []
-    for validator in VALIDATORS:
-        if not args.json and args.verbose:
-            print(f"\nRunning {validator['name']}...")
+    # Run tests
+    test_results = run_tests(args.tier, args.verbose)
 
-        result = run_validator(validator, file_args, args.verbose)
-        results.append(result)
-
-    # Aggregate results
-    aggregate = aggregate_results(results)
-
-    # Output
+    # Output results
     if args.json:
         output = {
-            'summary': aggregate,
-            'validators': [
-                {
-                    'name': v['name'],
-                    'critical': v['critical'],
-                    'result': r['output']
-                }
-                for v, r in zip(VALIDATORS, results)
-            ]
+            'tier': args.tier,
+            'validation': {
+                'total': len(validation_results),
+                'passed': sum(1 for r in validation_results if r['passed']),
+                'results': validation_results
+            },
+            'tests': test_results
         }
         print(json.dumps(output, indent=2))
-        sys.exit(0 if aggregate['passed'] else 1)
     else:
-        exit_code = print_report(results, aggregate, args.verbose)
+        print_results(validation_results, test_results, args.tier)
 
-        # In strict mode, fail on warnings too
-        if args.strict and aggregate['total_warning'] > 0:
-            exit_code = 2
+    # Exit with error if anything failed
+    all_passed = all(r['passed'] for r in validation_results)
+    if test_results['regression']:
+        all_passed = all_passed and test_results['regression']['passed']
+    if test_results['coverage']:
+        all_passed = all_passed and test_results['coverage']['passed']
+    if test_results['functional'] and not test_results['functional'].get('skipped'):
+        all_passed = all_passed and test_results['functional']['passed']
 
-        sys.exit(exit_code)
+    sys.exit(0 if all_passed else 1)
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
