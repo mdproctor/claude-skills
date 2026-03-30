@@ -96,6 +96,30 @@ Map changes to CLAUDE.md sections:
 - Individual bug fixes that don't change workflow
 - Formatting/style changes
 
+### Step 4a: Check for framework changes (UNIVERSAL)
+
+**Framework changes = infrastructure that affects multiple files or introduces new capabilities.**
+
+**Red flags that warrant CLAUDE.md documentation:**
+
+| Pattern | CLAUDE.md Impact |
+|---------|------------------|
+| **New scripts/ or tools/ files** | Document in Development Tools or Repository Structure |
+| **New validation/testing infrastructure** | Document in Testing section or Quality Assurance |
+| **Same pattern applied across multiple files** | Framework change, document the pattern |
+| **New automation or sync capabilities** | Document in workflow sections |
+| **New quality gates or pre-commit hooks** | Document in Git Workflow or Development Tools |
+| **New dependency management patterns** | Document in Dependencies section |
+
+**Recent example (ADR-0001):**
+- **What happened:** Validation added to 4 sync workflows (update-claude-md, update-design, sync-primary-doc, readme-sync.md)
+- **Framework change:** All sync workflows now validate documents before staging
+- **CLAUDE.md impact:** Should have updated Development Tools or Quality Assurance section
+
+**If you detect framework changes, include them in proposals even if no direct workflow/convention changes.**
+
+**This check applies to ALL project types** (skills/java/custom/generic).
+
 ### Step 5: Propose updates
 
 Format each proposed change as clear before/after:

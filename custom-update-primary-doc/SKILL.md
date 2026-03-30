@@ -1,5 +1,5 @@
 ---
-name: sync-primary-doc
+name: custom-update-primary-doc
 description: >
   Use when custom-git-commit needs to synchronize a primary document (VISION.md,
   THESIS.md, etc.) based on user-configured sync rules in CLAUDE.md. Generic
@@ -134,6 +134,32 @@ git diff --staged {file_path}
    - Which section to update
    - What content to add/modify/remove
    - Why this change is needed (reference to changed file)
+
+---
+
+### Step 5a — Check for framework changes (UNIVERSAL)
+
+**Framework changes = infrastructure that affects multiple files or introduces new capabilities.**
+
+**Red flags that warrant primary document updates:**
+
+| Pattern | Primary Doc Impact |
+|---------|-------------------|
+| **New scripts/ or tools/ files** | Document in Tools/Infrastructure section |
+| **New validation/testing infrastructure** | Document in Quality Assurance or Methodology |
+| **Same pattern across multiple files** | Framework change, document the pattern |
+| **New automation or workflow capabilities** | Document in Process or Workflow sections |
+| **New milestones or phases introduced** | Update milestone tracking |
+| **New collaboration patterns** | Document in Governance or Team sections |
+
+**Recent example (ADR-0001):**
+- **What happened:** Validation added to sync workflows
+- **Framework change:** Universal document validation before commits
+- **Custom project impact:** If VISION.md/THESIS.md exists, should document new quality gates
+
+**If you detect framework changes, include them in proposals even if Sync Rules don't explicitly match.**
+
+**This check applies to ALL type: custom projects.**
 
 ---
 
@@ -472,4 +498,6 @@ Creates a new user account.
 ```
 
 **Update type:** Add new entry
+```
+
 ```

@@ -1,4 +1,12 @@
-# README.md Synchronization
+---
+name: skills-update-readme
+description: >
+  Use when git-commit detects skill changes in type: skills repositories and
+  README.md exists. Auto-invoked to sync skill collection changes (new/removed/
+  renamed skills, chaining modifications) to README.md documentation.
+---
+
+# README.md Synchronization (Skills Repositories)
 
 Maintains README.md documentation in sync with skill collection changes in skills
 repositories. Detects when skills are added, removed, renamed, or chained differently,

@@ -1,5 +1,5 @@
 ---
-name: update-design
+name: java-update-design
 description: >
   Use when the user invokes /update-design, asks to "update the design doc",
   "sync DESIGN.md", "reflect code changes in the design", or when another
@@ -119,6 +119,30 @@ Skip the following changes, unless they signal a broader refactor.
 - Javadoc or comment updates
 - Code formatting / style fixes
 - Internal refactor with no change to public interfaces or behaviour
+
+### Step 4a: Check for framework changes (UNIVERSAL)
+
+**Framework changes = infrastructure that affects multiple files or introduces new capabilities.**
+
+**Red flags that warrant DESIGN.md documentation:**
+
+| Pattern | DESIGN.md Impact |
+|---------|------------------|
+| **New scripts/ or tools/ files** | Document in Technology Stack or Build Tools |
+| **New validation/testing infrastructure** | Document in Testing Strategy or Quality Gates |
+| **Same architectural pattern across modules** | Framework change, document the pattern |
+| **New cross-cutting concerns** | Document in Architecture section |
+| **New security/auth mechanisms** | Document in Security section |
+| **New data flow patterns** | Document in Data Flow or Architecture |
+
+**Recent example (ADR-0001):**
+- **What happened:** Validation added to sync workflows
+- **Framework change:** Universal document validation before commits
+- **DESIGN.md impact:** If this were a Java project, should document in Testing Strategy
+
+**If you detect framework changes, include them in proposals even if no direct code changes.**
+
+**This check applies to ALL type: java projects.**
 
 ### Step 5: Propose updates
 

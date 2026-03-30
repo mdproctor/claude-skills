@@ -163,7 +163,7 @@ Let's be honest: writing good commit messages and keeping design documentation i
 
 These skills make documentation *painless* by doing it *as you code*:
 - `java-git-commit` generates proper conventional commit messages automatically by analyzing your actual changes
-- `update-design` keeps DESIGN.md in sync with code *before* you commit, not as a quarterly exercise
+- `java-update-design` keeps DESIGN.md in sync with code *before* you commit, not as a quarterly exercise
 - Both work together so documentation is *part of* the commit, not a separate chore you skip
 
 **Result:** Six months from now, you'll thank yourself. Your teammates will thank you. The new hire will thank you. And that 2 AM production incident? The git history will actually help instead of making you want to rage-quit.
@@ -203,9 +203,9 @@ This collection follows a **layered architecture** where foundation skills provi
 | Skill | Document | Project Types | Auto-Invoked By |
 |-------|----------|---------------|-----------------|
 | **update-claude-md** | CLAUDE.md (workflows) | all | git-commit, java-git-commit, custom-git-commit |
-| **update-design** | DESIGN.md (architecture) | java | java-git-commit |
-| **update-readme** | README.md (skill catalog) | skills | git-commit |
-| **sync-primary-doc** | User-configured doc | custom | custom-git-commit |
+| **java-update-design** | DESIGN.md (architecture) | java | java-git-commit |
+| **skills-update-readme** | README.md (skill catalog) | skills | git-commit |
+| **custom-update-primary-doc** | User-configured doc | custom | custom-git-commit |
 
 ### Layer 3: Review (3 skills)
 
@@ -273,7 +273,7 @@ Generic conventional commit workflow for any repository:
 Intelligent commit workflow that extends git-commit with:
 - **Enforces DESIGN.md existence** — blocks commits if `docs/DESIGN.md` is missing
 - Java/Quarkus-specific scope suggestions (controller, service, repository, BOM)
-- Automatic DESIGN.md synchronization via `update-design` skill
+- Automatic DESIGN.md synchronization via `java-update-design` skill
 - Maven/Gradle awareness
 
 **Features:**
@@ -316,9 +316,9 @@ Maintains CLAUDE.md documentation in sync with workflow and convention changes:
 - Skills repository awareness (skill naming, cross-references)
 - Code repository support (build tools, testing frameworks)
 
-Invoked automatically by `git-commit` and `java-git-commit` (if CLAUDE.md exists), or independently. Handles workflow documentation; for architectural documentation, see `update-design`.
+Invoked automatically by `git-commit` and `java-git-commit` (if CLAUDE.md exists), or independently. Handles workflow documentation; for architectural documentation, see `java-update-design`.
 
-#### **update-design**
+#### **java-update-design**
 Maintains DESIGN.md documentation in sync with code changes, capturing:
 - Component structure and responsibilities
 - Architectural patterns
@@ -331,7 +331,7 @@ Maintains DESIGN.md documentation in sync with code changes, capturing:
 
 Invoked automatically by `java-git-commit` or independently. Handles architectural documentation; for workflow/convention documentation, see `update-claude-md`.
 
-#### **update-readme**
+#### **skills-update-readme**
 Maintains README.md documentation in sync with skill collection changes in skills repositories:
 - Skill descriptions (Skills section)
 - Chaining relationships (Skill Chaining Reference table)
@@ -344,7 +344,7 @@ Maintains README.md documentation in sync with skill collection changes in skill
 
 Invoked automatically by `git-commit` (if README.md exists and skill changes detected), or independently. Specific to skills repositories; for code repositories, use project-specific documentation tools.
 
-#### **sync-primary-doc**
+#### **custom-update-primary-doc**
 Generic table-driven primary document synchronization for custom projects:
 - Syncs VISION.md, THESIS.md, or user-configured primary documents
 - Reads Sync Rules from CLAUDE.md (file patterns → document sections)
@@ -594,7 +594,7 @@ java-dev or quarkus-flow-dev
   → quarkus-flow-testing (if writing tests)
   → java-code-review (automatic or manual)
     → java-git-commit
-      → update-design + update-claude-md (automatic)
+      → java-update-design + update-claude-md (automatic)
 ```
 
 ### Skill Development → Review → Commit (Skills repositories)
@@ -602,7 +602,7 @@ java-dev or quarkus-flow-dev
 superpowers:writing-skills
   → skill-review (automatic when SKILL.md staged)
   → git-commit
-    → update-claude-md + update-readme (automatic)
+    → update-claude-md + skills-update-readme (automatic)
 ```
 
 ### Architecture Decision → Documentation
@@ -619,7 +619,7 @@ maven-dependency-update
   → java-code-review (if code compatibility changes)
   → adr (if significant version jump or new extension)
   → java-git-commit
-    → update-design (documents new dependency architecture)
+    → java-update-design (documents new dependency architecture)
 ```
 
 ### Observability Setup → Dependencies → Commit
@@ -628,7 +628,7 @@ quarkus-observability
   → maven-dependency-update (adds OpenTelemetry/Micrometer extensions)
   → adr (documents observability strategy)
   → java-git-commit
-    → update-design (documents monitoring architecture)
+    → java-update-design (documents monitoring architecture)
 ```
 
 ---
@@ -645,6 +645,7 @@ quarkus-observability
 - ✅ **Automatic DESIGN.md sync** - Architecture docs stay current with every commit
 - ✅ **Automatic CLAUDE.md sync** - Workflow docs stay current with convention changes
 - ✅ **Automatic README.md sync** - Skill catalog stays current (skills repos only)
+- ✅ **Universal document validation** - Automatic corruption detection prevents sync regressions across all project types
 - ✅ **Quarkus/Vert.x specialized** - Event loop awareness, BOM patterns, reactive patterns
 - ✅ **RED-GREEN-REFACTOR validated** - Tested under pressure, prevents resource leaks
 
@@ -666,7 +667,7 @@ You: "commit"
 Claude: [Uses java-git-commit]
   → Runs java-code-review (if not done)
   → Generates conventional commit message
-  → Updates DESIGN.md via update-design
+  → Updates DESIGN.md via java-update-design
   → Updates CLAUDE.md via update-claude-md
   → Commits all changes together
 ```
@@ -685,7 +686,7 @@ You: "commit"
 Claude: [Uses git-commit]
   → Validates SKILL.md via skill-review
   → Generates conventional commit message
-  → Updates README.md via update-readme
+  → Updates README.md via skills-update-readme
   → Updates CLAUDE.md via update-claude-md
   → Commits all changes together
 ```
@@ -708,14 +709,14 @@ Each skill explicitly declares when to chain to other skills:
 | From Skill | To Skill | When |
 |------------|----------|------|
 | `git-commit` | skill-validation.md workflow | SKILL.md files staged (type: skills) |
-| `git-commit` | readme-sync.md workflow | README.md exists + skill changes (type: skills) |
+| `git-commit` | skills-update-readme workflow | README.md exists + skill changes (type: skills) |
 | `git-commit` | `update-claude-md` | CLAUDE.md exists |
 | `git-commit` | `java-git-commit` | Routes if type: java declared |
 | `git-commit` | `custom-git-commit` | Routes if type: custom declared |
 | `java-git-commit` | `java-code-review` | Automatic (if not done this session) |
-| `java-git-commit` | `update-design` | Always (automatic) |
+| `java-git-commit` | `java-update-design` | Always (automatic) |
 | `java-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
-| `custom-git-commit` | `sync-primary-doc` | Sync Rules configured (automatic) |
+| `custom-git-commit` | `custom-update-primary-doc` | Sync Rules configured (automatic) |
 | `custom-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
 | `java-code-review` | `java-security-audit` | Security-critical code detected |
 | `java-dev` | `java-code-review` | User triggers review |
@@ -726,8 +727,8 @@ Each skill explicitly declares when to chain to other skills:
 | `maven-dependency-update` | `adr` | Major version jump or new extension |
 | `quarkus-observability` | `maven-dependency-update` | Adding OTEL/Micrometer deps |
 | `adr` | `java-git-commit` | Stage ADR with related changes |
-| `update-design` | (companion: `update-claude-md`) | Architecture changes often need workflow doc updates |
-| `update-readme` | (companion: `update-claude-md`) | Skill changes often need workflow doc updates |
+| `java-update-design` | (companion: `update-claude-md`) | Architecture changes often need workflow doc updates |
+| `skills-update-readme` | (companion: `update-claude-md`) | Skill changes often need workflow doc updates |
 
 ---
 ## License
@@ -777,6 +778,38 @@ All skills have been systematically improved following the [superpowers:writing-
 - ✅ **Cross-reference integrity:** All skill chaining verified bidirectionally, Prerequisites sections accurate, flowcharts validated with `dot`
 - ✅ **Consistency enforcement:** All skills follow conventions (naming patterns, section ordering, Common Pitfalls format, Success Criteria for artifact-producing skills)
 
+### Document Sync Quality Assurance
+
+**Universal validation framework prevents documentation corruption across all project types.**
+
+**What gets validated:**
+- ✅ All .md files before commit (git-commit Step 1c)
+- ✅ CLAUDE.md after sync (update-claude-md)
+- ✅ DESIGN.md after sync (java-update-design)
+- ✅ README.md after sync (skills-update-readme)
+- ✅ Primary documents after sync (custom-update-primary-doc for VISION.md, THESIS.md, etc.)
+
+**Validation checks:**
+| Check | Severity | Action |
+|-------|----------|--------|
+| **Duplicate headers** | CRITICAL | Block commit, revert changes |
+| **Corrupted tables** | CRITICAL | Block commit, revert changes |
+| **Orphaned sections** | WARNING | Ask user to confirm |
+| **Large line changes** | WARNING | Ask user to confirm |
+
+**Implementation:**
+- `scripts/validate_document.py` - Portable Python 3 validator (no dependencies)
+- Exit code 0 = clean, 1 = CRITICAL (blocks), 2 = WARNING (asks user)
+- Automatic revert on corruption: `git restore <file>`
+- Works in all project types (skills/java/custom/generic)
+
+**Regression prevention:**
+- Issue #002: README.md corruption (341 lines of duplicates) - RESOLVED
+- Automatic pre-commit validation prevents recurrence
+- All sync workflows validate before staging
+
+See **CLAUDE.md § Document Sync Quality Assurance** for complete framework documentation.
+
 ## Repository Structure
 
 ```
@@ -784,6 +817,10 @@ All skills have been systematically improved following the [superpowers:writing-
 ├── LICENSE                              # Apache License 2.0
 ├── README.md                            # This file
 ├── CLAUDE.md                            # Guidance for Claude Code
+├── scripts/                             # Validation and automation
+│   └── validate_document.py            # Universal .md corruption detector
+├── skill-validation.md                  # Skills-specific SKILL.md validation workflow
+├── skills-update-readme                       # Skills-specific README.md sync workflow
 ├── code-review-principles/              # Generic code review principles
 │   └── SKILL.md
 ├── security-audit-principles/           # Generic security audit principles
@@ -809,11 +846,11 @@ All skills have been systematically improved following the [superpowers:writing-
 │   └── SKILL.md
 ├── java-git-commit/                     # Java-specific smart commits
 │   └── SKILL.md
-├── update-design/                       # DESIGN.md maintenance
+├── java-update-design/                       # DESIGN.md maintenance
 │   └── SKILL.md
 ├── update-claude-md/                    # CLAUDE.md maintenance
 │   └── SKILL.md
-├── update-readme/                       # README.md maintenance
+├── skills-update-readme/                       # README.md maintenance
 │   └── SKILL.md
 ├── adr/                                 # Architecture Decision Records
 │   └── SKILL.md

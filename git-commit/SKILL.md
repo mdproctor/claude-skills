@@ -88,7 +88,7 @@ Tell user:
 >
 > This enables:
 > - Automatic SKILL.md validation (skill-validation.md)
-> - README.md synchronization (readme-sync.md)
+> - README.md synchronization (skills-update-readme)
 > - CLAUDE.md synchronization (update-claude-md)
 >
 > Note: I've staged CLAUDE.md - it will be included in this commit.
@@ -290,7 +290,9 @@ ls README.md 2>/dev/null && git diff --staged --name-only | grep -E '(SKILL\.md|
 ```
 
 **If README.md exists and skill changes found:**
-- Follow the `readme-sync.md` workflow, passing the staged diff
+- **MANDATORY:** Invoke the `skills-update-readme` skill, passing the staged diff
+- **Do NOT skip this step** — let skills-update-readme decide if changes warrant documentation
+- **Do NOT rationalize** "just internal changes" or "not significant enough"
 - It will analyze skill collection changes and propose README.md updates
 - Hold those proposals too
 
@@ -318,7 +320,7 @@ ls README.md 2>/dev/null && git diff --staged --name-only | grep -E '(SKILL\.md|
 <output from update-claude-md skill>
 
 ## Proposed README.md updates (if any)
-<output from readme-sync.md workflow>
+<output from skills-update-readme skill>
 ```
 
 **Otherwise**, show standard proposal:
@@ -341,7 +343,7 @@ Then ask exactly:
 
 **If documentation updates were proposed**, run in this exact order:
 1. Let update-claude-md apply its changes (if proposed)
-2. Apply README.md changes per readme-sync.md workflow (if proposed)
+2. Apply README.md changes per skills-update-readme skill (if proposed)
 3. Stage updated files: `git add CLAUDE.md README.md` (only files that were changed)
 4. Commit with the confirmed message:
 ```bash
@@ -455,7 +457,7 @@ Commit is complete when:
 **Invokes (when handling directly):**
 - Follows `skill-validation.md` workflow for SKILL.md validation (automatic if SKILL.md files staged, type: skills only)
 - [`update-claude-md`] for workflow sync (automatic if CLAUDE.md exists)
-- Follows `readme-sync.md` workflow for skill collection sync (automatic if README.md exists and skill changes detected, type: skills only)
+- [`skills-update-readme`] for skill collection sync (automatic if README.md exists and skill changes detected, type: skills only)
 
 **Interactive setup:** If CLAUDE.md missing or no Project Type declared, guides user through setup and creates CLAUDE.md
 
