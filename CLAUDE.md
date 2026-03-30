@@ -690,6 +690,36 @@ All major skills include "Common Pitfalls" tables documenting real mistakes:
 | [Anti-pattern] | [Consequence] | [Correct approach] |
 ```
 
+### Third-Party Skill Exclusion
+
+**CRITICAL: Only document skills authored by the repository owner.**
+
+**Rules:**
+- ✅ **Document only user-authored skills** in README.md and CLAUDE.md
+- ❌ **Never document third-party skills** (skills from superpowers:*, external repos, etc.)
+- ✅ **Add third-party skills to .gitignore** immediately upon discovery
+- ❌ **Never reference third-party skills** in documentation (chaining tables, workflows, repository structure)
+
+**Rationale:**
+- Third-party skills are maintained elsewhere and can change without notice
+- Documenting them creates maintenance burden and stale references
+- Users already see third-party skills in their skill list
+- README/CLAUDE.md should reflect only what this repository provides
+
+**Implementation:**
+1. Add skill directory to .gitignore with comment: `# Third-party skill from [source]`
+2. Remove all references from README.md (Skills section, Chaining table, Repository Structure)
+3. Remove all references from CLAUDE.md (Key Skills section)
+4. Verify removal with: `grep -r "skill-name" README.md CLAUDE.md`
+
+**Examples of third-party skills to exclude:**
+- `superpowers:*` (all superpowers skills)
+- `skill-creator` (external skill authoring tool)
+- `frontend-design:*` (third-party frontend skills)
+- Any skill not in version control for this repository
+
+**Quality check:** During deep analysis, verify no third-party skills are documented anywhere.
+
 ## Editing Skills
 
 When modifying existing skills:
@@ -1130,6 +1160,45 @@ For each instruction:
    - User request → terminal skill (produces artifact)
    - No dead-end skills (invoked but invoke nothing)
    - No orphan skills (never invoked, not user-invocable)
+
+#### 2.8 Third-Party Skill Documentation
+
+**Manual procedure:**
+
+**CRITICAL: Verify no third-party skills are documented in README.md or CLAUDE.md.**
+
+1. **Identify third-party skills:**
+   ```bash
+   # Check .gitignore for excluded skill directories
+   grep '/$' .gitignore | grep -v '^#' | grep -v '^\.'
+
+   # Check for superpowers:* references
+   grep -E 'superpowers:|skill-creator|frontend-design:' README.md CLAUDE.md
+   ```
+
+2. **Verify exclusions:**
+   - ✅ All third-party skill directories in .gitignore
+   - ✅ No third-party skills in README.md "Skills" section
+   - ✅ No third-party skills in README.md "Skill Chaining Reference" table
+   - ✅ No third-party skills in README.md "Repository Structure" section
+   - ✅ No third-party skills in CLAUDE.md "Key Skills" section
+   - ✅ No third-party skills in workflow diagrams
+
+3. **Check for stale references:**
+   - Search for skill names that appear in .gitignore
+   - Verify removal from all documentation
+   - Check for indirect references (e.g., "use skill-creator to...")
+
+**Common violations found:**
+- ❌ skill-creator documented in Development Tools section
+- ❌ superpowers:* skills listed in chaining table
+- ❌ Third-party skills in repository structure diagram
+- ❌ Workflow examples showing third-party skill invocation
+
+**Fix procedure:**
+1. Remove all documentation references
+2. Verify .gitignore entry exists
+3. Run consistency check: `grep -r "<skill-name>" README.md CLAUDE.md` should return no results
 
 ---
 

@@ -10,7 +10,7 @@ description: >
 
 Maintains README.md documentation in sync with skill collection changes in skills
 repositories. Detects when skills are added, removed, renamed, or chained differently,
-and proposes surgical updates to keep documentation accurate.
+and proposes updates to keep documentation accurate.
 
 ## When to Use This Skill
 
@@ -129,7 +129,6 @@ Avoid these mistakes when updating README.md:
 | Updating for internal refactors | Creates noise in README | Only update for user-visible changes |
 | Missing renamed skill in chaining table | Broken references | Search and replace all occurrences |
 | Copying skill verbatim into README | Duplication, maintenance burden | Summarize key features only |
-| Rewriting entire sections | Destroys user's voice | Surgical updates — preserve existing prose |
 | Not reading README first | Proposals conflict with structure | Always read full file before proposing |
 | Mentioning AI/tools in README | Breaks professional standards | Never mention Claude, AI, or tooling |
 | Incomplete chaining updates | README diverges from actual chaining | When skill chaining changes, update table AND "How Skills Work Together" |

@@ -11,7 +11,7 @@ description: >
 # Update Design Document
 
 You are an expert software architect who keeps DESIGN.md files accurate and
-concise. Your job is to detect architectural drift and propose surgical updates.
+concise. Your job is to detect architectural drift and propose updates.
 
 ## When to Use This Skill
 
@@ -166,7 +166,6 @@ Avoid these mistakes when updating DESIGN.md:
 | Updating DESIGN.md for every code change | Document becomes noisy and diluted | Only update for architectural changes |
 | Adding implementation details | DESIGN.md is not code documentation | Focus on what/why, not how |
 | Copying method signatures into DESIGN.md | Low-value duplication of code | Describe component purpose, not API details |
-| Rewriting entire sections | Destroys user's voice and structure | Surgical updates only - preserve existing prose |
 | Creating DESIGN.md without user input | Might not match team conventions | Show starter template and ask first |
 | Skipping "Reason:" in proposals | User doesn't understand why change needed | Always explain rationale |
 | Not reading existing DESIGN.md first | Proposals conflict with structure | Always read full file before proposing |
