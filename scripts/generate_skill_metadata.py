@@ -65,3 +65,35 @@ def parse_frontmatter(skill_md_content: str) -> str:
         raise ValueError("Missing 'name' field in frontmatter")
 
     return name_match.group(1).strip()
+
+
+def parse_dependencies(skill_md_content: str) -> List[str]:
+    """
+    Parse SKILL.md to extract dependency skill names.
+
+    Looks for Prerequisites section with patterns like:
+    - "builds on [`java-dev`]"
+    - "extends [`code-review-principles`]"
+
+    Args:
+        skill_md_content: Full SKILL.md file content
+
+    Returns:
+        List of dependency skill names
+    """
+    # Find Prerequisites section
+    prereq_match = re.search(
+        r'^## Prerequisites\s*\n(.*?)(?=^##|\Z)',
+        skill_md_content,
+        re.MULTILINE | re.DOTALL
+    )
+
+    if not prereq_match:
+        return []
+
+    prereq_section = prereq_match.group(1)
+
+    # Extract skill names from backtick references: [`skill-name`]
+    dependencies = re.findall(r'\[`([^`]+)`\]', prereq_section)
+
+    return dependencies

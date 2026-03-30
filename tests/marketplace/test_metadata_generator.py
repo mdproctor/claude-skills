@@ -76,5 +76,59 @@ description: No name field
             parse_frontmatter(skill_md)
 
 
+class TestDependencyParser(unittest.TestCase):
+    """Test SKILL.md dependency parsing"""
+
+    def test_parse_dependencies_finds_single_dependency(self):
+        """Parser should extract dependencies from Prerequisites section"""
+        skill_md = """---
+name: quarkus-flow-dev
+---
+
+## Prerequisites
+
+**This skill builds on [`java-dev`]**.
+
+Apply all rules from java-dev.
+"""
+        from scripts.generate_skill_metadata import parse_dependencies
+
+        deps = parse_dependencies(skill_md)
+
+        self.assertEqual(deps, ["java-dev"])
+
+    def test_parse_dependencies_finds_multiple_dependencies(self):
+        """Parser should extract multiple dependencies"""
+        skill_md = """---
+name: quarkus-flow-testing
+---
+
+## Prerequisites
+
+**This skill builds on [`java-dev`] and [`quarkus-flow-dev`]**.
+"""
+        from scripts.generate_skill_metadata import parse_dependencies
+
+        deps = parse_dependencies(skill_md)
+
+        self.assertEqual(set(deps), {"java-dev", "quarkus-flow-dev"})
+
+    def test_parse_dependencies_returns_empty_for_no_prereqs(self):
+        """Parser should return empty list if no Prerequisites section"""
+        skill_md = """---
+name: java-dev
+---
+
+# Java Development
+
+No prerequisites.
+"""
+        from scripts.generate_skill_metadata import parse_dependencies
+
+        deps = parse_dependencies(skill_md)
+
+        self.assertEqual(deps, [])
+
+
 if __name__ == '__main__':
     unittest.main()
