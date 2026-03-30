@@ -2451,32 +2451,32 @@ jobs:
 
 **Scripts organized by validation tier for optimal performance:**
 
-#### PRE-COMMIT Tier (<2s budget)
+#### COMMIT tier (<2s budget)
 
 **Existing validators (mechanical/structural checks):**
-1. ✅ **`validate_frontmatter.py`** - YAML structure, required fields [PRE-COMMIT]
-2. ✅ **`validate_cso.py`** - Description compliance [PRE-COMMIT]
-3. ✅ **`validate_flowcharts.py`** - Graphviz syntax, semantic labels [PRE-COMMIT]
-4. ✅ **`validate_references.py`** - Cross-reference integrity [PRE-COMMIT]
-5. ✅ **`validate_naming.py`** - Naming conventions [PRE-COMMIT]
-6. ✅ **`validate_sections.py`** - Required sections [PRE-COMMIT]
-7. ✅ **`validate_structure.py`** - File organization [PRE-COMMIT]
+1. ✅ **`validate_frontmatter.py`** - YAML structure, required fields [COMMIT]
+2. ✅ **`validate_cso.py`** - Description compliance [COMMIT]
+3. ✅ **`validate_flowcharts.py`** - Graphviz syntax, semantic labels [COMMIT]
+4. ✅ **`validate_references.py`** - Cross-reference integrity [COMMIT]
+5. ✅ **`validate_naming.py`** - Naming conventions [COMMIT]
+6. ✅ **`validate_sections.py`** - Required sections [COMMIT]
+7. ✅ **`validate_structure.py`** - File organization [COMMIT]
 
 **Why pre-commit:** Fast (<2s total), block corruption before git history.
 
-#### PRE-PUSH Tier (<30s budget)
+#### PUSH tier (<30s budget)
 
 **Semantic validators (cross-document/consistency checks):**
-8. ✅ **`validate_cross_document.py`** - Cross-document consistency [PRE-PUSH]
-9. ✅ **`validate_temporal.py`** - Temporal consistency (stale references) [PRE-PUSH]
-10. ✅ **`validate_usability.py`** - Usability/UX validator [PRE-PUSH]
-11. ✅ **`validate_edge_cases.py`** - Edge case coverage validator [PRE-PUSH]
-12. ✅ **`validate_behavior.py`** - Behavioral consistency validator [PRE-PUSH]
+8. ✅ **`validate_cross_document.py`** - Cross-document consistency [PUSH]
+9. ✅ **`validate_temporal.py`** - Temporal consistency (stale references) [PUSH]
+10. ✅ **`validate_usability.py`** - Usability/UX validator [PUSH]
+11. ✅ **`validate_edge_cases.py`** - Edge case coverage validator [PUSH]
+12. ✅ **`validate_behavior.py`** - Behavioral consistency validator [PUSH]
 
 **Test infrastructure:**
-13. ✅ **`validate_readme_sync.py`** - README/CLAUDE sync validator [PRE-PUSH]
-14. ✅ **`run_regression_tests.py`** - Regression test runner [PRE-PUSH]
-15. ✅ **`test_coverage.py`** - Coverage reporting [PRE-PUSH]
+13. ✅ **`validate_readme_sync.py`** - README/CLAUDE sync validator [PUSH]
+14. ✅ **`run_regression_tests.py`** - Regression test runner [PUSH]
+15. ✅ **`test_coverage.py`** - Coverage reporting [PUSH]
 16. ✅ **`run_skill_tests.py`** - Functional test runner (git worktrees) [CI]
 
 **Why pre-push:** Moderate cost (<30s), cross-file checks, prevents bad state reaching remote.
