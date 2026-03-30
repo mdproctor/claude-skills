@@ -1,0 +1,108 @@
+{
+  "skill": "update-primary-doc",
+  "description": "Functional tests for update-primary-doc skill (table-driven sync)",
+  "tests": [
+    {
+      "name": "Reads Sync Rules table from CLAUDE.md",
+      "description": "Should parse Sync Rules table to understand mapping",
+      "setup": [
+        "git init /tmp/test-primary-doc-1",
+        "cd /tmp/test-primary-doc-1 && cat > CLAUDE.md <<'EOF'\n## Project Type\n\n**Type:** custom\n**Primary Document:** docs/vision.md\n\n**Sync Rules:**\n| Changed Files | Document Section | Update Type |\n|---------------|------------------|-------------|\n| docs/catalog/*.md | Projects | Add entries |\nEOF",
+        "cd /tmp/test-primary-doc-1 && mkdir -p docs && echo '# Vision' > docs/vision.md",
+        "cd /tmp/test-primary-doc-1 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "skill",
+          "type": "reads",
+          "file": "CLAUDE.md"
+        },
+        {
+          "category": "skill",
+          "type": "parses",
+          "section": "Sync Rules"
+        }
+      ]
+    },
+    {
+      "name": "Matches changed files against patterns",
+      "description": "Should match docs/catalog/project-a.md against docs/catalog/*.md pattern",
+      "setup": [
+        "git init /tmp/test-primary-doc-2",
+        "cd /tmp/test-primary-doc-2 && cat > CLAUDE.md <<'EOF'\n## Project Type\n\n**Type:** custom\n**Primary Document:** docs/vision.md\n\n**Sync Rules:**\n| Changed Files | Document Section | Update Type |\n|---------------|------------------|-------------|\n| docs/catalog/*.md | Section 2 Projects | Add/update entries |\nEOF",
+        "cd /tmp/test-primary-doc-2 && mkdir -p docs/catalog",
+        "cd /tmp/test-primary-doc-2 && echo '# Vision' > docs/vision.md",
+        "cd /tmp/test-primary-doc-2 && echo '# Project A' > docs/catalog/project-a.md",
+        "cd /tmp/test-primary-doc-2 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "pattern",
+          "type": "matches",
+          "file": "docs/catalog/project-a.md",
+          "pattern": "docs/catalog/*.md"
+        }
+      ]
+    },
+    {
+      "name": "Proposes updates to specified section",
+      "description": "Should propose update to Section 2 when catalog file changes",
+      "setup": [
+        "git init /tmp/test-primary-doc-3",
+        "cd /tmp/test-primary-doc-3 && cat > CLAUDE.md <<'EOF'\n## Project Type\n\n**Type:** custom\n**Primary Document:** docs/vision.md\n\n**Sync Rules:**\n| Changed Files | Document Section | Update Type |\n|---------------|------------------|-------------|\n| docs/catalog/*.md | Section 2 Projects | Add entries |\nEOF",
+        "cd /tmp/test-primary-doc-3 && mkdir -p docs/catalog",
+        "cd /tmp/test-primary-doc-3 && cat > docs/vision.md <<'EOF'\n# Vision\n\n## Section 2 Projects\nNo projects yet\nEOF",
+        "cd /tmp/test-primary-doc-3 && echo '# Project A' > docs/catalog/project-a.md",
+        "cd /tmp/test-primary-doc-3 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "proposal",
+          "type": "proposes_update",
+          "file": "docs/vision.md",
+          "section": "Section 2 Projects"
+        }
+      ]
+    },
+    {
+      "name": "Validates document after updates",
+      "description": "Should run validate_document.py after applying changes",
+      "setup": [
+        "git init /tmp/test-primary-doc-4",
+        "cd /tmp/test-primary-doc-4 && cat > CLAUDE.md <<'EOF'\n## Project Type\n\n**Type:** custom\n**Primary Document:** docs/thesis.md\nEOF",
+        "cd /tmp/test-primary-doc-4 && mkdir -p docs",
+        "cd /tmp/test-primary-doc-4 && echo '# Thesis' > docs/thesis.md",
+        "cd /tmp/test-primary-doc-4 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "validation",
+          "type": "runs",
+          "script": "validate_document.py",
+          "target": "docs/thesis.md"
+        }
+      ]
+    },
+    {
+      "name": "Blocks if validation fails",
+      "description": "Should revert changes if document corruption detected",
+      "setup": [
+        "git init /tmp/test-primary-doc-5",
+        "cd /tmp/test-primary-doc-5 && echo '# Thesis' > docs/thesis.md",
+        "cd /tmp/test-primary-doc-5 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "validation",
+          "type": "blocks_on",
+          "severity": "CRITICAL"
+        },
+        {
+          "category": "git",
+          "type": "reverts",
+          "file": "docs/thesis.md"
+        }
+      ]
+    }
+  ]
+}

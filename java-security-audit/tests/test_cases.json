@@ -1,0 +1,36 @@
+{
+  "skill": "java-security-audit",
+  "description": "Functional tests for java-security-audit (CI tier)",
+  "tests": [
+    {
+      "name": "Detects SQL injection vulnerabilities",
+      "description": "Should flag string concatenation in SQL queries",
+      "setup": [
+        "git init /tmp/test-security-1",
+        "cd /tmp/test-security-1 && mkdir -p src/main/java/com/example",
+        "cd /tmp/test-security-1 && cat > src/main/java/com/example/UserDAO.java <<'JAVA'\npublic class UserDAO {\n    public User find(String username) {\n        String sql = \"SELECT * FROM users WHERE name='\" + username + \"'\";\n        return query(sql);\n    }\n}\nJAVA",
+        "cd /tmp/test-security-1 && git add ."
+      ],
+      "assertions": [
+        {
+          "category": "security",
+          "type": "finding",
+          "severity": "CRITICAL",
+          "owasp": "A03:2021 Injection"
+        }
+      ]
+    },
+    {
+      "name": "Detects weak cryptography",
+      "description": "Should flag MD5/SHA1 usage for password hashing",
+      "assertions": [
+        {
+          "category": "security",
+          "type": "finding",
+          "severity": "CRITICAL",
+          "owasp": "A02:2021 Cryptographic Failures"
+        }
+      ]
+    }
+  ]
+}

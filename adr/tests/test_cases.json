@@ -1,0 +1,22 @@
+{
+  "skill": "adr",
+  "description": "Functional tests for adr (Architecture Decision Records, CI tier)",
+  "tests": [
+    {
+      "name": "Creates ADR with standard template",
+      "description": "Should create docs/adr/NNNN-title.md with status/context/decision/consequences",
+      "assertions": [
+        {
+          "category": "file",
+          "type": "matches_pattern",
+          "pattern": "docs/adr/\\d{4}-.+\\.md"
+        },
+        {
+          "category": "content",
+          "type": "contains_sections",
+          "sections": ["Status", "Context", "Decision", "Consequences"]
+        }
+      ]
+    }
+  ]
+}

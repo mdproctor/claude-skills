@@ -1,0 +1,87 @@
+{
+  "skill": "java-dev",
+  "description": "Functional tests for java-dev skill (Java development workflow)",
+  "tests": [
+    {
+      "name": "Creates new Java class with proper package",
+      "description": "Should create .java file in correct package structure",
+      "setup": [
+        "git init /tmp/test-java-dev-1",
+        "cd /tmp/test-java-dev-1 && mkdir -p src/main/java/com/example/service"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "created",
+          "path": "src/main/java/com/example/service/UserService.java"
+        },
+        {
+          "category": "file",
+          "type": "contains",
+          "path": "src/main/java/com/example/service/UserService.java",
+          "text": "package com.example.service;"
+        }
+      ]
+    },
+    {
+      "name": "Adds Quarkus annotations correctly",
+      "description": "Should use @ApplicationScoped for services, @Entity for domain",
+      "setup": [
+        "git init /tmp/test-java-dev-2",
+        "cd /tmp/test-java-dev-2 && mkdir -p src/main/java/com/example/service"
+      ],
+      "assertions": [
+        {
+          "category": "code",
+          "type": "uses_annotation",
+          "annotation": "@ApplicationScoped"
+        },
+        {
+          "category": "imports",
+          "type": "includes",
+          "import": "javax.enterprise.context.ApplicationScoped"
+        }
+      ]
+    },
+    {
+      "name": "Follows immutability patterns",
+      "description": "Should use final fields, no public mutable state",
+      "setup": [
+        "git init /tmp/test-java-dev-3",
+        "cd /tmp/test-java-dev-3 && mkdir -p src/main/java/com/example/domain"
+      ],
+      "assertions": [
+        {
+          "category": "code",
+          "type": "uses_pattern",
+          "pattern": "final fields"
+        },
+        {
+          "category": "code",
+          "type": "avoids",
+          "antipattern": "public non-final fields"
+        }
+      ]
+    },
+    {
+      "name": "Includes test alongside implementation",
+      "description": "Should create test class when creating implementation",
+      "setup": [
+        "git init /tmp/test-java-dev-4",
+        "cd /tmp/test-java-dev-4 && mkdir -p src/main/java/com/example/service src/test/java/com/example/service"
+      ],
+      "assertions": [
+        {
+          "category": "file",
+          "type": "exists",
+          "path": "src/test/java/com/example/service/UserServiceTest.java"
+        },
+        {
+          "category": "test",
+          "type": "uses_annotation",
+          "annotation": "@QuarkusTest"
+        }
+      ]
+    }
+  ]
+}
