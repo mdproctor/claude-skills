@@ -1,33 +1,12 @@
----
-name: skill-review
-description: >
-  Use when the user says "review my skill", "check this skill", "validate SKILL.md",
-  or when about to commit changes to */SKILL.md files. Pre-commit review for skill
-  structure, CSO compliance, naming conventions, cross-references, and documentation
-  completeness.
----
-
-# Skill Review
+# SKILL.md Validation
 
 Pre-commit review for Claude Code skills to ensure structural integrity, CSO compliance,
 and documentation completeness before committing to the repository.
 
-## When to Use This Skill
-
-**Only for type: skills repositories.**
-
-This skill is invoked by `git-commit` when:
-- CLAUDE.md declares `type: skills`
-- Staged changes include SKILL.md files
-
-**Do NOT use this skill for:**
-- type: java repositories (use java-code-review instead)
-- type: custom repositories (no SKILL.md files)
-- type: generic repositories (no SKILL.md files)
+**Only for type: skills repositories.** Invoked when SKILL.md files are staged.
 
 ## Core Rules
 
-- **Only operates in type: skills repositories** — other project types don't have SKILL.md files
 - **Block commits on CRITICAL findings** — structural violations must be fixed first
 - Focus on **format compliance and conventions**, not subjective quality
 - Check **cross-references bidirectionally** — if A references B, verify B references A
@@ -166,47 +145,6 @@ digraph severity_flow {
 }
 ```
 
-## Common Pitfalls
-
-| Mistake | Why It's Wrong | Fix |
-|---------|----------------|-----|
-| Using in non-skills repositories | Wrong project type, no SKILL.md files | Only invoke for type: skills repositories |
-| Workflow summary in description | Claude follows description instead of reading skill body (skill becomes expensive wallpaper) | Remove workflow details, describe *when to use* only |
-| Missing name or description field | Skill won't load | Add required frontmatter fields |
-| Generic flowchart labels | Unreadable, unclear intent | Use semantic labels (e.g., "Check BOM alignment" not "step1") |
-| Dangling cross-references | Skill references non-existent skill | Verify all referenced skills exist |
-| Missing Success Criteria | Premature completion claims | Add checklist for artifact-producing skills |
-| Invalid Graphviz syntax | Skill loading fails | Test with `dot` before committing |
-| Unidirectional chaining | Incomplete documentation graph | Make cross-references bidirectional |
-| First-person in description | Injected into system prompt | Use third person ("Use when..." not "I help you...") |
-| No Common Pitfalls table | Users repeat known mistakes | Document mistakes with fixes |
-
-## Success Criteria
-
-Skill review is complete when:
-
-- ✅ All SKILL.md files read
-- ✅ Frontmatter validated (name, description, CSO compliance)
-- ✅ Flowcharts tested (if present)
-- ✅ Naming conventions checked
-- ✅ Cross-references verified bidirectionally
-- ✅ Documentation completeness assessed
-- ✅ Findings presented grouped by severity
-
-**Not complete until** all checks performed and user informed of results.
-
-## Skill Chaining
-
-**Invoked by:** [`git-commit`] when SKILL.md files are detected in staged changes
-
-**Invokes:** None (terminal skill in the chain)
-
-**Can be invoked independently:** User can run `/skill-review` directly to validate skills before committing
-
-**Chains to:** [`git-commit`] after approval (or after fixing CRITICAL/WARNING issues)
-
-**Works alongside:** `update-claude-md` (documents workflow conventions), `update-readme` (syncs README with skill changes)
-
 ## Review Checklist
 
 ### Frontmatter Structure (CRITICAL)
@@ -289,6 +227,20 @@ echo 'digraph test { ... }' | dot -Tsvg > /dev/null 2>&1 && echo "valid" || echo
 | **Heavy reference** | >300 line reference material extracted to separate `.md` files |
 | **Skill body focus** | SKILL.md focuses on workflow/principles, not exhaustive API docs |
 | **Clear references** | External files referenced clearly from SKILL.md |
+
+## Common Pitfalls
+
+| Mistake | Why It's Wrong | Fix |
+|---------|----------------|-----|
+| Workflow summary in description | Claude follows description instead of reading skill body (skill becomes expensive wallpaper) | Remove workflow details, describe *when to use* only |
+| Missing name or description field | Skill won't load | Add required frontmatter fields |
+| Generic flowchart labels | Unreadable, unclear intent | Use semantic labels (e.g., "Check BOM alignment" not "step1") |
+| Dangling cross-references | Skill references non-existent skill | Verify all referenced skills exist |
+| Missing Success Criteria | Premature completion claims | Add checklist for artifact-producing skills |
+| Invalid Graphviz syntax | Skill loading fails | Test with `dot` before committing |
+| Unidirectional chaining | Incomplete documentation graph | Make cross-references bidirectional |
+| First-person in description | Injected into system prompt | Use third person ("Use when..." not "I help you...") |
+| No Common Pitfalls table | Users repeat known mistakes | Document mistakes with fixes |
 
 ## Edge Cases
 
@@ -400,3 +352,17 @@ When deep analysis is complete, present findings in this structure:
 | **Contradiction** | Skill says "always X", later says "never X" | Resolve which is correct |
 | **Ambiguous reference** | "it updates the file" (which file?) | Specify the antecedent |
 | **Missing example** | Complex instruction without example | Add concrete example |
+
+## Success Criteria
+
+Skill review is complete when:
+
+- ✅ All SKILL.md files read
+- ✅ Frontmatter validated (name, description, CSO compliance)
+- ✅ Flowcharts tested (if present)
+- ✅ Naming conventions checked
+- ✅ Cross-references verified bidirectionally
+- ✅ Documentation completeness assessed
+- ✅ Findings presented grouped by severity
+
+**Not complete until** all checks performed and user informed of results.

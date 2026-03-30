@@ -615,6 +615,34 @@ skill-name/
   reference-name.md     # Heavy API/reference docs
 ```
 
+### Skills-Repository-Specific Documentation
+
+**This repository has modularized documentation for skills-specific workflows to avoid token waste in other projects.**
+
+Skills-repository-specific logic (SKILL.md validation, README synchronization) is NOT implemented as portable skills. Instead, it lives in standalone documentation files at the repository root:
+
+| File | Purpose | Used By |
+|------|---------|---------|
+| **skill-validation.md** | SKILL.md validation workflow (frontmatter, CSO, flowcharts, cross-references) | `git-commit` when type: skills AND SKILL.md files staged |
+| **readme-sync.md** | README.md synchronization workflow (skill collection changes) | `git-commit` when type: skills AND skill changes detected |
+
+**Why modularized (not skills):**
+- These workflows only apply to THIS repository
+- Loading them as skills wastes tokens in all other projects (java, custom, generic)
+- They contain heavy reference material (checklists, tables, patterns)
+- CLAUDE.md loads automatically in every conversation
+- git-commit can reference these files when operating in type: skills mode
+
+**When git-commit operates in type: skills mode:**
+1. Check for staged SKILL.md files → Follow skill-validation.md workflow
+2. Check for skill collection changes → Follow readme-sync.md workflow
+3. Both workflows maintain the same confirmation pattern (propose → user YES → apply)
+
+**These files are NOT:**
+- Loaded in java/custom/generic projects (zero token cost)
+- Duplicated in skills collection (single source of truth)
+- Skills themselves (not in skills/ directory, not user-invocable via Skill tool)
+
 ### Flowcharts
 
 Skills use Graphviz dot notation for decision flows. Add flowcharts when:

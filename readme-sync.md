@@ -1,27 +1,17 @@
----
-name: update-readme
-description: >
-  Auto-invoked by git-commit when README.md exists and staged changes include
-  SKILL.md files or new skill directories. Proposes updates to skill
-  descriptions, chaining tables, and feature lists.
----
-
-# Update README
+# README.md Synchronization
 
 Maintains README.md documentation in sync with skill collection changes in skills
 repositories. Detects when skills are added, removed, renamed, or chained differently,
 and proposes updates to keep documentation accurate.
 
-## When to Use This Skill
-
 **Only for type: skills repositories.**
 
-This skill is invoked by `git-commit` when:
+This workflow is invoked by `git-commit` when:
 - CLAUDE.md declares `type: skills`
 - README.md exists
 - Staged changes include SKILL.md files or skill directory changes
 
-**Do NOT use this skill for:**
+**Do NOT use for:**
 - type: java repositories (no automatic README sync)
 - type: custom repositories (no automatic README sync)
 - type: generic repositories (no automatic README sync)
@@ -150,13 +140,13 @@ README.md update is complete when:
 
 **Invoked by:** [`git-commit`] when committing in skills repositories (automatic only if README.md exists AND skill changes detected via staged SKILL.md files or skill directory changes)
 
-**Invokes:** None (terminal skill in the chain)
+**Invokes:** None (terminal workflow in the chain)
 
-**Can be invoked independently:** User can run `/update-readme` directly to sync README.md without committing
+**Can be invoked independently:** User can request README sync directly without committing
 
-**Works alongside:** `update-claude-md` — while update-claude-md handles workflow guidance (CLAUDE.md), update-readme handles public-facing documentation (README.md)
+**Works alongside:** `update-claude-md` — while update-claude-md handles workflow guidance (CLAUDE.md), this handles public-facing documentation (README.md)
 
-**Note:** This skill is specific to skills repositories. For code repositories, README updates are typically manual or handled by project-specific documentation tools.
+**Note:** This workflow is specific to skills repositories. For code repositories, README updates are typically manual or handled by project-specific documentation tools.
 
 ## Skills Section Patterns
 
