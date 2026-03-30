@@ -43,5 +43,38 @@ class TestSkillScanner(unittest.TestCase):
             self.assertNotIn(tmpdir / "scripts", skills)
 
 
+class TestFrontmatterParser(unittest.TestCase):
+    """Test SKILL.md frontmatter parsing"""
+
+    def test_parse_frontmatter_extracts_name(self):
+        """Parser should extract name from SKILL.md frontmatter"""
+        skill_md = """---
+name: java-dev
+description: >
+  Use when writing Java code
+---
+
+# Java Development
+
+Content here...
+"""
+        from scripts.generate_skill_metadata import parse_frontmatter
+
+        name = parse_frontmatter(skill_md)
+
+        self.assertEqual(name, "java-dev")
+
+    def test_parse_frontmatter_raises_on_missing_name(self):
+        """Parser should raise error if name field missing"""
+        skill_md = """---
+description: No name field
+---
+"""
+        from scripts.generate_skill_metadata import parse_frontmatter
+
+        with self.assertRaisesRegex(ValueError, "Missing 'name' field"):
+            parse_frontmatter(skill_md)
+
+
 if __name__ == '__main__':
     unittest.main()
