@@ -23,6 +23,19 @@ The `install-skills` wizard will:
 
 After setup completes, close that conversation - skills will be available in all future sessions.
 
+**To uninstall:**
+
+```bash
+# Remove skills with guided wizard
+/uninstall-skills
+```
+
+The `uninstall-skills` wizard will:
+- ✅ Let you choose what to remove (all, Java/Quarkus bundle, foundation, or individual skills)
+- ✅ Check for reverse dependencies (warns if other skills depend on what you're removing)
+- ✅ Optionally remove session-start hook
+- ✅ Require explicit confirmation before removal
+
 ---
 
 ### Method 1: Official Claude Code (Manual Installation)

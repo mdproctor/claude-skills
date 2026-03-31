@@ -14,6 +14,13 @@
       "version": "1.0.0"
     },
     {
+      "name": "uninstall-skills",
+      "source": "https://github.com/mdproctor/claude-skills",
+      "path": "uninstall-skills",
+      "description": "Remove marketplace skills and hooks with reverse dependency checking",
+      "version": "1.0.0"
+    },
+    {
       "name": "code-review-principles",
       "source": "https://github.com/mdproctor/claude-skills",
       "path": "code-review-principles",

@@ -1,0 +1,6 @@
+{
+  "name": "uninstall-skills",
+  "description": "/uninstall-skills - remove marketplace skills and hooks",
+  "version": "1.0.0",
+  "dependencies": []
+}
