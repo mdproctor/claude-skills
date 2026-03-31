@@ -207,11 +207,14 @@ def cmd_uninstall(args: argparse.Namespace) -> None:
     """Uninstall skill."""
     install_path = INSTALL_DIR / args.skill
 
-    if not install_path.exists():
+    if not install_path.exists() and not install_path.is_symlink():
         print(f"❌ Skill '{args.skill}' not installed", file=sys.stderr)
         sys.exit(1)
 
-    shutil.rmtree(install_path)
+    if install_path.is_symlink():
+        install_path.unlink()
+    else:
+        shutil.rmtree(install_path)
     print(f"✅ Uninstalled {args.skill}")
 
 
@@ -242,6 +245,86 @@ def cmd_uninstall_all(args: argparse.Namespace) -> None:
     for skill in skills:
         shutil.rmtree(INSTALL_DIR / skill)
         print(f"✅ Uninstalled {skill}")
+
+
+def get_repo_root() -> Path:
+    """Return the repository root (parent of the scripts/ directory)."""
+    return Path(__file__).parent.parent
+
+
+def cmd_sync_local(args: argparse.Namespace) -> None:
+    """Sync skills from the local repository into the installed location."""
+    repo_root = get_repo_root()
+    excluded = {'.git', 'docs', 'scripts', 'tests', '__pycache__', '.claude'}
+
+    # Find all skill directories in the local repo
+    local_skills = sorted(
+        [d for d in repo_root.iterdir()
+         if d.is_dir() and d.name not in excluded and (d / 'SKILL.md').exists()],
+        key=lambda p: p.name
+    )
+
+    if not local_skills:
+        print(f"No skills found in {repo_root}")
+        return
+
+    # Split into update (already installed) and skipped (not installed)
+    to_sync = []
+    to_skip = []
+    for skill_dir in local_skills:
+        if (INSTALL_DIR / skill_dir.name).exists():
+            to_sync.append(skill_dir)
+        elif args.all:
+            to_sync.append(skill_dir)
+        else:
+            to_skip.append(skill_dir)
+
+    if not to_sync:
+        print("No installed skills to update.")
+        if to_skip:
+            print(f"  {len(to_skip)} uninstalled skills skipped (use --all to include them)")
+        return
+
+    mode = "Linking" if args.link else "Copying"
+    print(f"📦 {mode} {len(to_sync)} skill(s) from {repo_root}:\n")
+    for skill_dir in to_sync:
+        status = "update" if (INSTALL_DIR / skill_dir.name).exists() else "new"
+        print(f"  • {skill_dir.name} ({status})")
+
+    if to_skip:
+        print(f"\n  Skipping {len(to_skip)} uninstalled: {', '.join(s.name for s in to_skip)}")
+        print("  Use --all to include them.")
+
+    if not args.yes:
+        response = input("\nProceed? (Y/n): ").strip().lower()
+        if response in ('n', 'no'):
+            print("❌ Cancelled")
+            return
+
+    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+    print()
+    synced = 0
+    for skill_dir in to_sync:
+        install_path = INSTALL_DIR / skill_dir.name
+        try:
+            # Remove existing install or symlink
+            if install_path.is_symlink():
+                install_path.unlink()
+            elif install_path.exists():
+                shutil.rmtree(install_path)
+
+            if args.link:
+                install_path.symlink_to(skill_dir.resolve())
+            else:
+                shutil.copytree(skill_dir, install_path)
+
+            print(f"  {'🔗' if args.link else '✅'} {skill_dir.name}")
+            synced += 1
+        except Exception as e:
+            print(f"  ❌ {skill_dir.name}: {e}")
+
+    action = "linked" if args.link else "synced"
+    print(f"\n{synced}/{len(to_sync)} skills {action}.")
 
 
 def cmd_list(args: argparse.Namespace) -> None:
@@ -285,6 +368,16 @@ def main() -> int:
     uninstall_all_parser.add_argument("-y", "--yes", action="store_true",
                                      help="Skip confirmation")
 
+    # sync-local
+    sync_parser = subparsers.add_parser("sync-local",
+        help="Sync skills from local repo into installed location")
+    sync_parser.add_argument("--all", action="store_true",
+        help="Also install skills not currently installed (default: update only)")
+    sync_parser.add_argument("--link", action="store_true",
+        help="Symlink instead of copy (edits are instantly reflected)")
+    sync_parser.add_argument("-y", "--yes", action="store_true",
+        help="Skip confirmation")
+
     # list
     subparsers.add_parser("list", help="List installed skills")
 
@@ -298,6 +391,8 @@ def main() -> int:
         cmd_uninstall(args)
     elif args.command == "uninstall-all":
         cmd_uninstall_all(args)
+    elif args.command == "sync-local":
+        cmd_sync_local(args)
     elif args.command == "list":
         cmd_list(args)
 
