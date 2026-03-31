@@ -374,45 +374,43 @@ git log --oneline -1
 
 ## Commit Decision Flow
 
-```dot
-digraph commit_flow {
-    "Start" [shape=doublecircle];
-    "CLAUDE.md exists?" [shape=diamond];
-    "Interactive setup" [shape=box];
-    "Type declared?" [shape=diamond];
-    "Route to skill?" [shape=diamond];
-    "Stop: Use specialized skill" [shape=box];
-    "Staged changes?" [shape=diamond];
-    "Stop: ask user to stage" [shape=box];
-    "SKILL.md files?" [shape=diamond];
-    "Review skills" [shape=box];
-    "Generate commit message" [shape=box];
-    "Present proposal" [shape=box];
-    "User confirms?" [shape=diamond];
-    "Adjust proposal" [shape=box];
-    "Execute git commit" [shape=box];
-    "Done" [shape=doublecircle];
-
-    "Start" -> "CLAUDE.md exists?";
-    "CLAUDE.md exists?" -> "Type declared?" [label="yes"];
-    "CLAUDE.md exists?" -> "Interactive setup" [label="no"];
-    "Type declared?" -> "Interactive setup" [label="no"];
-    "Type declared?" -> "Route to skill?" [label="yes"];
-    "Interactive setup" -> "Route to skill?";
-    "Route to skill?" -> "Stop: Use specialized skill" [label="java/custom"];
-    "Route to skill?" -> "Staged changes?" [label="skills/generic"];
-    "Staged changes?" -> "Stop: ask user to stage" [label="no"];
-    "Staged changes?" -> "SKILL.md files?" [label="yes"];
-    "SKILL.md files?" -> "Review skills" [label="yes"];
-    "SKILL.md files?" -> "Generate commit message" [label="no"];
-    "Review skills" -> "Generate commit message";
-    "Generate commit message" -> "Present proposal";
-    "Present proposal" -> "User confirms?";
-    "User confirms?" -> "Adjust proposal" [label="no"];
-    "Adjust proposal" -> "Present proposal";
-    "User confirms?" -> "Execute git commit" [label="yes"];
-    "Execute git commit" -> "Done";
-}
+```mermaid
+flowchart TD
+    Start((Start))
+    CLAUDE_md_exists_{CLAUDE.md exists?}
+    Interactive_setup[Interactive setup]
+    Type_declared_{Type declared?}
+    Route_to_skill_{Route to skill?}
+    Stop__Use_specialized_skill[Stop: Use specialized skill]
+    Staged_changes_{Staged changes?}
+    Stop__ask_user_to_stage[Stop: ask user to stage]
+    SKILL_md_files_{SKILL.md files?}
+    Review_skills[Review skills]
+    Generate_commit_message[Generate commit message]
+    Present_proposal[Present proposal]
+    User_confirms_{User confirms?}
+    Adjust_proposal[Adjust proposal]
+    Execute_git_commit[Execute git commit]
+    Done((Done))
+    Start --> CLAUDE_md_exists_
+    CLAUDE_md_exists_ -->|yes| Type_declared_
+    CLAUDE_md_exists_ -->|no| Interactive_setup
+    Type_declared_ -->|no| Interactive_setup
+    Type_declared_ -->|yes| Route_to_skill_
+    Interactive_setup --> Route_to_skill_
+    Route_to_skill_ -->|java/custom| Stop__Use_specialized_skill
+    Route_to_skill_ -->|skills/generic| Staged_changes_
+    Staged_changes_ -->|no| Stop__ask_user_to_stage
+    Staged_changes_ -->|yes| SKILL_md_files_
+    SKILL_md_files_ -->|yes| Review_skills
+    SKILL_md_files_ -->|no| Generate_commit_message
+    Review_skills --> Generate_commit_message
+    Generate_commit_message --> Present_proposal
+    Present_proposal --> User_confirms_
+    User_confirms_ -->|no| Adjust_proposal
+    Adjust_proposal --> Present_proposal
+    User_confirms_ -->|yes| Execute_git_commit
+    Execute_git_commit --> Done
 ```
 
 ## Common Pitfalls

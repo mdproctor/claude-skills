@@ -192,24 +192,22 @@ Work through each category systematically to catch critical issues:
 
 ## Severity Decision Flow
 
-```dot
-digraph severity_flow {
-    "Finding detected" [shape=doublecircle];
-    "Safety violation?" [shape=diamond];
-    "Concurrency issue in shared code?" [shape=diamond];
-    "CRITICAL" [shape=box, style=filled, fillcolor=red];
-    "In hot path?" [shape=diamond];
-    "WARNING" [shape=box, style=filled, fillcolor=yellow];
-    "NOTE" [shape=box, style=filled, fillcolor=lightblue];
-
-    "Finding detected" -> "Safety violation?";
-    "Safety violation?" -> "CRITICAL" [label="yes"];
-    "Safety violation?" -> "Concurrency issue in shared code?" [label="no"];
-    "Concurrency issue in shared code?" -> "CRITICAL" [label="yes"];
-    "Concurrency issue in shared code?" -> "In hot path?" [label="no"];
-    "In hot path?" -> "WARNING" [label="yes (perf/repro)"];
-    "In hot path?" -> "NOTE" [label="no"];
-}
+```mermaid
+flowchart TD
+    Finding_detected((Finding detected))
+    Safety_violation_{Safety violation?}
+    Concurrency_issue_in_shared_code_{Concurrency issue in shared code?}
+    CRITICAL[CRITICAL]
+    In_hot_path_{In hot path?}
+    WARNING[WARNING]
+    NOTE[NOTE]
+    Finding_detected --> Safety_violation_
+    Safety_violation_ -->|yes| CRITICAL
+    Safety_violation_ -->|no| Concurrency_issue_in_shared_code_
+    Concurrency_issue_in_shared_code_ -->|yes| CRITICAL
+    Concurrency_issue_in_shared_code_ -->|no| In_hot_path_
+    In_hot_path_ -->|yes (perf/repro)| WARNING
+    In_hot_path_ -->|no| NOTE
 ```
 
 ---

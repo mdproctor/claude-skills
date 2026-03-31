@@ -141,30 +141,28 @@ Don't suggest an ADR for routine decisions with no meaningful alternatives
 
 ## ADR Lifecycle Decision Flow
 
-```dot
-digraph adr_lifecycle {
-    "Significant decision made" [shape=doublecircle];
-    "Create new ADR" [shape=box];
-    "Status: Accepted" [shape=box, style=filled, fillcolor=lightgreen];
-    "Decision still valid?" [shape=diamond];
-    "Still relevant?" [shape=diamond];
-    "Better approach found?" [shape=diamond];
-    "Mark Superseded" [shape=box, style=filled, fillcolor=yellow];
-    "Mark Deprecated" [shape=box, style=filled, fillcolor=lightgray];
-    "Create new ADR (replacement)" [shape=box];
-    "Continue using" [shape=box, style=filled, fillcolor=lightgreen];
-
-    "Significant decision made" -> "Create new ADR";
-    "Create new ADR" -> "Status: Accepted";
-    "Status: Accepted" -> "Decision still valid?" [label="time passes"];
-    "Decision still valid?" -> "Continue using" [label="yes (still applies)"];
-    "Decision still valid?" -> "Still relevant?" [label="no"];
-    "Still relevant?" -> "Better approach found?" [label="yes"];
-    "Still relevant?" -> "Mark Deprecated" [label="no (obsolete)"];
-    "Better approach found?" -> "Mark Superseded" [label="yes"];
-    "Better approach found?" -> "Mark Deprecated" [label="no"];
-    "Mark Superseded" -> "Create new ADR (replacement)";
-}
+```mermaid
+flowchart TD
+    Significant_decision_made((Significant decision made))
+    Create_new_ADR[Create new ADR]
+    Status__Accepted[Status: Accepted]
+    Decision_still_valid_{Decision still valid?}
+    Still_relevant_{Still relevant?}
+    Better_approach_found_{Better approach found?}
+    Mark_Superseded[Mark Superseded]
+    Mark_Deprecated[Mark Deprecated]
+    Create_new_ADR__replacement_[Create new ADR (replacement)]
+    Continue_using[Continue using]
+    Significant_decision_made --> Create_new_ADR
+    Create_new_ADR --> Status__Accepted
+    Status__Accepted -->|time passes| Decision_still_valid_
+    Decision_still_valid_ -->|yes (still applies)| Continue_using
+    Decision_still_valid_ -->|no| Still_relevant_
+    Still_relevant_ -->|yes| Better_approach_found_
+    Still_relevant_ -->|no (obsolete)| Mark_Deprecated
+    Better_approach_found_ -->|yes| Mark_Superseded
+    Better_approach_found_ -->|no| Mark_Deprecated
+    Mark_Superseded --> Create_new_ADR__replacement_
 ```
 
 | Status | Meaning |

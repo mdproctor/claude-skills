@@ -38,48 +38,46 @@ Then apply the Java/Quarkus-specific commit patterns below.
 
 ## Commit Decision Flow
 
-```dot
-digraph commit_flow {
-    "Start" [shape=doublecircle];
-    "Type: java declared?" [shape=diamond];
-    "Setup CLAUDE.md" [shape=box];
-    "Staged changes?" [shape=diamond];
-    "Stop: ask user to stage" [shape=box];
-    "DESIGN.md exists?" [shape=diamond];
-    "Error: Create DESIGN.md first" [shape=box, style=filled, fillcolor=red];
-    "SKILL.md files?" [shape=diamond];
-    "Review skills" [shape=box];
-    "Generate commit message" [shape=box];
-    "Invoke java-update-design" [shape=box];
-    "Present consolidated proposal" [shape=box];
-    "User confirms?" [shape=diamond];
-    "Apply DESIGN.md changes" [shape=box];
-    "Stage DESIGN.md" [shape=box];
-    "Execute git commit" [shape=box];
-    "Done" [shape=doublecircle];
-    "Adjust proposal" [shape=box];
-
-    "Start" -> "Type: java declared?";
-    "Type: java declared?" -> "Setup CLAUDE.md" [label="no/wrong"];
-    "Type: java declared?" -> "Staged changes?" [label="yes"];
-    "Setup CLAUDE.md" -> "Staged changes?";
-    "Staged changes?" -> "Stop: ask user to stage" [label="no"];
-    "Staged changes?" -> "DESIGN.md exists?" [label="yes"];
-    "DESIGN.md exists?" -> "Error: Create DESIGN.md first" [label="no"];
-    "DESIGN.md exists?" -> "SKILL.md files?" [label="yes"];
-    "SKILL.md files?" -> "Review skills" [label="yes"];
-    "SKILL.md files?" -> "Generate commit message" [label="no"];
-    "Review skills" -> "Generate commit message";
-    "Generate commit message" -> "Invoke java-update-design";
-    "Invoke java-update-design" -> "Present consolidated proposal";
-    "Present consolidated proposal" -> "User confirms?";
-    "User confirms?" -> "Adjust proposal" [label="no"];
-    "Adjust proposal" -> "Present consolidated proposal";
-    "User confirms?" -> "Apply DESIGN.md changes" [label="yes"];
-    "Apply DESIGN.md changes" -> "Stage DESIGN.md";
-    "Stage DESIGN.md" -> "Execute git commit";
-    "Execute git commit" -> "Done";
-}
+```mermaid
+flowchart TD
+    Start((Start))
+    Type__java_declared_{Type: java declared?}
+    Setup_CLAUDE_md[Setup CLAUDE.md]
+    Staged_changes_{Staged changes?}
+    Stop__ask_user_to_stage[Stop: ask user to stage]
+    DESIGN_md_exists_{DESIGN.md exists?}
+    Error__Create_DESIGN_md_first[Error: Create DESIGN.md first]
+    SKILL_md_files_{SKILL.md files?}
+    Review_skills[Review skills]
+    Generate_commit_message[Generate commit message]
+    Invoke_java_update_design[Invoke java-update-design]
+    Present_consolidated_proposal[Present consolidated proposal]
+    User_confirms_{User confirms?}
+    Apply_DESIGN_md_changes[Apply DESIGN.md changes]
+    Stage_DESIGN_md[Stage DESIGN.md]
+    Execute_git_commit[Execute git commit]
+    Done((Done))
+    Adjust_proposal[Adjust proposal]
+    Start --> Type__java_declared_
+    Type__java_declared_ -->|no/wrong| Setup_CLAUDE_md
+    Type__java_declared_ -->|yes| Staged_changes_
+    Setup_CLAUDE_md --> Staged_changes_
+    Staged_changes_ -->|no| Stop__ask_user_to_stage
+    Staged_changes_ -->|yes| DESIGN_md_exists_
+    DESIGN_md_exists_ -->|no| Error__Create_DESIGN_md_first
+    DESIGN_md_exists_ -->|yes| SKILL_md_files_
+    SKILL_md_files_ -->|yes| Review_skills
+    SKILL_md_files_ -->|no| Generate_commit_message
+    Review_skills --> Generate_commit_message
+    Generate_commit_message --> Invoke_java_update_design
+    Invoke_java_update_design --> Present_consolidated_proposal
+    Present_consolidated_proposal --> User_confirms_
+    User_confirms_ -->|no| Adjust_proposal
+    Adjust_proposal --> Present_consolidated_proposal
+    User_confirms_ -->|yes| Apply_DESIGN_md_changes
+    Apply_DESIGN_md_changes --> Stage_DESIGN_md
+    Stage_DESIGN_md --> Execute_git_commit
+    Execute_git_commit --> Done
 ```
 
 ## Workflow

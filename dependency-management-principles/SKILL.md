@@ -103,24 +103,22 @@ Only after explicit YES:
 
 ## BOM Alignment Decision Flow
 
-```dot
-digraph bom_decision {
-    "Adding/updating dependency" [shape=doublecircle];
-    "In platform BOM?" [shape=diamond];
-    "In ecosystem BOM?" [shape=diamond];
-    "CVE fix required?" [shape=diamond];
-    "Add with no version" [shape=box, style=filled, fillcolor=lightgreen];
-    "Add version, note unmanaged" [shape=box, style=filled, fillcolor=yellow];
-    "Override with WARNING" [shape=box, style=filled, fillcolor=red];
-
-    "Adding/updating dependency" -> "In platform BOM?";
-    "In platform BOM?" -> "CVE fix required?" [label="yes"];
-    "In platform BOM?" -> "In ecosystem BOM?" [label="no"];
-    "CVE fix required?" -> "Override with WARNING" [label="yes"];
-    "CVE fix required?" -> "Add with no version" [label="no"];
-    "In ecosystem BOM?" -> "Add with no version" [label="yes"];
-    "In ecosystem BOM?" -> "Add version, note unmanaged" [label="no"];
-}
+```mermaid
+flowchart TD
+    Adding_updating_dependency((Adding/updating dependency))
+    In_platform_BOM_{In platform BOM?}
+    In_ecosystem_BOM_{In ecosystem BOM?}
+    CVE_fix_required_{CVE fix required?}
+    Add_with_no_version[Add with no version]
+    Add_version__note_unmanaged[Add version, note unmanaged]
+    Override_with_WARNING[Override with WARNING]
+    Adding_updating_dependency --> In_platform_BOM_
+    In_platform_BOM_ -->|yes| CVE_fix_required_
+    In_platform_BOM_ -->|no| In_ecosystem_BOM_
+    CVE_fix_required_ -->|yes| Override_with_WARNING
+    CVE_fix_required_ -->|no| Add_with_no_version
+    In_ecosystem_BOM_ -->|yes| Add_with_no_version
+    In_ecosystem_BOM_ -->|no| Add_version__note_unmanaged
 ```
 
 ---

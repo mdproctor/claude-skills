@@ -214,27 +214,25 @@ Work through each OWASP category systematically:
 
 ## Severity Decision Flow
 
-```dot
-digraph security_severity {
-    "Vulnerability detected" [shape=doublecircle];
-    "Exploitable remotely?" [shape=diamond];
-    "Leads to data breach or RCE?" [shape=diamond];
-    "Requires authentication?" [shape=diamond];
-    "CRITICAL" [shape=box, style=filled, fillcolor=red];
-    "Defense in depth issue?" [shape=diamond];
-    "WARNING" [shape=box, style=filled, fillcolor=yellow];
-    "NOTE" [shape=box, style=filled, fillcolor=lightblue];
-
-    "Vulnerability detected" -> "Exploitable remotely?";
-    "Exploitable remotely?" -> "Leads to data breach or RCE?" [label="yes"];
-    "Exploitable remotely?" -> "Defense in depth issue?" [label="no"];
-    "Leads to data breach or RCE?" -> "CRITICAL" [label="yes"];
-    "Leads to data breach or RCE?" -> "Requires authentication?" [label="no"];
-    "Requires authentication?" -> "WARNING" [label="yes"];
-    "Requires authentication?" -> "CRITICAL" [label="no"];
-    "Defense in depth issue?" -> "WARNING" [label="yes"];
-    "Defense in depth issue?" -> "NOTE" [label="no"];
-}
+```mermaid
+flowchart TD
+    Vulnerability_detected((Vulnerability detected))
+    Exploitable_remotely_{Exploitable remotely?}
+    Leads_to_data_breach_or_RCE_{Leads to data breach or RCE?}
+    Requires_authentication_{Requires authentication?}
+    CRITICAL[CRITICAL]
+    Defense_in_depth_issue_{Defense in depth issue?}
+    WARNING[WARNING]
+    NOTE[NOTE]
+    Vulnerability_detected --> Exploitable_remotely_
+    Exploitable_remotely_ -->|yes| Leads_to_data_breach_or_RCE_
+    Exploitable_remotely_ -->|no| Defense_in_depth_issue_
+    Leads_to_data_breach_or_RCE_ -->|yes| CRITICAL
+    Leads_to_data_breach_or_RCE_ -->|no| Requires_authentication_
+    Requires_authentication_ -->|yes| WARNING
+    Requires_authentication_ -->|no| CRITICAL
+    Defense_in_depth_issue_ -->|yes| WARNING
+    Defense_in_depth_issue_ -->|no| NOTE
 ```
 
 ---

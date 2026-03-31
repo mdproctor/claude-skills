@@ -74,34 +74,32 @@ Ask yourself: **Is this dependency already managed by the Quarkus or quarkiverse
 
 ## BOM Alignment Decision Flow
 
-```dot
-digraph bom_decision {
-    "Adding/updating dependency" [shape=doublecircle];
-    "In Quarkus BOM?" [shape=diamond];
-    "In quarkiverse BOM?" [shape=diamond];
-    "CVE fix required?" [shape=diamond];
-    "Add with no version tag" [shape=box, style=filled, fillcolor=lightgreen];
-    "Add version, note unmanaged" [shape=box, style=filled, fillcolor=yellow];
-    "Override with WARNING" [shape=box, style=filled, fillcolor=red];
-    "Review changes" [shape=box];
-    "User confirms?" [shape=diamond];
-    "Apply changes" [shape=box, style=filled, fillcolor=lightgreen];
-    "Abort update" [shape=box];
-
-    "Adding/updating dependency" -> "In Quarkus BOM?";
-    "In Quarkus BOM?" -> "CVE fix required?" [label="yes"];
-    "In Quarkus BOM?" -> "In quarkiverse BOM?" [label="no"];
-    "CVE fix required?" -> "Override with WARNING" [label="yes"];
-    "CVE fix required?" -> "Add with no version tag" [label="no"];
-    "In quarkiverse BOM?" -> "Add with no version tag" [label="yes"];
-    "In quarkiverse BOM?" -> "Add version, note unmanaged" [label="no"];
-    "Override with WARNING" -> "Review changes";
-    "Add with no version tag" -> "Review changes";
-    "Add version, note unmanaged" -> "Review changes";
-    "Review changes" -> "User confirms?";
-    "User confirms?" -> "Apply changes" [label="yes"];
-    "User confirms?" -> "Abort update" [label="no"];
-}
+```mermaid
+flowchart TD
+    Adding_updating_dependency((Adding/updating dependency))
+    In_Quarkus_BOM_{In Quarkus BOM?}
+    In_quarkiverse_BOM_{In quarkiverse BOM?}
+    CVE_fix_required_{CVE fix required?}
+    Add_with_no_version_tag[Add with no version tag]
+    Add_version__note_unmanaged[Add version, note unmanaged]
+    Override_with_WARNING[Override with WARNING]
+    Review_changes[Review changes]
+    User_confirms_{User confirms?}
+    Apply_changes[Apply changes]
+    Abort_update[Abort update]
+    Adding_updating_dependency --> In_Quarkus_BOM_
+    In_Quarkus_BOM_ -->|yes| CVE_fix_required_
+    In_Quarkus_BOM_ -->|no| In_quarkiverse_BOM_
+    CVE_fix_required_ -->|yes| Override_with_WARNING
+    CVE_fix_required_ -->|no| Add_with_no_version_tag
+    In_quarkiverse_BOM_ -->|yes| Add_with_no_version_tag
+    In_quarkiverse_BOM_ -->|no| Add_version__note_unmanaged
+    Override_with_WARNING --> Review_changes
+    Add_with_no_version_tag --> Review_changes
+    Add_version__note_unmanaged --> Review_changes
+    Review_changes --> User_confirms_
+    User_confirms_ -->|yes| Apply_changes
+    User_confirms_ -->|no| Abort_update
 ```
 
 **BOM alignment rules:**

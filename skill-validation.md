@@ -110,39 +110,37 @@ fi
 
 ## Review Severity Decision Flow
 
-```dot
-digraph severity_flow {
-    "Start review" [shape=doublecircle];
-    "Frontmatter missing/invalid?" [shape=diamond];
-    "Flowchart syntax invalid?" [shape=diamond];
-    "CSO description violation?" [shape=diamond];
-    "Naming convention violated?" [shape=diamond];
-    "Cross-references broken?" [shape=diamond];
-    "Documentation incomplete?" [shape=diamond];
-    "CRITICAL: Block commit" [shape=box, style=filled, fillcolor=red];
-    "WARNING: Fix before commit" [shape=box, style=filled, fillcolor=yellow];
-    "NOTE: Improve when possible" [shape=box, style=filled, fillcolor=lightblue];
-    "Report findings" [shape=box];
-    "Approved" [shape=doublecircle, style=filled, fillcolor=green];
-
-    "Start review" -> "Frontmatter missing/invalid?";
-    "Frontmatter missing/invalid?" -> "CRITICAL: Block commit" [label="yes"];
-    "Frontmatter missing/invalid?" -> "Flowchart syntax invalid?" [label="no"];
-    "Flowchart syntax invalid?" -> "CRITICAL: Block commit" [label="yes"];
-    "Flowchart syntax invalid?" -> "CSO description violation?" [label="no"];
-    "CSO description violation?" -> "CRITICAL: Block commit" [label="yes"];
-    "CSO description violation?" -> "Naming convention violated?" [label="no"];
-    "Naming convention violated?" -> "WARNING: Fix before commit" [label="yes"];
-    "Naming convention violated?" -> "Cross-references broken?" [label="no"];
-    "Cross-references broken?" -> "WARNING: Fix before commit" [label="yes"];
-    "Cross-references broken?" -> "Documentation incomplete?" [label="no"];
-    "Documentation incomplete?" -> "NOTE: Improve when possible" [label="yes"];
-    "Documentation incomplete?" -> "Report findings" [label="no"];
-    "CRITICAL: Block commit" -> "Report findings";
-    "WARNING: Fix before commit" -> "Report findings";
-    "NOTE: Improve when possible" -> "Report findings";
-    "Report findings" -> "Approved";
-}
+```mermaid
+flowchart TD
+    Start_review((Start review))
+    Frontmatter_missing_invalid_{Frontmatter missing/invalid?}
+    Flowchart_syntax_invalid_{Flowchart syntax invalid?}
+    CSO_description_violation_{CSO description violation?}
+    Naming_convention_violated_{Naming convention violated?}
+    Cross_references_broken_{Cross-references broken?}
+    Documentation_incomplete_{Documentation incomplete?}
+    CRITICAL__Block_commit[CRITICAL: Block commit]
+    WARNING__Fix_before_commit[WARNING: Fix before commit]
+    NOTE__Improve_when_possible[NOTE: Improve when possible]
+    Report_findings[Report findings]
+    Approved((Approved))
+    Start_review --> Frontmatter_missing_invalid_
+    Frontmatter_missing_invalid_ -->|yes| CRITICAL__Block_commit
+    Frontmatter_missing_invalid_ -->|no| Flowchart_syntax_invalid_
+    Flowchart_syntax_invalid_ -->|yes| CRITICAL__Block_commit
+    Flowchart_syntax_invalid_ -->|no| CSO_description_violation_
+    CSO_description_violation_ -->|yes| CRITICAL__Block_commit
+    CSO_description_violation_ -->|no| Naming_convention_violated_
+    Naming_convention_violated_ -->|yes| WARNING__Fix_before_commit
+    Naming_convention_violated_ -->|no| Cross_references_broken_
+    Cross_references_broken_ -->|yes| WARNING__Fix_before_commit
+    Cross_references_broken_ -->|no| Documentation_incomplete_
+    Documentation_incomplete_ -->|yes| NOTE__Improve_when_possible
+    Documentation_incomplete_ -->|no| Report_findings
+    CRITICAL__Block_commit --> Report_findings
+    WARNING__Fix_before_commit --> Report_findings
+    NOTE__Improve_when_possible --> Report_findings
+    Report_findings --> Approved
 ```
 
 ## Review Checklist

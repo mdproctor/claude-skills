@@ -251,45 +251,43 @@ git log --oneline -1
 
 ## Commit Decision Flow
 
-```dot
-digraph custom_commit_flow {
-    "Start" [shape=doublecircle];
-    "Type: custom declared?" [shape=diamond];
-    "Stop: Use git-commit" [shape=box];
-    "Config complete?" [shape=diamond];
-    "Stop: Add config" [shape=box];
-    "Staged changes?" [shape=diamond];
-    "Stop: ask user to stage" [shape=box];
-    "Primary doc exists?" [shape=diamond];
-    "Stop: Create primary doc" [shape=box];
-    "Generate commit message" [shape=box];
-    "Sync configured?" [shape=diamond];
-    "Invoke update-primary-doc" [shape=box];
-    "Present proposal" [shape=box];
-    "User confirms?" [shape=diamond];
-    "Adjust proposal" [shape=box];
-    "Execute git commit" [shape=box];
-    "Done" [shape=doublecircle];
-
-    "Start" -> "Type: custom declared?";
-    "Type: custom declared?" -> "Stop: Use git-commit" [label="no"];
-    "Type: custom declared?" -> "Config complete?" [label="yes"];
-    "Config complete?" -> "Stop: Add config" [label="no"];
-    "Config complete?" -> "Staged changes?" [label="yes"];
-    "Staged changes?" -> "Stop: ask user to stage" [label="no"];
-    "Staged changes?" -> "Primary doc exists?" [label="yes"];
-    "Primary doc exists?" -> "Stop: Create primary doc" [label="no"];
-    "Primary doc exists?" -> "Generate commit message" [label="yes"];
-    "Generate commit message" -> "Sync configured?";
-    "Sync configured?" -> "Invoke update-primary-doc" [label="yes"];
-    "Sync configured?" -> "Present proposal" [label="no"];
-    "Invoke update-primary-doc" -> "Present proposal";
-    "Present proposal" -> "User confirms?";
-    "User confirms?" -> "Adjust proposal" [label="no"];
-    "Adjust proposal" -> "Present proposal";
-    "User confirms?" -> "Execute git commit" [label="yes"];
-    "Execute git commit" -> "Done";
-}
+```mermaid
+flowchart TD
+    Start((Start))
+    Type__custom_declared_{Type: custom declared?}
+    Stop__Use_git_commit[Stop: Use git-commit]
+    Config_complete_{Config complete?}
+    Stop__Add_config[Stop: Add config]
+    Staged_changes_{Staged changes?}
+    Stop__ask_user_to_stage[Stop: ask user to stage]
+    Primary_doc_exists_{Primary doc exists?}
+    Stop__Create_primary_doc[Stop: Create primary doc]
+    Generate_commit_message[Generate commit message]
+    Sync_configured_{Sync configured?}
+    Invoke_update_primary_doc[Invoke update-primary-doc]
+    Present_proposal[Present proposal]
+    User_confirms_{User confirms?}
+    Adjust_proposal[Adjust proposal]
+    Execute_git_commit[Execute git commit]
+    Done((Done))
+    Start --> Type__custom_declared_
+    Type__custom_declared_ -->|no| Stop__Use_git_commit
+    Type__custom_declared_ -->|yes| Config_complete_
+    Config_complete_ -->|no| Stop__Add_config
+    Config_complete_ -->|yes| Staged_changes_
+    Staged_changes_ -->|no| Stop__ask_user_to_stage
+    Staged_changes_ -->|yes| Primary_doc_exists_
+    Primary_doc_exists_ -->|no| Stop__Create_primary_doc
+    Primary_doc_exists_ -->|yes| Generate_commit_message
+    Generate_commit_message --> Sync_configured_
+    Sync_configured_ -->|yes| Invoke_update_primary_doc
+    Sync_configured_ -->|no| Present_proposal
+    Invoke_update_primary_doc --> Present_proposal
+    Present_proposal --> User_confirms_
+    User_confirms_ -->|no| Adjust_proposal
+    Adjust_proposal --> Present_proposal
+    User_confirms_ -->|yes| Execute_git_commit
+    Execute_git_commit --> Done
 ```
 
 ## Common Pitfalls (Custom Projects)

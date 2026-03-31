@@ -401,24 +401,22 @@ quarkus.rate-limiter.enabled=true
 
 ## Severity Assignment Decision Flow
 
-```dot
-digraph security_severity {
-    "Finding detected" [shape=doublecircle];
-    "Exploitable remotely?" [shape=diamond];
-    "Leads to data breach or RCE?" [shape=diamond];
-    "Requires authentication?" [shape=diamond];
-    "CRITICAL" [shape=box, style=filled, fillcolor=red];
-    "WARNING" [shape=box, style=filled, fillcolor=yellow];
-    "NOTE" [shape=box, style=filled, fillcolor=lightblue];
-
-    "Finding detected" -> "Exploitable remotely?";
-    "Exploitable remotely?" -> "Leads to data breach or RCE?" [label="yes"];
-    "Exploitable remotely?" -> "NOTE" [label="no (local only)"];
-    "Leads to data breach or RCE?" -> "CRITICAL" [label="yes"];
-    "Leads to data breach or RCE?" -> "Requires authentication?" [label="no"];
-    "Requires authentication?" -> "WARNING" [label="yes (auth required)"];
-    "Requires authentication?" -> "CRITICAL" [label="no (unauthenticated)"];
-}
+```mermaid
+flowchart TD
+    Finding_detected((Finding detected))
+    Exploitable_remotely_{Exploitable remotely?}
+    Leads_to_data_breach_or_RCE_{Leads to data breach or RCE?}
+    Requires_authentication_{Requires authentication?}
+    CRITICAL[CRITICAL]
+    WARNING[WARNING]
+    NOTE[NOTE]
+    Finding_detected --> Exploitable_remotely_
+    Exploitable_remotely_ -->|yes| Leads_to_data_breach_or_RCE_
+    Exploitable_remotely_ -->|no (local only)| NOTE
+    Leads_to_data_breach_or_RCE_ -->|yes| CRITICAL
+    Leads_to_data_breach_or_RCE_ -->|no| Requires_authentication_
+    Requires_authentication_ -->|yes (auth required)| WARNING
+    Requires_authentication_ -->|no (unauthenticated)| CRITICAL
 ```
 
 ---

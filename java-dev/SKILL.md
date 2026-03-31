@@ -33,32 +33,28 @@ description: >
 
 ## Rule Priority Decision Flow
 
-```dot
-digraph rule_priority {
-    "Writing code" [shape=doublecircle];
-    "Safety violation?" [shape=diamond];
-    "Apply Safety rules" [shape=box, style=filled, fillcolor=red];
-    "Concurrency issue?" [shape=diamond];
-    "Apply Concurrency rules" [shape=box, style=filled, fillcolor=orange];
-    "Performance-critical path?" [shape=diamond];
-    "Apply Performance rules" [shape=box, style=filled, fillcolor=yellow];
-    "Apply Code Quality rules" [shape=box, style=filled, fillcolor=lightblue];
-    "Code complete" [shape=doublecircle];
-
-    "Writing code" -> "Safety violation?";
-    "Safety violation?" -> "Apply Safety rules" [label="yes (NEVER compromise)"];
-    "Safety violation?" -> "Concurrency issue?" [label="no"];
-    "Apply Safety rules" -> "Code complete";
-
-    "Concurrency issue?" -> "Apply Concurrency rules" [label="yes (shared state/threading)"];
-    "Concurrency issue?" -> "Performance-critical path?" [label="no"];
-    "Apply Concurrency rules" -> "Code complete";
-
-    "Performance-critical path?" -> "Apply Performance rules" [label="yes (hot path/tight loop)"];
-    "Performance-critical path?" -> "Apply Code Quality rules" [label="no (cold path)"];
-    "Apply Performance rules" -> "Code complete";
-    "Apply Code Quality rules" -> "Code complete";
-}
+```mermaid
+flowchart TD
+    Writing_code((Writing code))
+    Safety_violation_{Safety violation?}
+    Apply_Safety_rules[Apply Safety rules]
+    Concurrency_issue_{Concurrency issue?}
+    Apply_Concurrency_rules[Apply Concurrency rules]
+    Performance_critical_path_{Performance-critical path?}
+    Apply_Performance_rules[Apply Performance rules]
+    Apply_Code_Quality_rules[Apply Code Quality rules]
+    Code_complete((Code complete))
+    Writing_code --> Safety_violation_
+    Safety_violation_ -->|yes (NEVER compromise)| Apply_Safety_rules
+    Safety_violation_ -->|no| Concurrency_issue_
+    Apply_Safety_rules --> Code_complete
+    Concurrency_issue_ -->|yes (shared state/threading)| Apply_Concurrency_rules
+    Concurrency_issue_ -->|no| Performance_critical_path_
+    Apply_Concurrency_rules --> Code_complete
+    Performance_critical_path_ -->|yes (hot path/tight loop)| Apply_Performance_rules
+    Performance_critical_path_ -->|no (cold path)| Apply_Code_Quality_rules
+    Apply_Performance_rules --> Code_complete
+    Apply_Code_Quality_rules --> Code_complete
 ```
 
 **Priority order:** Safety > Concurrency > Performance > Code Quality
