@@ -184,3 +184,63 @@ def uninstall_command(skill_name: str, marketplace_dir: Path) -> int:
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
+
+
+def list_command(marketplace_dir: Path) -> int:
+    """
+    List installed skills.
+
+    Args:
+        marketplace_dir: Path to .marketplace directory
+
+    Returns:
+        Exit code (0 = success)
+    """
+    try:
+        if not marketplace_dir.exists():
+            print("No skills installed.")
+            print("\n0 skills installed")
+            return 0
+
+        skills = []
+
+        for skill_dir in sorted(marketplace_dir.iterdir()):
+            if not skill_dir.is_dir():
+                continue
+
+            skill_json_path = skill_dir / "skill.json"
+            if not skill_json_path.exists():
+                continue
+
+            with open(skill_json_path) as f:
+                metadata = json.load(f)
+
+            skills.append(metadata)
+
+        if not skills:
+            print("No skills installed.")
+            print("\n0 skills installed")
+            return 0
+
+        print("Installed skills:")
+
+        for skill in skills:
+            name = skill["name"]
+            version = skill.get("version", "unknown")
+            dependencies = skill.get("dependencies", [])
+
+            # Format output
+            output = f"  {name:<30} {version}"
+
+            if dependencies:
+                dep_names = [dep["name"] for dep in dependencies]
+                output += f"  (depends on: {', '.join(dep_names)})"
+
+            print(output)
+
+        print(f"\n{len(skills)} skill(s) installed")
+        return 0
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1

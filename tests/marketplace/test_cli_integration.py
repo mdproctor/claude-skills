@@ -172,3 +172,59 @@ def test_cli_uninstall_warns_about_dependents():
         # Verify not removed
         assert java_dev.exists()
         assert result == 1  # Cancelled
+
+
+def test_cli_list_displays_installed_skills(capsys):
+    """CLI list should display all installed skills with versions"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        marketplace_dir = Path(tmpdir) / ".marketplace"
+        marketplace_dir.mkdir()
+
+        # Create installed skills
+        java_dev = marketplace_dir / "java-dev"
+        java_dev.mkdir()
+        (java_dev / "SKILL.md").write_text("---\nname: java-dev\n---\n")
+        (java_dev / "skill.json").write_text(json.dumps({
+            "name": "java-dev",
+            "version": "1.0.0",
+            "dependencies": []
+        }))
+
+        quarkus = marketplace_dir / "quarkus-flow-dev"
+        quarkus.mkdir()
+        (quarkus / "SKILL.md").write_text("---\nname: quarkus-flow-dev\n---\n")
+        (quarkus / "skill.json").write_text(json.dumps({
+            "name": "quarkus-flow-dev",
+            "version": "1.2.0",
+            "dependencies": [{"name": "java-dev"}]
+        }))
+
+        from scripts.marketplace.cli import list_command
+
+        result = list_command(marketplace_dir)
+
+        # Capture output
+        captured = capsys.readouterr()
+
+        # Verify output contains skills
+        assert "java-dev" in captured.out
+        assert "1.0.0" in captured.out
+        assert "quarkus-flow-dev" in captured.out
+        assert "1.2.0" in captured.out
+        assert "depends on: java-dev" in captured.out
+        assert result == 0
+
+
+def test_cli_list_handles_empty_marketplace(capsys):
+    """CLI list should handle empty marketplace gracefully"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        marketplace_dir = Path(tmpdir) / ".marketplace"
+        marketplace_dir.mkdir()
+
+        from scripts.marketplace.cli import list_command
+
+        result = list_command(marketplace_dir)
+
+        captured = capsys.readouterr()
+        assert "0 skills installed" in captured.out
+        assert result == 0
