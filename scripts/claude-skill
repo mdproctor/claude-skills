@@ -16,6 +16,11 @@ from typing import Dict, List, Set
 MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json"
 INSTALL_DIR = Path.home() / ".claude" / "skills" / ".marketplace"
 
+HOOK_SOURCE = Path(__file__).parent.parent / "hooks" / "check_project_setup.sh"
+HOOK_DEST = Path.home() / ".claude" / "hooks" / "check_project_setup.sh"
+SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
+HOOK_COMMAND = "~/.claude/hooks/check_project_setup.sh"
+
 
 def fetch_json(url: str) -> Dict:
     """Fetch JSON from URL using curl."""
@@ -247,6 +252,81 @@ def cmd_uninstall_all(args: argparse.Namespace) -> None:
         print(f"✅ Uninstalled {skill}")
 
 
+def is_hook_registered(settings_path: Path = SETTINGS_PATH) -> bool:
+    """Return True if the session-start hook is already in settings.json."""
+    if not settings_path.exists():
+        return False
+    try:
+        settings = json.loads(settings_path.read_text())
+        for group in settings.get("hooks", {}).get("SessionStart", []):
+            for hook in group.get("hooks", []):
+                if hook.get("command") == HOOK_COMMAND:
+                    return True
+    except (json.JSONDecodeError, KeyError, TypeError):
+        pass
+    return False
+
+
+def register_hook(settings_path: Path = SETTINGS_PATH) -> None:
+    """Add the session-start hook to settings.json, preserving existing content."""
+    settings: dict = {}
+    if settings_path.exists():
+        try:
+            settings = json.loads(settings_path.read_text())
+        except json.JSONDecodeError:
+            pass
+
+    session_start = settings.setdefault("hooks", {}).setdefault("SessionStart", [])
+    new_hook = {"type": "command", "command": HOOK_COMMAND}
+
+    if session_start:
+        session_start[0].setdefault("hooks", []).append(new_hook)
+    else:
+        session_start.append({"hooks": [new_hook]})
+
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    settings_path.write_text(json.dumps(settings, indent=4))
+
+
+def sync_hook(
+    hook_source: Path = HOOK_SOURCE,
+    hook_dest: Path = HOOK_DEST,
+    settings_path: Path = SETTINGS_PATH,
+) -> str:
+    """
+    Sync the session-start hook from repo source to ~/.claude/hooks/.
+
+    Returns one of: 'installed', 'updated', 'up-to-date', 'registered', 'no-source'
+    - installed:   hook file created for the first time + registered
+    - updated:     hook file content changed (improvement from repo)
+    - up-to-date:  hook file unchanged
+    - registered:  file was up-to-date but wasn't registered in settings.json
+    - no-source:   hook source file missing from repo (shouldn't happen)
+    """
+    if not hook_source.exists():
+        return 'no-source'
+
+    source_content = hook_source.read_text()
+    hook_dest.parent.mkdir(parents=True, exist_ok=True)
+
+    if not hook_dest.exists():
+        hook_dest.write_text(source_content)
+        hook_dest.chmod(0o755)
+        status = 'installed'
+    elif hook_dest.read_text() != source_content:
+        hook_dest.write_text(source_content)
+        status = 'updated'
+    else:
+        status = 'up-to-date'
+
+    if not is_hook_registered(settings_path):
+        register_hook(settings_path)
+        if status == 'up-to-date':
+            status = 'registered'
+
+    return status
+
+
 def get_repo_root() -> Path:
     """Return the repository root (parent of the scripts/ directory)."""
     return Path(__file__).parent.parent
@@ -325,6 +405,17 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
 
     action = "linked" if args.link else "synced"
     print(f"\n{synced}/{len(to_sync)} skills {action}.")
+
+    # Sync the session-start hook
+    hook_status = sync_hook()
+    hook_messages = {
+        'installed':  '🔗 Session-start hook installed and registered',
+        'updated':    '✅ Session-start hook updated from repo',
+        'up-to-date': '✅ Session-start hook up to date',
+        'registered': '✅ Session-start hook registered in settings.json',
+        'no-source':  '⚠️  Hook source missing from repo (hooks/check_project_setup.sh)',
+    }
+    print(hook_messages[hook_status])
 
 
 def cmd_list(args: argparse.Namespace) -> None:

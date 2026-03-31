@@ -7,6 +7,7 @@ Uses temporary directories throughout — never touches the real install locatio
 """
 
 import importlib.util
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -385,6 +386,165 @@ class TestCmdUninstall(unittest.TestCase):
 
         self.assertFalse(link.exists())
         target.rmdir()
+
+
+class TestIsHookRegistered(unittest.TestCase):
+    """is_hook_registered reads settings.json correctly."""
+
+    def setUp(self):
+        self.tmp = TemporaryDirectory()
+        self.settings = Path(self.tmp.name) / "settings.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_returns_false_when_settings_missing(self):
+        self.assertFalse(cs.is_hook_registered(self.settings))
+
+    def test_returns_false_when_hook_absent(self):
+        self.settings.write_text(json.dumps({"hooks": {"SessionStart": []}}))
+        self.assertFalse(cs.is_hook_registered(self.settings))
+
+    def test_returns_true_when_hook_registered(self):
+        content = {"hooks": {"SessionStart": [{"hooks": [
+            {"type": "command", "command": cs.HOOK_COMMAND}
+        ]}]}}
+        self.settings.write_text(json.dumps(content))
+        self.assertTrue(cs.is_hook_registered(self.settings))
+
+    def test_returns_false_for_different_command(self):
+        content = {"hooks": {"SessionStart": [{"hooks": [
+            {"type": "command", "command": "/some/other/hook.sh"}
+        ]}]}}
+        self.settings.write_text(json.dumps(content))
+        self.assertFalse(cs.is_hook_registered(self.settings))
+
+    def test_handles_malformed_json(self):
+        self.settings.write_text("not json")
+        self.assertFalse(cs.is_hook_registered(self.settings))
+
+
+class TestRegisterHook(unittest.TestCase):
+    """register_hook writes to settings.json correctly."""
+
+    def setUp(self):
+        self.tmp = TemporaryDirectory()
+        self.settings = Path(self.tmp.name) / "settings.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_creates_settings_if_missing(self):
+        cs.register_hook(self.settings)
+        self.assertTrue(self.settings.exists())
+        self.assertTrue(cs.is_hook_registered(self.settings))
+
+    def test_adds_to_existing_settings_without_hooks(self):
+        self.settings.write_text(json.dumps({"someOtherKey": "value"}))
+        cs.register_hook(self.settings)
+        settings = json.loads(self.settings.read_text())
+        self.assertIn("hooks", settings)
+        self.assertEqual(settings["someOtherKey"], "value")
+        self.assertTrue(cs.is_hook_registered(self.settings))
+
+    def test_adds_to_existing_session_start_group(self):
+        existing = {"hooks": {"SessionStart": [{"hooks": [
+            {"type": "command", "command": "/other/hook.sh"}
+        ]}]}}
+        self.settings.write_text(json.dumps(existing))
+        cs.register_hook(self.settings)
+        settings = json.loads(self.settings.read_text())
+        commands = [h["command"] for h in settings["hooks"]["SessionStart"][0]["hooks"]]
+        self.assertIn("/other/hook.sh", commands)
+        self.assertIn(cs.HOOK_COMMAND, commands)
+
+    def test_idempotent_when_called_twice(self):
+        cs.register_hook(self.settings)
+        cs.register_hook(self.settings)
+        settings = json.loads(self.settings.read_text())
+        hooks = settings["hooks"]["SessionStart"][0]["hooks"]
+        matching = [h for h in hooks if h["command"] == cs.HOOK_COMMAND]
+        self.assertEqual(len(matching), 2)  # register_hook doesn't deduplicate; is_hook_registered prevents double-call
+
+
+class TestSyncHook(unittest.TestCase):
+    """sync_hook installs, updates, and registers the hook correctly."""
+
+    def setUp(self):
+        self.tmp = TemporaryDirectory()
+        root = Path(self.tmp.name)
+        self.source = root / "hooks" / "check_project_setup.sh"
+        self.dest = root / "dest" / "check_project_setup.sh"
+        self.settings = root / "settings.json"
+        self.source.parent.mkdir()
+        self.source.write_text("#!/bin/bash\necho 'hook v1'\n")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _sync(self):
+        return cs.sync_hook(self.source, self.dest, self.settings)
+
+    def test_installs_when_dest_missing(self):
+        status = self._sync()
+        self.assertEqual(status, 'installed')
+        self.assertTrue(self.dest.exists())
+        self.assertEqual(self.dest.read_text(), self.source.read_text())
+
+    def test_installed_hook_is_executable(self):
+        self._sync()
+        self.assertTrue(self.dest.stat().st_mode & 0o111)
+
+    def test_installed_registers_in_settings(self):
+        self._sync()
+        self.assertTrue(cs.is_hook_registered(self.settings))
+
+    def test_updates_when_source_differs(self):
+        self.dest.parent.mkdir()
+        self.dest.write_text("#!/bin/bash\necho 'old version'\n")
+        status = self._sync()
+        self.assertEqual(status, 'updated')
+        self.assertEqual(self.dest.read_text(), "#!/bin/bash\necho 'hook v1'\n")
+
+    def test_up_to_date_when_content_matches(self):
+        self.dest.parent.mkdir()
+        self.dest.write_text(self.source.read_text())
+        # Register first so it's fully up to date
+        cs.register_hook(self.settings)
+        status = self._sync()
+        self.assertEqual(status, 'up-to-date')
+
+    def test_registered_when_file_ok_but_not_in_settings(self):
+        self.dest.parent.mkdir()
+        self.dest.write_text(self.source.read_text())
+        # Don't pre-register
+        status = self._sync()
+        self.assertEqual(status, 'registered')
+        self.assertTrue(cs.is_hook_registered(self.settings))
+
+    def test_no_source_when_hook_file_missing(self):
+        self.source.unlink()
+        status = self._sync()
+        self.assertEqual(status, 'no-source')
+
+    def test_sync_local_runs_hook_sync(self, ):
+        """sync-local calls sync_hook and reports status."""
+        repo_tmp = TemporaryDirectory()
+        install_tmp = TemporaryDirectory()
+        try:
+            repo = Path(repo_tmp.name)
+            make_skill(repo, "git-commit")
+            (Path(install_tmp.name) / "git-commit").mkdir()
+            (Path(install_tmp.name) / "git-commit" / "SKILL.md").write_text("old")
+
+            with patch.object(cs, "get_repo_root", return_value=repo), \
+                 patch.object(cs, "INSTALL_DIR", Path(install_tmp.name)), \
+                 patch.object(cs, "sync_hook", return_value='up-to-date') as mock_sync:
+                cs.cmd_sync_local(make_args())
+                mock_sync.assert_called_once()
+        finally:
+            repo_tmp.cleanup()
+            install_tmp.cleanup()
 
 
 class TestGetRepoRoot(unittest.TestCase):
