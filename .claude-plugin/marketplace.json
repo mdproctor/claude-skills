@@ -8,141 +8,121 @@
   "plugins": [
     {
       "name": "install-skills",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "install-skills",
+      "source": "./install-skills",
       "description": "One-time marketplace bootstrap: configure hooks and install skills",
       "version": "1.0.0"
     },
     {
       "name": "uninstall-skills",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "uninstall-skills",
+      "source": "./uninstall-skills",
       "description": "Remove marketplace skills and hooks with reverse dependency checking",
       "version": "1.0.0"
     },
     {
       "name": "code-review-principles",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "code-review-principles",
+      "source": "./code-review-principles",
       "description": "Universal code review principles covering safety, concurrency, performance, testing philosophy",
       "version": "1.0.0"
     },
     {
       "name": "security-audit-principles",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "security-audit-principles",
+      "source": "./security-audit-principles",
       "description": "Universal OWASP Top 10 security audit principles",
       "version": "1.0.0"
     },
     {
       "name": "dependency-management-principles",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "dependency-management-principles",
+      "source": "./dependency-management-principles",
       "description": "Universal dependency management principles for BOM patterns",
       "version": "1.0.0"
     },
     {
       "name": "observability-principles",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "observability-principles",
+      "source": "./observability-principles",
       "description": "Universal observability principles covering logging, tracing, and metrics",
       "version": "1.0.0"
     },
     {
       "name": "git-commit",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "git-commit",
+      "source": "./git-commit",
       "description": "Generic conventional commits with project type routing",
       "version": "1.0.0"
     },
     {
       "name": "java-dev",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "java-dev",
+      "source": "./java-dev",
       "description": "Java/Quarkus development workflow",
       "version": "1.0.0"
     },
     {
       "name": "java-code-review",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "java-code-review",
+      "source": "./java-code-review",
       "description": "Java-specific code review extending code-review-principles",
       "version": "1.0.0"
     },
     {
       "name": "java-security-audit",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "java-security-audit",
+      "source": "./java-security-audit",
       "description": "Java/Quarkus OWASP Top 10 security audit",
       "version": "1.0.0"
     },
     {
       "name": "java-git-commit",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "java-git-commit",
+      "source": "./java-git-commit",
       "description": "Java project commits with DESIGN.md sync",
       "version": "1.0.0"
     },
     {
       "name": "java-update-design",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "java-update-design",
+      "source": "./java-update-design",
       "description": "DESIGN.md synchronization for Java projects",
       "version": "1.0.0"
     },
     {
       "name": "maven-dependency-update",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "maven-dependency-update",
+      "source": "./maven-dependency-update",
       "description": "Maven BOM dependency management",
       "version": "1.0.0"
     },
     {
       "name": "quarkus-flow-dev",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "quarkus-flow-dev",
+      "source": "./quarkus-flow-dev",
       "description": "Quarkus Flow workflow development",
       "version": "1.0.0"
     },
     {
       "name": "quarkus-flow-testing",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "quarkus-flow-testing",
+      "source": "./quarkus-flow-testing",
       "description": "Quarkus Flow testing patterns",
       "version": "1.0.0"
     },
     {
       "name": "quarkus-observability",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "quarkus-observability",
+      "source": "./quarkus-observability",
       "description": "Quarkus observability configuration",
       "version": "1.0.0"
     },
     {
       "name": "custom-git-commit",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "custom-git-commit",
+      "source": "./custom-git-commit",
       "description": "Custom project type commits with configurable sync",
       "version": "1.0.0"
     },
     {
       "name": "update-primary-doc",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "update-primary-doc",
+      "source": "./update-primary-doc",
       "description": "Generic primary document synchronization",
       "version": "1.0.0"
     },
     {
       "name": "update-claude-md",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "update-claude-md",
+      "source": "./update-claude-md",
       "description": "CLAUDE.md workflow documentation sync",
       "version": "1.0.0"
     },
     {
       "name": "adr",
-      "source": "https://github.com/mdproctor/claude-skills",
-      "path": "adr",
+      "source": "./adr",
       "description": "Architecture Decision Record creation",
       "version": "1.0.0"
     }
