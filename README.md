@@ -59,6 +59,17 @@ scripts/claude-skill install quarkus-flow-dev --snapshot
 - ✅ **Atomic installation** - Safe failure handling, rollback on errors
 - ✅ **Batch operations** - Install/uninstall all skills with one command
 
+**Bonus: Skill Authoring Support**
+
+When you clone this repository, you also get `CLAUDE.md` which provides Claude Code with expert guidance on:
+- Skill architecture and frontmatter requirements
+- Claude Search Optimization (CSO) best practices
+- Naming conventions and skill chaining patterns
+- Quality assurance workflows and validation
+- Pre-commit checklists and documentation sync
+
+This makes the cloned repository a complete skill development environment - perfect for contributing new skills or customizing existing ones.
+
 **Installed skills location:** `~/.claude/skills/.marketplace/`
 
 **Publishing your own skills:** See [Registry Documentation](docs/marketplace/REGISTRY.md)
