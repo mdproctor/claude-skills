@@ -215,6 +215,35 @@ def cmd_uninstall(args: argparse.Namespace) -> None:
     print(f"✅ Uninstalled {args.skill}")
 
 
+def cmd_uninstall_all(args: argparse.Namespace) -> None:
+    """Uninstall all skills."""
+    if not INSTALL_DIR.exists():
+        print("No skills installed")
+        return
+
+    skills = [d.name for d in INSTALL_DIR.iterdir() if d.is_dir()]
+    if not skills:
+        print("No skills installed")
+        return
+
+    # Show what will be removed
+    print(f"🗑️  Uninstalling all skills ({len(skills)} total):")
+    for skill in sorted(skills):
+        print(f"  • {skill}")
+
+    # Confirm
+    if not args.yes:
+        response = input("\nProceed? (Y/n): ").strip().lower()
+        if response in ('n', 'no'):
+            print("❌ Cancelled")
+            return
+
+    # Remove all skills
+    for skill in skills:
+        shutil.rmtree(INSTALL_DIR / skill)
+        print(f"✅ Uninstalled {skill}")
+
+
 def cmd_list(args: argparse.Namespace) -> None:
     """List installed skills."""
     if not INSTALL_DIR.exists():
@@ -251,6 +280,11 @@ def main() -> int:
     uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall a skill")
     uninstall_parser.add_argument("skill", help="Skill name")
 
+    # uninstall-all
+    uninstall_all_parser = subparsers.add_parser("uninstall-all", help="Uninstall all skills")
+    uninstall_all_parser.add_argument("-y", "--yes", action="store_true",
+                                     help="Skip confirmation")
+
     # list
     subparsers.add_parser("list", help="List installed skills")
 
@@ -262,6 +296,8 @@ def main() -> int:
         cmd_install_all(args)
     elif args.command == "uninstall":
         cmd_uninstall(args)
+    elif args.command == "uninstall-all":
+        cmd_uninstall_all(args)
     elif args.command == "list":
         cmd_list(args)
 
