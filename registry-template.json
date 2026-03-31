@@ -1,0 +1,132 @@
+{
+  "version": "1.0",
+  "updated": "2026-03-31T00:00:00Z",
+  "skills": [
+    {
+      "name": "code-review-principles",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "code-review-principles",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "security-audit-principles",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "security-audit-principles",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "dependency-management-principles",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "dependency-management-principles",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "observability-principles",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "observability-principles",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "java-dev",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "java-dev",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "quarkus-flow-dev",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "quarkus-flow-dev",
+      "defaultRef": "v1.2.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "quarkus-flow-testing",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "quarkus-flow-testing",
+      "defaultRef": "v1.1.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "quarkus-observability",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "quarkus-observability",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "java-code-review",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "java-code-review",
+      "defaultRef": "v1.1.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "java-security-audit",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "java-security-audit",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "git-commit",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "git-commit",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "java-git-commit",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "java-git-commit",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "custom-git-commit",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "custom-git-commit",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "java-update-design",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "java-update-design",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "update-claude-md",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "update-claude-md",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "update-primary-doc",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "update-primary-doc",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "maven-dependency-update",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "maven-dependency-update",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    },
+    {
+      "name": "adr",
+      "repository": "https://github.com/mdproctor/claude-skills",
+      "path": "adr",
+      "defaultRef": "v1.0.0",
+      "snapshotRef": "main"
+    }
+  ]
+}
