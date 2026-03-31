@@ -1,0 +1,11 @@
+{
+  "name": "custom-git-commit",
+  "description": ">",
+  "version": "1.0.0-SNAPSHOT",
+  "dependencies": [
+    {
+      "name": "git-commit",
+      "version": "1.0.0"
+    }
+  ]
+}

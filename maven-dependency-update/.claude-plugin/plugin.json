@@ -1,0 +1,11 @@
+{
+  "name": "maven-dependency-update",
+  "description": ">",
+  "version": "1.0.0-SNAPSHOT",
+  "dependencies": [
+    {
+      "name": "dependency-management-principles",
+      "version": "1.0.0"
+    }
+  ]
+}

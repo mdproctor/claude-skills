@@ -1,11 +1,230 @@
 #!/usr/bin/env python3
+"""
+Minimal skill installer with dependency resolution.
+Uses official Claude Code marketplace.json and plugin.json formats.
+Adds dependency resolution until official support exists.
+"""
+
+import argparse
+import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
+from typing import Dict, List, Set
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json"
+INSTALL_DIR = Path.home() / ".claude" / "skills" / ".marketplace"
 
-from scripts.marketplace.cli import main
+
+def fetch_json(url: str) -> Dict:
+    """Fetch JSON from URL using curl."""
+    try:
+        result = subprocess.run(
+            ["curl", "-fsSL", url],
+            check=True, capture_output=True, text=True, timeout=30
+        )
+        return json.loads(result.stdout)
+    except Exception as e:
+        print(f"❌ Failed to fetch {url}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def fetch_plugin_metadata(source: str, path: str, ref: str = "main") -> Dict:
+    """Fetch .claude-plugin/plugin.json from repository."""
+    repo_path = source.replace("https://github.com/", "")
+    url = f"https://raw.githubusercontent.com/{repo_path}/{ref}/{path}/.claude-plugin/plugin.json"
+
+    try:
+        result = subprocess.run(
+            ["curl", "-fsSL", url],
+            check=True, capture_output=True, text=True, timeout=10
+        )
+        return json.loads(result.stdout)
+    except Exception:
+        # plugin.json is optional
+        return {"dependencies": []}
+
+
+def resolve_dependencies(
+    skill_name: str,
+    marketplace: Dict,
+    resolved: List[str],
+    visiting: Set[str]
+) -> None:
+    """
+    Resolve dependencies recursively with cycle detection.
+
+    Args:
+        skill_name: Skill to install
+        marketplace: marketplace.json data
+        resolved: List of skills in install order (output)
+        visiting: Current recursion path (for cycle detection)
+    """
+    if skill_name in resolved:
+        return
+
+    if skill_name in visiting:
+        print(f"❌ Circular dependency detected: {skill_name}", file=sys.stderr)
+        sys.exit(1)
+
+    # Find in marketplace
+    plugin = None
+    for p in marketplace["plugins"]:
+        if p["name"] == skill_name:
+            plugin = p
+            break
+
+    if not plugin:
+        print(f"❌ Skill '{skill_name}' not found in marketplace", file=sys.stderr)
+        sys.exit(1)
+
+    visiting.add(skill_name)
+
+    # Fetch metadata to get dependencies
+    metadata = fetch_plugin_metadata(plugin["source"], plugin["path"])
+    for dep in metadata.get("dependencies", []):
+        dep_name = dep["name"] if isinstance(dep, dict) else dep
+        resolve_dependencies(dep_name, marketplace, resolved, visiting)
+
+    visiting.remove(skill_name)
+    resolved.append(skill_name)
+
+
+def install_skill(plugin: Dict) -> None:
+    """Install skill using git sparse checkout."""
+    name = plugin["name"]
+    install_path = INSTALL_DIR / name
+
+    if install_path.exists():
+        print(f"⚠️  {name} already installed, skipping")
+        return
+
+    temp_path = INSTALL_DIR / f"{name}.tmp"
+
+    try:
+        # Git sparse checkout
+        subprocess.run(
+            ["git", "clone", "--depth=1", "--filter=blob:none", "--sparse",
+             plugin["source"], str(temp_path)],
+            check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "sparse-checkout", "set", plugin["path"]],
+            cwd=temp_path, check=True, capture_output=True
+        )
+
+        # Atomic move
+        skill_dir = temp_path / plugin["path"]
+        if not skill_dir.exists():
+            raise RuntimeError(f"Path '{plugin['path']}' not found")
+
+        shutil.move(str(skill_dir), str(install_path))
+        shutil.rmtree(temp_path)
+
+        # Validate
+        if not (install_path / "SKILL.md").exists():
+            raise RuntimeError("Missing SKILL.md")
+
+        print(f"✅ Installed {name}")
+
+    except Exception as e:
+        # Cleanup
+        if temp_path.exists():
+            shutil.rmtree(temp_path)
+        if install_path.exists():
+            shutil.rmtree(install_path)
+        print(f"❌ Failed to install {name}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_install(args: argparse.Namespace) -> None:
+    """Install skill with dependency resolution."""
+    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+
+    marketplace = fetch_json(MARKETPLACE_URL)
+
+    # Resolve dependencies
+    resolved: List[str] = []
+    resolve_dependencies(args.skill, marketplace, resolved, set())
+
+    # Show plan
+    print(f"📦 Installing {args.skill} ({len(resolved)} skill(s)):")
+    for name in resolved:
+        print(f"  • {name}")
+
+    # Confirm
+    if not args.yes:
+        response = input("\nProceed? (Y/n): ").strip().lower()
+        if response in ('n', 'no'):
+            print("❌ Cancelled")
+            return
+
+    # Install in dependency order
+    for name in resolved:
+        for plugin in marketplace["plugins"]:
+            if plugin["name"] == name:
+                install_skill(plugin)
+                break
+
+
+def cmd_uninstall(args: argparse.Namespace) -> None:
+    """Uninstall skill."""
+    install_path = INSTALL_DIR / args.skill
+
+    if not install_path.exists():
+        print(f"❌ Skill '{args.skill}' not installed", file=sys.stderr)
+        sys.exit(1)
+
+    shutil.rmtree(install_path)
+    print(f"✅ Uninstalled {args.skill}")
+
+
+def cmd_list(args: argparse.Namespace) -> None:
+    """List installed skills."""
+    if not INSTALL_DIR.exists():
+        print("No skills installed")
+        return
+
+    skills = [d.name for d in INSTALL_DIR.iterdir() if d.is_dir()]
+    if not skills:
+        print("No skills installed")
+    else:
+        print(f"📦 Installed skills ({len(skills)}):")
+        for skill in sorted(skills):
+            print(f"  • {skill}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Claude Code skill installer with dependency resolution"
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # install
+    install_parser = subparsers.add_parser("install", help="Install a skill")
+    install_parser.add_argument("skill", help="Skill name")
+    install_parser.add_argument("-y", "--yes", action="store_true",
+                               help="Skip confirmation")
+
+    # uninstall
+    uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall a skill")
+    uninstall_parser.add_argument("skill", help="Skill name")
+
+    # list
+    subparsers.add_parser("list", help="List installed skills")
+
+    args = parser.parse_args()
+
+    if args.command == "install":
+        cmd_install(args)
+    elif args.command == "uninstall":
+        cmd_uninstall(args)
+    elif args.command == "list":
+        cmd_list(args)
+
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

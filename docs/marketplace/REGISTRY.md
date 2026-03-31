@@ -1,13 +1,20 @@
-# Claude Skill Registry
+# Claude Skill Marketplace
 
-Central registry for Claude Code skills marketplace.
+Official Claude Code marketplace using standard `marketplace.json` format.
 
-## Using the Registry
+## Using the Marketplace
 
-**Install skills:**
+**Official Claude Code discovery:**
 ```bash
+/plugin marketplace add github.com/mdproctor/claude-skills
+```
+
+**Install with dependency resolution:**
+```bash
+git clone https://github.com/mdproctor/claude-skills
+cd claude-skills
 scripts/claude-skill install java-dev
-scripts/claude-skill install quarkus-flow-dev --snapshot
+scripts/claude-skill install quarkus-flow-dev  # Auto-installs java-dev dependency
 ```
 
 **List installed:**
@@ -27,35 +34,47 @@ scripts/claude-skill uninstall java-dev
 1. Skills in GitHub repository (monorepo or individual repos)
 2. Each skill has:
    - `SKILL.md` with valid frontmatter
-   - `skill.json` generated via `scripts/generate_skill_metadata.py`
-3. Repository tagged with version (e.g., `v1.0.0`)
+   - `.claude-plugin/plugin.json` with metadata
 
 ### Publishing Steps
 
-1. **Generate metadata:**
+1. **Create plugin metadata:**
    ```bash
-   cd ~/projects/your-skills-repo
-   python scripts/generate_skill_metadata.py
-   git add */skill.json
-   git commit -m "build: generate skill metadata"
+   cd your-skill-name
+   mkdir -p .claude-plugin
+   cat > .claude-plugin/plugin.json <<EOF
+   {
+     "name": "your-skill-name",
+     "description": "Your skill description",
+     "version": "1.0.0",
+     "dependencies": [
+       {
+         "name": "dependency-skill",
+         "version": "1.0.0"
+       }
+     ]
+   }
+   EOF
    ```
 
 2. **Tag release:**
    ```bash
+   git add .claude-plugin/plugin.json
+   git commit -m "feat: add your-skill-name"
    git tag v1.0.0
    git push origin main --tags
    ```
 
-3. **Update registry:**
-   - Fork `github.com/mdproctor/claude-skill-registry`
-   - Edit `registry.json`, add skill entry:
+3. **Update marketplace:**
+   - Fork `github.com/mdproctor/claude-skills`
+   - Edit `.claude-plugin/marketplace.json`, add plugin entry:
      ```json
      {
        "name": "your-skill-name",
-       "repository": "https://github.com/yourusername/your-repo",
+       "source": "https://github.com/mdproctor/claude-skills",
        "path": "your-skill-name",
-       "defaultRef": "v1.0.0",
-       "snapshotRef": "main"
+       "description": "Your skill description",
+       "version": "1.0.0"
      }
      ```
    - Submit pull request
@@ -64,65 +83,67 @@ scripts/claude-skill uninstall java-dev
    - Maintainers review PR
    - Once merged, skill available in marketplace
 
-## Registry Format
+## Marketplace Format (Official)
+
+`.claude-plugin/marketplace.json`:
 
 ```json
 {
-  "version": "1.0",
-  "updated": "2026-03-30T22:30:00Z",
-  "skills": [
+  "name": "mdproctor-skills",
+  "description": "Java/Quarkus development skills for Claude Code",
+  "owner": {
+    "name": "Mark Proctor",
+    "url": "https://github.com/mdproctor"
+  },
+  "plugins": [
     {
-      "name": "skill-directory-name",
-      "repository": "https://github.com/user/repo",
-      "path": "skill-directory-name",
-      "defaultRef": "v1.0.0",
-      "snapshotRef": "main"
+      "name": "skill-name",
+      "source": "https://github.com/mdproctor/claude-skills",
+      "path": "skill-name",
+      "description": "Skill description",
+      "version": "1.0.0"
     }
   ]
 }
 ```
 
 **Fields:**
-- `name`: Skill identifier (must match directory name)
-- `repository`: GitHub repository URL
-- `path`: Subdirectory path within repository
-- `defaultRef`: Git tag for stable version
-- `snapshotRef`: Git branch for development snapshots
+- `name`: Marketplace identifier
+- `description`: Marketplace description
+- `owner`: Maintainer information
+- `plugins`: Array of plugin entries
 
-## Skill Metadata Format
+## Plugin Metadata Format (Official)
 
-Each skill requires `skill.json`:
+Each skill has `.claude-plugin/plugin.json`:
 
 ```json
 {
   "name": "skill-name",
+  "description": "Skill description",
   "version": "1.0.0",
-  "repository": "https://github.com/user/repo",
   "dependencies": [
     {
       "name": "dependency-skill",
-      "repository": "https://github.com/user/repo",
-      "ref": "v1.0.0"
+      "version": "1.0.0"
     }
   ]
 }
 ```
 
-Generated via `scripts/generate_skill_metadata.py`.
+**Note:** The `dependencies` field is an extension until official Claude Code support arrives. See [Issue #9444](https://github.com/anthropics/claude-code/issues/9444) and [Issue #27113](https://github.com/anthropics/claude-code/issues/27113).
 
 ## Versioning
 
 **Stable releases:** Use semver tags (`v1.0.0`, `v1.1.0`)
 - Recommended for production use
-- Listed as `defaultRef` in registry
+- Update `version` field in plugin.json
 
 **Snapshots:** Use branch references (`main`, `develop`)
 - Active development, may be unstable
-- Install via `--snapshot` flag
-- Listed as `snapshotRef` in registry
+- Version contains `-SNAPSHOT` suffix
 
 ## Support
 
 Questions or issues:
-- Registry issues: `github.com/mdproctor/claude-skill-registry/issues`
-- CLI issues: `github.com/mdproctor/claude-skills/issues`
+- Marketplace issues: `github.com/mdproctor/claude-skills/issues`
