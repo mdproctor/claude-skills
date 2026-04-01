@@ -10,6 +10,13 @@ No `Co-Authored-By: Claude`, no `Generated-by:`, no `AI-assisted:`, no mention o
 
 ---
 
+## Project Identity
+
+**Name:** cc-praxis
+**GitHub:** [github.com/mdproctor/cc-praxis](https://github.com/mdproctor/cc-praxis)
+**Marketplace:** `/plugin marketplace add github.com/mdproctor/cc-praxis`
+**Status:** Approaching v1.0 release. The collection is feature-complete for its initial scope. Active development continues on the main branch.
+
 ## Repository Purpose
 
 This is a skill collection for Claude Code, providing specialized guidance for professional software development workflows. Skills are markdown files with YAML frontmatter that Claude Code loads to execute specific development tasks.
@@ -301,6 +308,39 @@ All major skills include "Common Pitfalls" tables documenting real mistakes:
 
 **Quality check:** During deep analysis, verify no third-party skills are documented anywhere.
 
+## Developer Workflow
+
+When working on this repository, use these commands:
+
+```bash
+# Sync all skills to ~/.claude/skills/ (do this after any skill change)
+python3 scripts/claude-skill sync-local --all -y
+
+# Run all tests
+python3 -m pytest tests/ -v
+
+# Run commit-tier validators
+python3 scripts/validate_all.py --tier commit
+
+# Generate missing slash command files after adding a new skill
+python3 scripts/generate_commands.py
+
+# Validate a specific document
+python3 scripts/validate_document.py README.md
+
+# Check project type list consistency
+python3 scripts/validation/validate_project_types.py --verbose
+
+# Check if a primary doc needs modularising
+python3 scripts/validation/validate_doc_structure.py CLAUDE.md
+
+# Validate a blog commit message
+python3 scripts/validation/validate_blog_commit.py <<< "post(java): add MCP guide"
+```
+
+**After editing any skill:** run `sync-local` so `~/.claude/skills/` has the latest version.
+**After adding a new skill:** run `generate_commands.py` AND add to `marketplace.json` plugins list.
+
 ## How Claude Code Loads Skills
 
 Skills live in `~/.claude/skills/<skill-name>/` and are **auto-discovered** — no registration in `settings.json` or `installed_plugins.json` is needed.
@@ -343,6 +383,16 @@ Run these checks **before every commit** to this repository:
 - [ ] **New features added to skills?** → Update README.md § Key Features
 - [ ] **Framework changes** (same pattern across multiple skills)? → Document in README.md AND QUALITY.md if validation-related
 - [ ] **Infrastructure changes** (validators, test infrastructure, orchestrators)? → Update README.md § Repository Structure, QUALITY.md § Implementation Status, and this file § Validation Script Roadmap
+
+### When Work Tracking Is Configured
+
+If a project's CLAUDE.md contains `## Work Tracking` with `Issue tracking: enabled`, Claude must:
+- **Before any significant task**: check if the request spans multiple concerns; if so, help break it into separate GitHub issues before starting work
+- **Before any commit**: check if staged changes span multiple issues; if so, suggest splitting with `git add -p`
+- **In every commit message**: include `Refs #N` or `Closes #N` for the related issue
+- **For changelogs**: use `gh release create --generate-notes` — do NOT maintain a CHANGELOG.md manually
+
+The `issue-workflow` skill handles setup of this configuration and the pre-commit analysis.
 
 ### When Adding a Skill to a Bundle (or Changing Bundles)
 
@@ -445,10 +495,12 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `java-dev` — all Java development extends this
 
 **Workflow integrators** (chain multiple skills):
-- `git-commit` — automatically invokes `skill-validation.md` workflow (if SKILL.md staged), `update-claude-md` (if CLAUDE.md exists), and `readme-sync.md` (if README.md exists and skill changes). Routes to java-git-commit or custom-git-commit based on project type
-- `java-git-commit` — automatically invokes `java-update-design` and `update-claude-md` (if docs exist). For type: java projects only
-- `custom-git-commit` — automatically invokes `update-primary-doc` (if Sync Rules configured) and `update-claude-md` (if exists). For type: custom projects (working groups, research, docs)
+- `git-commit` — entry point for all commits; routes by project type; offers issue-workflow setup on first use
+- `java-git-commit` — Java commits with DESIGN.md sync via `java-update-design`. type: java only
+- `blog-git-commit` — blog commits with content-type conventions (post/edit/draft/asset/config) and filename validation. type: blog only
+- `custom-git-commit` — user-configured commits with primary doc sync. type: custom only
 - `java-code-review` — triggers `java-security-audit` for security-critical code
+- `issue-workflow` — GitHub issue tracking setup, cross-cutting task detection, pre-commit split suggestions, and release management via `gh release create --generate-notes`
 - `skill-validation.md` workflow — blocks `git-commit` if CRITICAL findings exist (not a portable skill; lives at repo root)
 
 **Specialized skills** (domain-specific):
@@ -456,10 +508,11 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `java-security-audit` — OWASP Top 10 for Java/Quarkus, triggered by `java-code-review`
 - `maven-dependency-update` — Maven BOM management, builds on `dependency-management-principles`
 - `quarkus-observability` — Quarkus observability config, builds on `observability-principles`
-- `update-primary-doc` — Generic table-driven primary document sync (VISION.md, THESIS.md, etc.), invoked by `custom-git-commit`. Reads Sync Rules from CLAUDE.md
-- `java-update-design` — DESIGN.md synchronization (architecture documentation), invoked by `java-git-commit`. For type: java projects only
-- `update-claude-md` — CLAUDE.md synchronization (workflow documentation), invoked by `git-commit`, `java-git-commit`, and `custom-git-commit`
-- `readme-sync.md` — README.md synchronization (skills repository documentation), invoked by `git-commit`. For type: skills projects only
+- `update-primary-doc` — generic table-driven primary doc sync, invoked by `custom-git-commit`
+- `java-update-design` — DESIGN.md sync, invoked by `java-git-commit`
+- `update-claude-md` — CLAUDE.md sync, invoked by all commit skills
+- `readme-sync.md` — README.md sync, invoked by `git-commit` for type: skills only
+- `adr` — Architecture Decision Records in MADR format
 
 ## Quality Assurance Framework
 
@@ -501,9 +554,9 @@ When user requests deep analysis of skills ("/skill-review", "do a deep analysis
 For complete inventory of validation scripts by tier:
 📖 **[QUALITY.md § Validation Script Roadmap](QUALITY.md#validation-script-roadmap)**
 
-**Quick reference:**
-- **COMMIT tier (<2s)**: 8 validators (frontmatter, CSO, references, naming, sections, structure, project-types, flowcharts)
-- **PUSH tier (<30s)**: cross-document, temporal, usability, edge cases, behavior, readme sync + regression tests, coverage
+**Quick reference (17 validators total):**
+- **COMMIT tier (<2s)**: frontmatter, CSO, references, naming, sections, structure, project-types, flowcharts, doc-structure, blog-commit
+- **PUSH tier (<30s)**: cross-document, temporal, usability, edge cases, behavior, readme-sync
 - **CI tier (<5min)**: Python quality (mypy, flake8, bandit) + functional tests
 
 ### Success Criteria
