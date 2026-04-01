@@ -15,6 +15,8 @@ from typing import Dict, List, Set
 
 MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json"
 INSTALL_DIR = Path.home() / ".claude" / "skills" / ".marketplace"
+PLUGIN_CACHE = Path.home() / ".claude" / "plugins" / "cache"
+INSTALLED_PLUGINS_JSON = Path.home() / ".claude" / "plugins" / "installed_plugins.json"
 
 HOOK_SOURCE = Path(__file__).parent.parent / "hooks" / "check_project_setup.sh"
 HOOK_DEST = Path.home() / ".claude" / "hooks" / "check_project_setup.sh"
@@ -327,6 +329,26 @@ def sync_hook(
     return status
 
 
+def get_claude_install_paths(marketplace_name: str) -> Dict[str, Path]:
+    """
+    Read installed_plugins.json and return {skill_name: install_path} for
+    all skills from the given marketplace. Returns empty dict if not found.
+    """
+    if not INSTALLED_PLUGINS_JSON.exists():
+        return {}
+    try:
+        data = json.loads(INSTALLED_PLUGINS_JSON.read_text())
+        paths = {}
+        for plugin_key, installs in data.get("plugins", {}).items():
+            if f"@{marketplace_name}" in plugin_key:
+                skill_name = plugin_key.split("@")[0]
+                if installs:
+                    paths[skill_name] = Path(installs[0]["installPath"])
+        return paths
+    except (json.JSONDecodeError, KeyError):
+        return {}
+
+
 def get_repo_root() -> Path:
     """Return the repository root (parent of the scripts/ directory)."""
     return Path(__file__).parent.parent
@@ -405,6 +427,28 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
 
     action = "linked" if args.link else "synced"
     print(f"\n{synced}/{len(to_sync)} skills {action}.")
+
+    # Also sync to Claude Code's real plugin cache so changes are immediately live
+    claude_paths = get_claude_install_paths("mdproctor-skills")
+    if claude_paths:
+        cache_synced = 0
+        for skill_dir in to_sync:
+            install_path = claude_paths.get(skill_dir.name)
+            if not install_path:
+                continue
+            try:
+                if install_path.is_symlink():
+                    install_path.unlink()
+                elif install_path.exists():
+                    shutil.rmtree(install_path)
+                if args.link:
+                    install_path.symlink_to(skill_dir.resolve())
+                else:
+                    shutil.copytree(skill_dir, install_path)
+                cache_synced += 1
+            except Exception as e:
+                print(f"  ⚠️  Claude cache sync failed for {skill_dir.name}: {e}")
+        print(f"{'🔗' if args.link else '✅'} {cache_synced}/{len(to_sync)} skills synced to Claude Code plugin cache")
 
     # Sync the session-start hook
     hook_status = sync_hook()

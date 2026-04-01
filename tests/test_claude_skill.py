@@ -527,7 +527,7 @@ class TestSyncHook(unittest.TestCase):
         status = self._sync()
         self.assertEqual(status, 'no-source')
 
-    def test_sync_local_runs_hook_sync(self, ):
+    def test_sync_local_runs_hook_sync(self):
         """sync-local calls sync_hook and reports status."""
         repo_tmp = TemporaryDirectory()
         install_tmp = TemporaryDirectory()
@@ -539,12 +539,91 @@ class TestSyncHook(unittest.TestCase):
 
             with patch.object(cs, "get_repo_root", return_value=repo), \
                  patch.object(cs, "INSTALL_DIR", Path(install_tmp.name)), \
+                 patch.object(cs, "get_claude_install_paths", return_value={}), \
                  patch.object(cs, "sync_hook", return_value='up-to-date') as mock_sync:
                 cs.cmd_sync_local(make_args())
                 mock_sync.assert_called_once()
         finally:
             repo_tmp.cleanup()
             install_tmp.cleanup()
+
+
+class TestGetClaudeInstallPaths(unittest.TestCase):
+    """get_claude_install_paths reads installed_plugins.json correctly."""
+
+    def setUp(self):
+        self.tmp = TemporaryDirectory()
+        self.plugins_json = Path(self.tmp.name) / "installed_plugins.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _write_plugins(self, data):
+        self.plugins_json.write_text(json.dumps(data))
+
+    def test_returns_empty_when_file_missing(self):
+        result = cs.get_claude_install_paths.__wrapped__(
+            "mdproctor-skills"
+        ) if hasattr(cs.get_claude_install_paths, '__wrapped__') else {}
+        # Just test via patching INSTALLED_PLUGINS_JSON
+        with patch.object(cs, "INSTALLED_PLUGINS_JSON", self.plugins_json):
+            self.assertEqual(cs.get_claude_install_paths("mdproctor-skills"), {})
+
+    def test_returns_paths_for_matching_marketplace(self):
+        self._write_plugins({"plugins": {
+            "java-dev@mdproctor-skills": [{"installPath": "/some/path/java-dev/1.0.0"}],
+            "git-commit@mdproctor-skills": [{"installPath": "/some/path/git-commit/1.0.0-SNAPSHOT"}],
+            "superpowers@claude-plugins-official": [{"installPath": "/other/path"}],
+        }})
+        with patch.object(cs, "INSTALLED_PLUGINS_JSON", self.plugins_json):
+            result = cs.get_claude_install_paths("mdproctor-skills")
+        self.assertIn("java-dev", result)
+        self.assertIn("git-commit", result)
+        self.assertNotIn("superpowers", result)
+        self.assertEqual(result["java-dev"], Path("/some/path/java-dev/1.0.0"))
+
+    def test_ignores_other_marketplaces(self):
+        self._write_plugins({"plugins": {
+            "superpowers@claude-plugins-official": [{"installPath": "/official/path"}],
+        }})
+        with patch.object(cs, "INSTALLED_PLUGINS_JSON", self.plugins_json):
+            result = cs.get_claude_install_paths("mdproctor-skills")
+        self.assertEqual(result, {})
+
+    def test_sync_local_syncs_to_claude_cache(self):
+        """sync-local copies skills to the real Claude plugin cache paths."""
+        repo_tmp = TemporaryDirectory()
+        install_tmp = TemporaryDirectory()
+        cache_tmp = TemporaryDirectory()
+        try:
+            repo = Path(repo_tmp.name)
+            install = Path(install_tmp.name)
+            cache = Path(cache_tmp.name)
+
+            make_skill(repo, "git-commit")
+            (install / "git-commit").mkdir()
+            (install / "git-commit" / "SKILL.md").write_text("old")
+
+            # Simulate Claude Code cache with an older version
+            cache_path = cache / "git-commit" / "1.0.0-SNAPSHOT"
+            cache_path.mkdir(parents=True)
+            (cache_path / "SKILL.md").write_text("old cached version")
+
+            with patch.object(cs, "get_repo_root", return_value=repo), \
+                 patch.object(cs, "INSTALL_DIR", install), \
+                 patch.object(cs, "get_claude_install_paths",
+                              return_value={"git-commit": cache_path}), \
+                 patch.object(cs, "sync_hook", return_value='up-to-date'):
+                cs.cmd_sync_local(make_args())
+
+            # Cache should now have the updated content
+            updated = (cache_path / "SKILL.md").read_text()
+            self.assertNotEqual(updated, "old cached version")
+            self.assertIn("git-commit", updated)
+        finally:
+            repo_tmp.cleanup()
+            install_tmp.cleanup()
+            cache_tmp.cleanup()
 
 
 class TestGetRepoRoot(unittest.TestCase):
