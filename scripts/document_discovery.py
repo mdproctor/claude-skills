@@ -17,6 +17,26 @@ from pathlib import Path
 from typing import List, Optional, Set
 import sys
 
+# Well-known documentation filenames (case-insensitive).
+# Any root-level .md file matching these names is always included in scans.
+WELL_KNOWN_DOC_NAMES: Set[str] = {
+    # Entry points
+    "readme", "overview", "summary", "index",
+    # Process & contribution
+    "contributing", "governance", "code_of_conduct", "support", "maintainers",
+    # Change tracking
+    "changelog", "history", "release", "release-notes", "release_notes",
+    # Architecture & design
+    "architecture", "design", "decisions", "vision", "philosophy", "principles",
+    # Technical
+    "api", "schema", "glossary", "security", "deployment",
+    "install", "installation", "usage", "troubleshooting",
+    # Project management
+    "roadmap", "thesis", "spec", "specification", "requirements",
+    # Common project docs
+    "claude", "quality", "philosophy",
+}
+
 # Import cache module (will be created next)
 try:
     from scripts.document_group_cache import get_cached_group, cache_group, compute_cache_key
@@ -159,9 +179,18 @@ def detect_modules_automatic(primary_file: Path) -> List[ModuleFile]:
     # 4. Check directory pattern
     pattern_files = check_directory_pattern(primary_file)
     for path in pattern_files:
-        # Only add if not already in modules from explicit refs
         if not any(m.path == path for m in modules):
             modules.add(ModuleFile(path=path, relationship="directory-pattern"))
+
+    # 5. Well-known root documentation files
+    for path in find_well_known_root_docs(primary_file):
+        if not any(m.path == path for m in modules):
+            modules.add(ModuleFile(path=path, relationship="well-known-root"))
+
+    # 6. User-configured additional doc paths from CLAUDE.md
+    for path in read_additional_doc_paths(primary_file):
+        if not any(m.path == path for m in modules):
+            modules.add(ModuleFile(path=path, relationship="configured"))
 
     # Convert set to list, sort by path for consistency
     modules_list = sorted(modules, key=lambda m: str(m.path))
@@ -274,13 +303,80 @@ def parse_section_references(content: str, base_dir: Path) -> List[Path]:
     return paths
 
 
+def find_well_known_root_docs(primary_file: Path) -> List[Path]:
+    """
+    Find all well-known documentation files in the project root.
+
+    Any root .md file whose stem (case-insensitive) matches WELL_KNOWN_DOC_NAMES
+    is included. The primary file itself is excluded.
+
+    Args:
+        primary_file: Primary document (excluded from results)
+
+    Returns:
+        List of well-known root doc paths that exist
+    """
+    root = primary_file.parent
+    found = []
+    for md_file in root.glob('*.md'):
+        if not md_file.is_file():
+            continue
+        if md_file.resolve() == primary_file.resolve():
+            continue
+        if md_file.stem.lower() in WELL_KNOWN_DOC_NAMES:
+            found.append(md_file.resolve())
+    return sorted(found)
+
+
+def read_additional_doc_paths(primary_file: Path) -> List[Path]:
+    """
+    Read user-configured additional documentation paths from CLAUDE.md.
+
+    Looks for:
+      ## Health Check Configuration
+      **Additional doc paths:** path/one, path/two
+
+    Args:
+        primary_file: Used to locate the project root (where CLAUDE.md lives)
+
+    Returns:
+        List of additional .md files found under the configured paths
+    """
+    claude_md = primary_file.parent / "CLAUDE.md"
+    if not claude_md.exists():
+        return []
+
+    content = claude_md.read_text(encoding='utf-8')
+    match = re.search(
+        r'\*\*Additional doc paths:\*\*\s*(.+)',
+        content,
+        re.IGNORECASE
+    )
+    if not match:
+        return []
+
+    root = primary_file.parent
+    paths = []
+    for raw in match.group(1).split(','):
+        raw = raw.strip()
+        if not raw:
+            continue
+        target = (root / raw).resolve()
+        if target.is_file() and target.suffix == '.md':
+            paths.append(target)
+        elif target.is_dir():
+            for md in sorted(target.rglob('*.md')):
+                if md.is_file():
+                    paths.append(md.resolve())
+
+    return paths
+
+
 def check_directory_pattern(primary_file: Path) -> List[Path]:
     """
     Check directory pattern based on primary file name.
 
-    If DESIGN.md → check docs/design/*.md
-    If CLAUDE.md → check docs/workflows/*.md
-    If README.md → check docs/readme/*.md
+    Maps well-known primary filenames to conventional subdirectory locations.
 
     Args:
         primary_file: Primary document file
@@ -288,17 +384,24 @@ def check_directory_pattern(primary_file: Path) -> List[Path]:
     Returns:
         List of files matching directory pattern
     """
-    name = primary_file.stem.lower()  # DESIGN.md → design
+    name = primary_file.stem.lower()
     base_dir = primary_file.parent
 
-    # Map primary file names to directory patterns
+    # Map primary file names to conventional subdirectory patterns
     patterns = {
-        'design': 'docs/design',
-        'claude': 'docs/workflows',
-        'readme': 'docs/readme',
-        'vision': 'docs/vision',
-        'thesis': 'docs/thesis',
+        'design':       'docs/design',
         'architecture': 'docs/architecture',
+        'claude':       'docs/workflows',
+        'readme':       'docs/readme',
+        'vision':       'docs/vision',
+        'thesis':       'docs/thesis',
+        'api':          'docs/api',
+        'spec':         'docs/spec',
+        'specification':'docs/spec',
+        'requirements': 'docs/requirements',
+        'roadmap':      'docs/roadmap',
+        'security':     'docs/security',
+        'deployment':   'docs/deployment',
     }
 
     if name not in patterns:
@@ -309,9 +412,8 @@ def check_directory_pattern(primary_file: Path) -> List[Path]:
     if not pattern_dir.exists() or not pattern_dir.is_dir():
         return []
 
-    # Find all .md files in directory (excluding primary file itself)
     md_files = []
-    for path in pattern_dir.glob('*.md'):
+    for path in sorted(pattern_dir.glob('*.md')):
         if path.is_file() and path.resolve() != primary_file.resolve():
             md_files.append(path.resolve())
 
