@@ -57,6 +57,32 @@ If no section is present, a built-in default set is used.
 
 ---
 
+## Document Scanning Scope
+
+When running any check that involves reading documentation, **always scan**:
+
+1. **All `.md` files in the project root**
+2. **All `.md` files in any folder named `doc/`, `docs/`, or `documentation/`** (recursive)
+
+Additionally, scan these non-markdown files where relevant:
+- `.claude-plugin/marketplace.json` — skill registry and versions
+- `hooks/` — hook scripts
+- `scripts/` — what scripts actually do (for logic and docs-sync checks)
+- `tests/` — what is tested (for coverage and code checks)
+
+**Per project type, also scan:**
+
+| Type | Additional scan targets |
+|------|------------------------|
+| `skills` | All `SKILL.md` files in the repo root subdirectories |
+| `java` | `pom.xml` or `build.gradle` (for dependency and version checks) |
+| `blog` | `_config.yml`, `_posts/`, `_layouts/`, `_includes/` |
+| `custom` | The Primary Document path declared in CLAUDE.md |
+
+This scope is intentionally broad — it is better to scan a file that turns out to be irrelevant than to miss a stale reference buried in a subfolder.
+
+---
+
 ## Category Overview
 
 **Type key:** Mechanical — scriptable, low ambiguity · Judgment — Claude must reason about intent or UX · Mixed — some of each
