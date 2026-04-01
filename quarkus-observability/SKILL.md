@@ -1,11 +1,10 @@
 ---
 name: quarkus-observability
 description: >
-  Use when configuring observability for Quarkus/quarkus-flow - user says "set up
+  Use when configuring observability for Quarkus/quarkus-flow — user says "set up
   logging", "configure tracing", "enable metrics", "add OpenTelemetry", "configure
-  MDC", or asks how to set up structured logging/correlation IDs. Does NOT trigger
-  on discussing existing logs or metrics. Configures structured logging, MDC,
-  distributed tracing, and metrics.
+  MDC", or asks how to set up structured logging/correlation IDs. Does NOT apply
+  to discussing existing logs or metrics.
 ---
 
 # Quarkus Logging and Observability

@@ -1,11 +1,9 @@
 ---
 name: security-audit-principles
 description: >
-  Universal OWASP Top 10 security audit principles for server-side
-  applications. Identifies injection, authentication, authorization,
-  cryptographic, and configuration vulnerabilities. Language-agnostic
-  checklist with severity assignment guidance. NOT invoked directly -
-  referenced as foundation by language-specific security audit skills via
+  Use when a language-specific security audit skill (e.g. java-security-audit)
+  references this as a Prerequisites foundation. NOT invoked directly by users —
+  only loaded via Prerequisites by language-specific skills.
   Prerequisites.
 ---
 

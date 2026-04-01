@@ -1,11 +1,9 @@
 ---
 name: code-review-principles
 description: >
-  Universal code review principles covering safety, concurrency, performance,
-  testing philosophy, and review workflow. Provides language-agnostic
-  checklist and severity assignment guidance for catching critical issues
-  before they reach production. NOT invoked directly - referenced as foundation
-  by language-specific code review skills via Prerequisites.
+  Use when a language-specific code review skill (e.g. java-code-review)
+  references this as a Prerequisites foundation. NOT invoked directly by users —
+  only loaded via Prerequisites by language-specific skills.
 ---
 
 # Code Review Principles

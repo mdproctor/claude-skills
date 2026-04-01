@@ -1,11 +1,10 @@
 ---
 name: java-code-review
 description: >
-  Use when the user says "review my code", "check my changes", "can you
-  review this", "look at my staged changes", or invokes /java-code-review. Also
-  triggered automatically by java-git-commit if no review has been done in
-  the current session. Reviews staged Java/Quarkus changes against safety,
-  concurrency, performance, and code quality rules.
+  Use when the user says "review the code", "check these changes", "review this",
+  "look at staged changes", or invokes /java-code-review. Also invoked
+  automatically by java-git-commit if no review has been done this session.
+  Only applies to Java/Quarkus code.
 ---
 
 # Java Code Review

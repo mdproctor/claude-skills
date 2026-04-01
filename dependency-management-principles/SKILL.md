@@ -1,11 +1,9 @@
 ---
 name: dependency-management-principles
 description: >
-  Universal dependency management principles for projects using BOM (Bill of
-  Materials) patterns. Covers alignment verification, compatibility checking,
-  upgrade safety, and version drift prevention. Works with any package manager
-  that supports dependency management patterns. NOT invoked directly -
-  referenced as foundation by package-manager-specific dependency update skills
+  Use when a package-manager-specific dependency skill (e.g. maven-dependency-update)
+  references this as a Prerequisites foundation. NOT invoked directly by users —
+  only loaded via Prerequisites by package-manager-specific skills.
   via Prerequisites.
 ---
 

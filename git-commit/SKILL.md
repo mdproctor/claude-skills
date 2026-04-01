@@ -2,11 +2,8 @@
 name: git-commit
 description: >
   Use when user wants to create a commit NOW - says "commit this", "commit
-  these changes", "create a commit", or invokes /git-commit. Reads CLAUDE.md
-  to detect project type and routes to specialized skills (java-git-commit
-  for type: java, custom-git-commit for type: custom). Handles type: skills
-  and type: generic directly. Does NOT trigger on discussions about past
-  commits or "should I commit?" questions.
+  these changes", "create a commit", or invokes /git-commit. Does NOT
+  apply to discussions about past commits or questions about whether to commit.
 ---
 
 # Git Commit Helper

@@ -65,20 +65,7 @@ scripts/claude-skill uninstall-all -y
 
 ## Overview
 
-These skills transform Claude Code into an expert Java/Quarkus development assistant that understands enterprise-grade code quality, safety requirements, and modern cloud-native patterns. Each skill encodes best practices, common pitfalls, and project-specific conventions to ensure consistent, production-ready code.
-
-**Key Features:**
-- ✅ **❌/✅ Code examples** showing wrong and right approaches
-- ✅ **Quick Reference tables** for instant lookup
-- ✅ **Red Flags section** in java-dev to prevent rationalizations
-- ✅ **Common Pitfalls tables** documenting mistakes with fixes
-- ✅ **Real-World Impact** sections with production incidents
-- ✅ **Decision flowcharts** for complex workflows
-- ✅ **Automatic skill chaining** (dev → review → commit → design sync)
-- ✅ **Automatic DESIGN.md sync** with every commit
-- ✅ **Quarkus/Vert.x specialized** (event loop, BOM, reactive patterns)
-- ✅ **RED-GREEN-REFACTOR validated** (tested under pressure scenarios)
-- ✅ **Multi-layered quality assurance** (automated validation, pre-commit gates, document corruption prevention)
+Each skill encodes battle-tested best practices, common pitfalls, and project-specific conventions so Claude Code gives consistent, production-ready guidance without re-explaining the same things every session. See [Key Features](#key-features-what-makes-these-skills-different) for a full breakdown.
 
 ## Getting Started: Project Type Setup
 
@@ -100,7 +87,7 @@ These skills transform Claude Code into an expert Java/Quarkus development assis
 
 **Option 1: Automatic (Recommended)**
 
-Just try to commit. If `CLAUDE.md` is missing or has no project type, `git-commit` will ask you 4 questions and create it for you:
+Just try to commit. If `CLAUDE.md` is missing or has no project type, `git-commit` will prompt you to choose one and create it for you:
 
 ```bash
 git add <your files>
@@ -144,6 +131,13 @@ Then create `docs/DESIGN.md` (java-git-commit will block without it).
 **Current Milestone:** Phase 1 - Discovery
 ```
 
+**For Blog Projects** (GitHub Pages / Jekyll):
+```markdown
+## Project Type
+
+**Type:** blog
+```
+
 **For Generic Projects:**
 ```markdown
 ## Project Type
@@ -163,6 +157,11 @@ Then create `docs/DESIGN.md` (java-git-commit will block without it).
 - Auto-syncs DESIGN.md (architecture)
 - Auto-syncs CLAUDE.md (workflow conventions)
 - Java-specific commit scopes (`rest`, `repository`, `service`, etc.)
+
+**type: blog** → `git-commit`:
+- Blog-aware commit scopes (`post`, `layout`, `config`, `asset`)
+- Auto-syncs CLAUDE.md if it exists
+- (Dedicated `blog-git-commit` skill with post validation planned)
 
 **type: custom** → `custom-git-commit`:
 - Syncs user-configured primary document (VISION.md, THESIS.md, etc.)
@@ -315,6 +314,28 @@ This collection follows a **layered architecture** where foundation skills provi
 ---
 
 ## Skills
+
+### Setup Wizards
+
+#### **install-skills**
+One-time bootstrap wizard for new environments:
+- Configures session-start hook (automatic CLAUDE.md detection on new repos)
+- Interactive skill selection: all, Java/Quarkus bundle, foundation principles, or individual
+- Automatic dependency resolution
+- Verifies setup on completion
+
+**Triggers:** `/install-skills` (run once per environment after adding marketplace).
+
+#### **uninstall-skills**
+Guided removal wizard:
+- Choose what to remove: all, Java/Quarkus bundle, or individual skills
+- Checks reverse dependencies before removing (warns if other skills depend on it)
+- Optionally removes session-start hook
+- Requires explicit confirmation before anything is deleted
+
+**Triggers:** `/uninstall-skills`.
+
+---
 
 ### Layer 1: Commit Workflow
 
@@ -1000,35 +1021,35 @@ Claude: [Uses git-commit]
 
 ## Skill Chaining Reference
 
-Each skill explicitly declares when to chain to other skills:
+**Invocation types:** `auto` = always happens without user input · `conditional` = happens when a condition is met · `manual` = user explicitly requests it
 
-| From Skill | To Skill | When |
-|------------|----------|------|
-| `git-commit` | skill-validation.md workflow | SKILL.md files staged (type: skills) |
-| `git-commit` | readme-sync.md workflow | README.md exists + skill changes (type: skills) |
-| `git-commit` | `update-claude-md` | CLAUDE.md exists |
-| `git-commit` | `java-git-commit` | Routes if type: java declared |
-| `git-commit` | `custom-git-commit` | Routes if type: custom declared |
-| `java-git-commit` | `java-update-design` | Always (automatic) |
-| `java-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
-| `custom-git-commit` | `update-primary-doc` | Sync Rules configured (automatic) |
-| `custom-git-commit` | `update-claude-md` | CLAUDE.md exists (automatic) |
-| `java-code-review` | `java-security-audit` | Security-critical code detected |
-| `java-code-review` | `java-git-commit` | After approval if user wants to commit |
-| `java-dev` | `java-code-review` | User triggers review |
-| `quarkus-flow-dev` | `quarkus-flow-testing` | Writing tests for workflows |
-| `quarkus-flow-dev` | `quarkus-observability` | Workflow tracing/MDC setup |
-| `quarkus-flow-dev` | `java-code-review` | User triggers review |
-| `quarkus-flow-dev` | `java-git-commit` | When ready to commit |
-| `quarkus-flow-testing` | `java-code-review` | User triggers review |
-| `quarkus-flow-testing` | `java-git-commit` | When ready to commit |
-| `maven-dependency-update` | `adr` | Major version jump or new extension |
-| `maven-dependency-update` | `java-git-commit` | After successful dependency updates |
-| `quarkus-observability` | `maven-dependency-update` | Adding OTEL/Micrometer deps |
-| `quarkus-observability` | `java-git-commit` | Observability config changes |
-| `adr` | `java-git-commit` | Stage ADR with related changes |
-| `java-update-design` | (companion: `update-claude-md`) | Architecture changes often need workflow doc updates |
-| `readme-sync.md` | (companion: `update-claude-md`) | Skill changes often need workflow doc updates |
+| From Skill | To Skill | Type | Condition / When |
+|------------|----------|------|-----------------|
+| `git-commit` | skill-validation.md workflow | conditional | SKILL.md files staged (type: skills) |
+| `git-commit` | readme-sync.md workflow | conditional | README.md exists + skill changes (type: skills) |
+| `git-commit` | `update-claude-md` | conditional | CLAUDE.md exists |
+| `git-commit` | `java-git-commit` | auto | type: java declared in CLAUDE.md |
+| `git-commit` | `custom-git-commit` | auto | type: custom declared in CLAUDE.md |
+| `java-git-commit` | `java-update-design` | auto | Always |
+| `java-git-commit` | `update-claude-md` | conditional | CLAUDE.md exists |
+| `custom-git-commit` | `update-primary-doc` | conditional | Sync Rules configured in CLAUDE.md |
+| `custom-git-commit` | `update-claude-md` | conditional | CLAUDE.md exists |
+| `java-code-review` | `java-security-audit` | conditional | Security-critical code detected |
+| `java-code-review` | `java-git-commit` | manual | User wants to commit after review |
+| `java-dev` | `java-code-review` | manual | User triggers review |
+| `quarkus-flow-dev` | `quarkus-flow-testing` | manual | User is writing tests for workflows |
+| `quarkus-flow-dev` | `quarkus-observability` | manual | Workflow tracing/MDC setup needed |
+| `quarkus-flow-dev` | `java-code-review` | manual | User triggers review |
+| `quarkus-flow-dev` | `java-git-commit` | manual | User is ready to commit |
+| `quarkus-flow-testing` | `java-code-review` | manual | User triggers review |
+| `quarkus-flow-testing` | `java-git-commit` | manual | User is ready to commit |
+| `maven-dependency-update` | `adr` | manual | Major version jump or new extension |
+| `maven-dependency-update` | `java-git-commit` | manual | After successful dependency updates |
+| `quarkus-observability` | `maven-dependency-update` | manual | Adding OTEL/Micrometer deps |
+| `quarkus-observability` | `java-git-commit` | manual | Observability config changes |
+| `adr` | `java-git-commit` | manual | Stage ADR with related changes |
+| `java-update-design` | `update-claude-md` | manual | Architecture changes often need workflow doc updates too |
+| `readme-sync.md` | `update-claude-md` | manual | Skill changes often need workflow doc updates too |
 
 ---
 ## License
@@ -1048,6 +1069,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ## Contributing & Local Development
+
+### Releasing Skills
+
+Skills use trunk-based development with git tags. See [RELEASE.md](RELEASE.md) for the full release workflow, versioning conventions, and how marketplace.json versioning relates to per-skill plugin.json versions.
+
+---
+
+### Session-Start Hook
+
+`hooks/check_project_setup.sh` runs at every Claude Code session start. It checks whether the current directory has a `CLAUDE.md` with a project type declared, and if not, outputs an `⚠️ ACTION REQUIRED` directive prompting Claude to ask you to set one up.
+
+`scripts/claude-skill sync-local` automatically keeps your local copy of this hook in sync with the repo version and ensures it's registered in `~/.claude/settings.json`.
+
+---
 
 ### Skill Authoring Environment
 
@@ -1183,6 +1218,7 @@ python scripts/validation/validate_flowcharts.py  # Mermaid syntax (PUSH tier)
 | Project Type | Universal Protection | Type-Specific Protection |
 |--------------|---------------------|-------------------------|
 | **java** | Document corruption, CLAUDE.md sync | Code review, security audit, DESIGN.md sync, BOM alignment |
+| **blog** | Document corruption, CLAUDE.md sync | Blog-aware commit scopes (post/layout/config/asset) |
 | **custom** | Document corruption, CLAUDE.md sync | Primary doc sync, user-configured validation, sync rules |
 | **skills** | Document corruption, CLAUDE.md sync | SKILL.md validation, CSO compliance, README sync |
 | **generic** | Document corruption, CLAUDE.md sync | (universal only) |
@@ -1222,6 +1258,9 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 ├── CLAUDE.md                            # Claude Code guidance + skill authoring environment
 ├── QUALITY.md                           # Validation framework documentation
 ├── PHILOSOPHY.md                        # Design principles
+├── RELEASE.md                           # Release workflow (trunk-based, git tags)
+├── hooks/
+│   └── check_project_setup.sh          # Session-start hook (synced by scripts/claude-skill)
 ├── .claude-plugin/
 │   └── marketplace.json                 # Marketplace catalog (all 20 skills)
 ├── scripts/                             # Automation and validation

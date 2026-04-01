@@ -1,16 +1,17 @@
 ---
-# Attribution: Derived from and inspired by Sanne Grinovero's Java development rules.
-# Refactoring section updated for dual MCP server strategy; MethodHandle guidance removed.
 name: java-dev
 description: >
   Use when writing new Java code, fixing bugs, refactoring, or adding tests in
-  Quarkus applications. Triggers on creating/modifying .java files, editing
-  pom.xml/build.gradle, or when user says "implement", "fix", "refactor", "add
-  tests". Does NOT trigger on reading/discussing code without changes. For code
-  review, use java-code-review. For commits, use java-git-commit.
+  Quarkus applications — user says "implement", "fix", "refactor", or "add
+  tests", or is editing .java files, pom.xml, or build.gradle. Does NOT apply
+  to reading/discussing code without changes. For code review use
+  java-code-review; for commits use java-git-commit.
 ---
 
 # Java Development
+
+<!-- Attribution: Derived from and inspired by Sanne Grinovero's Java development rules.
+     Refactoring section updated for dual MCP server strategy; MethodHandle guidance removed. -->
 
 ## Quick Reference
 

@@ -1,9 +1,10 @@
 ---
 name: update-claude-md
 description: >
-  Auto-invoked by git-commit and java-git-commit when CLAUDE.md exists and
-  staged changes may affect documented workflows, build commands, testing
-  patterns, naming conventions, or repository structure.
+  Use when CLAUDE.md needs updating due to workflow or convention changes, or
+  when invoked automatically by git-commit/java-git-commit when commits
+  affect build commands, testing patterns, naming conventions, or repository
+  structure.
 ---
 
 # Update CLAUDE.md

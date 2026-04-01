@@ -1,10 +1,9 @@
 ---
 name: update-primary-doc
 description: >
-  Generic base skill for synchronizing primary documents (DESIGN.md, VISION.md,
-  README.md, THESIS.md, etc.) with repository changes. Table-driven processor
-  with no hardcoded project knowledge. Extended by java-update-design and
-  skills-update-readme for project-specific mappings.
+  Use when a primary document (VISION.md, THESIS.md, etc.) needs syncing with
+  repository changes, or when invoked automatically by custom-git-commit.
+  Only applies to type: custom projects with Sync Rules configured in CLAUDE.md.
 ---
 
 # Primary Document Synchronization (Generic Base)

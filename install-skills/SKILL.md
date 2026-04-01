@@ -1,6 +1,9 @@
 ---
 name: install-skills
-description: /install-skills - one-time marketplace bootstrap
+description: >
+  Use when setting up Claude Code skills in a new environment, or when invoked
+  via /install-skills. One-time bootstrap — configures hooks and installs
+  selected skills with automatic dependency resolution.
 ---
 
 # Install Skills - Marketplace Bootstrap

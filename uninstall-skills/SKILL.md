@@ -1,6 +1,9 @@
 ---
 name: uninstall-skills
-description: /uninstall-skills - remove marketplace skills and hooks
+description: >
+  Use when removing installed skills from the environment. Invoked via
+  /uninstall-skills. Guides removal of individual skills, bundles, or all
+  skills, with reverse-dependency checking and optional hook removal.
 ---
 
 # Uninstall Skills - Marketplace Cleanup

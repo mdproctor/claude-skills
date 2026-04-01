@@ -1,11 +1,9 @@
 ---
 name: observability-principles
 description: >
-  Universal observability principles covering structured logging, distributed
-  tracing, and metrics. Includes MDC/correlation ID patterns, header
-  propagation, trace span concepts, and metrics types. Technology-agnostic
-  guidance for production observability. NOT invoked directly - referenced as
-  foundation by framework-specific observability skills via Prerequisites.
+  Use when a framework-specific observability skill (e.g. quarkus-observability)
+  references this as a Prerequisites foundation. NOT invoked directly by users —
+  only loaded via Prerequisites by framework-specific skills.
 ---
 
 # Observability Principles

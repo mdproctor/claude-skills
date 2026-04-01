@@ -58,7 +58,9 @@ def run_validator(validator: Dict[str, str]) -> Dict[str, Any]:
 
         return {
             'name': validator['name'],
-            'passed': result.returncode == 0,
+            # exit code 1 = CRITICAL (failed); 2 = WARNING; 3 = NOTE; 0 = clean
+            # Only CRITICAL (exit code 1) is a hard failure
+            'passed': result.returncode != 1,
             'exit_code': result.returncode,
             'output': result.stdout + result.stderr
         }

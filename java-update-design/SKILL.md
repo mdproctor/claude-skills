@@ -3,9 +3,7 @@ name: java-update-design
 description: >
   Use when the user invokes /update-design, asks to "update the design doc",
   "sync DESIGN.md", "reflect code changes in the design", or when another
-  skill requests a design document update. Keeps DESIGN.md in sync with code
-  changes by analyzing git-staged changes or diffs and proposing targeted
-  updates.
+  skill (java-git-commit) requests a design document update.
 ---
 
 # Update Design Document

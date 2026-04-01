@@ -2,9 +2,8 @@
 name: custom-git-commit
 description: >
   Use when the user says "commit" in a type: custom project (working groups,
-  research, documentation, etc.). Reads user-configured sync strategy from
-  CLAUDE.md, syncs primary document, runs configured validators, and creates
-  conventional commit.
+  research, documentation, etc.). Only applies to type: custom — all other
+  project types route elsewhere.
 ---
 
 # Custom Project Commit Helper
