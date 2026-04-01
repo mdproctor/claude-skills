@@ -257,22 +257,6 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 ---
 
-### `cross-refs` — Cross-Reference Integrity
-
-**Quality** — Are all links between skills and documents complete and bidirectional?
-- [ ] Every skill mentioned in the chaining table exists
-- [ ] Chaining is bidirectional where required (A→B means B mentions A)
-- [ ] Skill Chaining Reference table covers all skills including new additions
-- [ ] Prerequisites sections reference skills that exist
-- [ ] All markdown links to other `.md` files resolve
-
-**Refinement** — Could the reference structure be simpler or more navigable?
-- [ ] Are any chains unnecessarily long (A→B→C→D where A→C would suffice)?
-- [ ] Could the chaining table be reorganised to group related skills more intuitively?
-- [ ] Do the number of cross-references between two skills suggest they should merge?
-
----
-
 ### `consistency` — Internal Consistency
 
 **Quality** — Does everything agree with itself?
@@ -290,28 +274,11 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 ---
 
-### `coverage` — Integration Coverage
-
-**Quality** — Are new skills and features fully wired into the broader system?
-- [ ] Every skill has a `commands/<skill-name>.md` slash command file
-- [ ] Every skill is in `.claude-plugin/marketplace.json` plugins list
-- [ ] Every skill appears in README.md § Skills section
-- [ ] New skills appear in README.md § Skill Chaining Reference table
-- [ ] New skills appear in CLAUDE.md § Key Skills
-- [ ] Every validator is wired into `scripts/validate_all.py` at the correct tier
-- [ ] New project types added to all required locations
-
-**Refinement** — Are there integration points that could be automated or simplified?
-- [ ] Are any manual integration steps (README update, chaining table entry) candidates for automation?
-- [ ] Are there steps that are consistently forgotten, suggesting a better workflow?
-
----
-
 ### `logic` — Workflow Logic & UX
 
 **Quality** — Do the described workflows actually work?
-- [ ] No skill step references a script that doesn't exist
-- [ ] No skill step requires a tool (`gh`, `mvn`, etc.) without checking it's available
+- [ ] No workflow step references a script or file that doesn't exist
+- [ ] No workflow step requires an external tool (`gh`, `mvn`, etc.) without checking it's available
 - [ ] Hook outputs are directive (ACTION REQUIRED) not just informational
 - [ ] Hook doesn't fire on non-git directories
 - [ ] No skill blocks progress without giving the user a way forward
@@ -328,67 +295,12 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 ---
 
-### `quality` — Skill Craft Quality
-
-**Quality** — Are skills well-written and will they trigger and execute correctly?
-- [ ] All descriptions start with "Use when..." (CSO compliance)
-- [ ] No descriptions summarise the workflow (only trigger conditions)
-- [ ] No first/second person in descriptions ("I", "you")
-- [ ] All major skills have: Prerequisites (if layered), Common Pitfalls, Success Criteria
-- [ ] Flowcharts use `flowchart TD` with semantic labels (not step1, step2)
-- [ ] Flowcharts only used where decision points are non-obvious
-- [ ] No skill is excessively long (rough budget: ~400 lines)
-- [ ] Token-heavy content extracted to reference files where appropriate
-
-**Refinement** — Could skills be made more concise or easier to follow?
-- [ ] Are there skills where the workflow could be expressed in fewer steps without losing precision?
-- [ ] Are any flowcharts earning their complexity, or would a numbered list be clearer?
-- [ ] Could any Common Pitfalls rows be removed because they're obvious or never occur?
-- [ ] Are there skills short enough to be absorbed into their caller?
-
----
-
-### `naming` — Naming Consistency
-
-**Quality** — Are names consistent across all the places they appear?
-- [ ] Skill name in frontmatter matches directory name
-- [ ] Skill name in marketplace.json matches directory name
-- [ ] Command file named `commands/<skill-name>.md` (matches skill name)
-- [ ] Skill name in README matches actual name
-- [ ] No drift between any of the above
-- [ ] New language skills follow established naming patterns (`lang-dev`, `lang-code-review`)
-
-**Refinement** — Are names clear and discoverable, not just consistent?
-- [ ] Would a new user guess the right skill name without reading the docs?
-- [ ] Are any names technically accurate but unintuitive?
-- [ ] Could any names better reflect what the skill does rather than its structural role?
-
----
-
-### `dependencies` — Skill Dependencies
-
-**Quality** — Do skill dependency chains actually work?
-- [ ] All skills listed as Prerequisites exist
-- [ ] No circular dependency chains (A depends on B depends on A)
-- [ ] plugin.json dependency names match actual skill names
-- [ ] Skills that build on others explicitly reference them in Prerequisites
-- [ ] Marketplace dependency resolution would succeed for all skills
-
-**Refinement** — Could dependency chains be simplified?
-- [ ] Are any chains deeper than necessary (A→B→C where A→C suffices)?
-- [ ] Could any skill with only one dependent be absorbed into that dependent?
-- [ ] Are there optional dependencies that create complexity without commensurate value?
-
----
-
 ### `config` — Project Configuration Health
 
 **Quality** — Is the project properly configured for its type?
 - [ ] CLAUDE.md exists and has `## Project Type`
 - [ ] Project type is one of: skills, java, blog, custom, generic
-- [ ] For type: java — `docs/DESIGN.md` exists
-- [ ] For type: custom — Sync Rules configured
-- [ ] For type: blog — `_posts/` directory exists or is planned
+- [ ] Required primary artifacts for the project type exist (see type-specific skills for details)
 - [ ] `## Commit Messages` section present (no-AI-attribution rule)
 - [ ] `## Work Tracking` present if team collaboration is needed (advisory)
 - [ ] `## Document Structure` threshold configured if doc nudge is desired
@@ -407,7 +319,7 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] Shell scripts quote variables to prevent word splitting
 - [ ] No `rm -rf` without explicit path validation
 - [ ] No `eval` of untrusted input
-- [ ] Hook scripts have correct permissions (executable, not world-writable)
+- [ ] All executable scripts have correct permissions (executable for owner, not world-writable) — not just hooks
 - [ ] No secrets in git history (check recent commits)
 - [ ] Scripts validate inputs before acting on them
 
@@ -418,28 +330,11 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 ---
 
-### `infrastructure` — Tooling Infrastructure
-
-**Quality** — Is the supporting infrastructure correct?
-- [ ] All validators in `scripts/validation/` are wired into `validate_all.py`
-- [ ] Each validator is in the correct tier (COMMIT: <2s, PUSH: <30s, CI: <5min)
-- [ ] Session-start hook is registered in `~/.claude/settings.json`
-- [ ] Hook script matches the template in `hooks/check_project_setup.sh`
-- [ ] Generated files are in `.gitignore` (`*.pyc`, `skill.json`, `.doc-cache.json`)
-- [ ] `scripts/claude-skill` installer correctly targets `~/.claude/skills/`
-
-**Refinement** — Could the infrastructure be leaner or more maintainable?
-- [ ] Are any two validators doing overlapping checks that could be merged?
-- [ ] Are any validators in a higher tier than their speed justifies?
-- [ ] Could any scripts be removed because the problem they solve no longer exists?
-
----
-
 ### `release` — Release Readiness
 
 **Quality** — Is the project ready for a versioned release?
-- [ ] No `SNAPSHOT` version suffixes in marketplace.json for release
-- [ ] All skill versions consistent and intentional
+- [ ] No version markers indicating work-in-progress (SNAPSHOT, dev, alpha) in release artifacts
+- [ ] All component versions consistent and intentional
 - [ ] GitHub labels set up for release note generation
 - [ ] `gh release create --generate-notes` would produce meaningful output
 - [ ] RELEASE.md reflects current versioning strategy
@@ -471,22 +366,6 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 ---
 
-### `effectiveness` — Skill Effectiveness
-
-**Quality** — Are skills correctly scoped and triggered?
-- [ ] No two skills overlap significantly in purpose
-- [ ] No skills with descriptions so generic they trigger on everything
-- [ ] No skills with descriptions so specific they never trigger
-- [ ] Obvious use cases for the project type are covered
-- [ ] Skills that are never invoked (advisory — would need telemetry)
-
-**Refinement** — Are skills as useful as they could be?
-- [ ] Are any skills doing so little they'd be better absorbed into their caller?
-- [ ] Are there common workflows requiring 3+ skills that could be wrapped in one?
-- [ ] Could any skill description be sharpened to trigger more accurately?
-
----
-
 ### `git` — Repository State
 
 **Quality** — Is the git repository in a healthy state?
@@ -500,22 +379,6 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] Is the branching strategy more complex than the team size justifies?
 - [ ] Could tag naming be more consistent or informative?
 - [ ] Are there branches or worktrees that outlived their purpose?
-
----
-
-### `performance` — Token & Runtime Performance
-
-**Quality** — Are skills and validators within their budgets?
-- [ ] No SKILL.md over ~400 lines (token budget)
-- [ ] Validators in COMMIT tier run in <2s
-- [ ] Validators in PUSH tier run in <30s
-- [ ] No validator doing the same check as another (redundancy)
-
-**Refinement** — Could things be made leaner without losing value?
-- [ ] Is heavy reference material extracted to separate files?
-- [ ] Is there duplicate content across skills inflating token cost on every load?
-- [ ] Are there validators whose findings could fold into an existing validator?
-- [ ] Are there skill sections that add length without adding guidance?
 
 ---
 
