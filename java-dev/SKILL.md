@@ -64,17 +64,17 @@ flowchart TD
 
 ## Why These Rules Matter
 
-**Resource leaks:** A production Quarkus service leaked 50 file descriptors per hour from unclosed HTTP connections. The limit of 1024 was exhausted in 20 hours, causing cascading failures. Kubernetes restarted the pod daily. The fix: one missing try-with-resources block.
+**Resource leaks:** Unclosed HTTP connections exhausted 1024 file descriptors in 20 hours → daily pod restart. Fix: one missing try-with-resources block.
 
-**Deadlocks:** Thread dump showed lock ordering violation between cache update and event publishing. Service hung for 3 hours during peak traffic. Fix required documenting lock acquisition order in comments and refactoring to minimize critical sections.
+**Deadlocks:** Lock ordering violation between cache update and event publishing → service hung 3 hours at peak. Fix: document lock acquisition order, minimize critical sections.
 
-**Classloader leaks:** ThreadLocal values holding references to request-scoped beans prevented classloader garbage collection after hot redeployments. Memory grew 200MB per deployment. After 10 deployments in development, OutOfMemoryError crashed the JVM. Fix: explicit ThreadLocal.remove() in finally blocks.
+**Classloader leaks:** ThreadLocal holding request-scoped beans blocked GC after hot redeployments → 200MB growth per deploy, OOM after 10 deploys. Fix: `ThreadLocal.remove()` in finally.
 
-**Silent corruption:** Exception swallowed in event handler caused payment records to be marked "processed" without actually processing them. Discovered 3 days later when customer complained. 1,200 transactions lost. Fix: log exception and set error flag instead of swallowing.
+**Silent corruption:** Swallowed exception in payment handler → 1,200 transactions marked "processed" without processing, discovered 3 days later. Fix: log and rethrow.
 
-**Blocking on event loop:** Synchronous database call in Vert.x event loop handler blocked all concurrent requests. Single slow query (5 seconds) froze entire service. 503 errors cascaded to all endpoints. Fix: `@Blocking` annotation on handler method.
+**Blocking on event loop:** Synchronous JDBC in Vert.x handler → one 5-second query froze all endpoints. Fix: `@Blocking` annotation.
 
-**Premature optimization:** Developer used primitive arrays and manual indexing "for performance" in config parser (called once at startup). Introduced off-by-one bug that corrupted plugin loading. Cost: 4 hours debugging. Config parser is not a hot path.
+**Premature optimization:** Primitive arrays "for performance" in a startup-only config parser → off-by-one bug, 4 hours debugging. Cold paths don't need optimizing.
 
 These are real incidents. The rules exist because the pain is real.
 
@@ -269,12 +269,6 @@ build-time logic are generally not critical — use idiomatic Java there.
 Before writing new helpers or utilities, check for existing code that can be
 reused. Prefer extension or composition over duplication.
 
-## Universal Rule
-
-When I ask you to do something, always consider if there is a better way to do this
-
-
-
 ## Code clarity
 
 - Mark parameters and variables `final` in new code unless mutability is required
@@ -413,12 +407,6 @@ references, move) is needed:
 3. If continuing without MCP: use `git diff` to validate scope, make changes
    conservatively, and run the build/tests after each logical step
 
-## Compilation and errors
-
-When IntelliJ MCP is available, use it for project-wide error detection
-alongside your own analysis. Prefer it when it's faster — but never let it
-substitute for catching compilation errors you can see directly.
-
 ## Common Pitfalls — These Thoughts Mean STOP
 
 If you catch yourself thinking any of these, **STOP** and apply the correct approach:
@@ -443,8 +431,8 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 
 - **Before committing:** invoke **java-code-review** to catch safety, concurrency, and performance issues
 - **After implementing or refactoring:** if the user wants to commit, invoke
-  **java-git-commit**, which will also sync DESIGN.md via **update-design**
+  **java-git-commit**, which will also sync DESIGN.md via **java-update-design**
 - **For architectural decisions:** suggest running **adr** to document significant decisions
 - **For logging/observability setup:** invoke **quarkus-observability** when implementing structured logging, tracing, or metrics
 - **For security-critical code:** invoke **java-security-audit** when handling authentication, authorization, payment, or PII
-- **If architectural impact without commit:** suggest running **update-design** independently
+- **If architectural impact without commit:** suggest running **java-update-design** independently
