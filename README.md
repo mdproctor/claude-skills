@@ -1,6 +1,6 @@
-# Claude Code Skills
+# cc-praxis
 
-A curated collection of specialized skills for Claude Code covering professional software development — with deep Java/Quarkus support and universal principles that apply to any project.
+A curated collection of Claude Code skills for professional software development — with deep Java/Quarkus support and universal principles that apply to any project.
 
 ## Installation
 
@@ -8,7 +8,7 @@ A curated collection of specialized skills for Claude Code covering professional
 
 ```bash
 # Add this marketplace to Claude Code
-/plugin marketplace add github.com/mdproctor/claude-skills
+/plugin marketplace add github.com/mdproctor/cc-praxis
 
 # Run the one-time bootstrap wizard
 /plugin install install-skills
@@ -39,8 +39,8 @@ The wizard checks for reverse dependencies and confirms before removing anything
 Clone the repository and use the bundled installer directly. This gives you automatic dependency resolution without the wizard, plus the full local development workflow described in [Contributing & Local Development](#contributing--local-development).
 
 ```bash
-git clone https://github.com/mdproctor/claude-skills.git ~/claude-skills
-cd ~/claude-skills
+git clone https://github.com/mdproctor/cc-praxis.git ~/cc-praxis
+cd ~/cc-praxis
 ```
 
 ```bash
@@ -59,7 +59,7 @@ scripts/claude-skill uninstall java-dev
 scripts/claude-skill uninstall-all -y
 ```
 
-**Installed skills location:** `~/.claude/plugins/cache/mdproctor-skills/`
+**Installed skills location:** `~/.claude/skills/`
 
 ---
 
@@ -1104,8 +1104,8 @@ The recommended workflow copies your local edits directly into Claude Code's plu
 
 **One-time setup:**
 ```bash
-git clone https://github.com/mdproctor/claude-skills.git ~/claude-skills
-cd ~/claude-skills
+git clone https://github.com/mdproctor/cc-praxis.git ~/cc-praxis
+cd ~/cc-praxis
 
 # Install all skills from local source into Claude Code's cache
 scripts/claude-skill sync-local --all -y
@@ -1138,7 +1138,7 @@ scripts/claude-skill sync-local --all
 scripts/claude-skill sync-local --all -y
 ```
 
-`sync-local` writes to Claude Code's plugin cache (`~/.claude/plugins/cache/mdproctor-skills/`) and updates the registry files. It never modifies the source files or git history.
+`sync-local` writes to Claude Code's plugin cache (`~/.claude/skills/`) and updates the registry files. It never modifies the source files or git history.
 
 ---
 

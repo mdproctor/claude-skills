@@ -163,7 +163,7 @@ def generate_skill_json(
 
 def main(
     root_dir: Path = None,
-    repository_url: str = "https://github.com/mdproctor/claude-skills",
+    repository_url: str = "https://github.com/mdproctor/cc-praxis",
     version: str = "1.0.0-SNAPSHOT"
 ) -> int:
     """

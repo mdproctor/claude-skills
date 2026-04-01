@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Skill installer and local development sync tool for mdproctor/claude-skills.
+Skill installer and local development sync tool for mdproctor/cc-praxis.
 
 Skills are installed into Claude Code's skills directory at:
   ~/.claude/skills/<skill-name>/
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Set
 
-MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json"
+MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/cc-praxis/main/.claude-plugin/marketplace.json"
 SKILLS_DIR = Path.home() / ".claude" / "skills"
 SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 

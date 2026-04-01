@@ -97,7 +97,7 @@ Continue to Step 2.
 Fetch marketplace catalog:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json
+curl -fsSL https://raw.githubusercontent.com/mdproctor/cc-praxis/main/.claude-plugin/marketplace.json
 ```
 
 From the fetched JSON, derive options dynamically:
@@ -257,7 +257,7 @@ After all skills installed successfully:
    Effect: Prompts for CLAUDE.md setup when opening new repositories
 
 ✅ Skills installed: 11
-   Location: ~/.claude/plugins/cache/mdproctor-skills/
+   Location: ~/.claude/skills/
    Status: Available in ALL conversations (current and future)
 
 ✅ Dependencies resolved
