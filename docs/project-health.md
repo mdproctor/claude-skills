@@ -131,6 +131,7 @@ These are scanned in addition to the baseline — useful for projects where docs
 | `release` | Versions consistent, release notes will be meaningful, RELEASE.md current | 7 | Mixed | Release only |
 | `user-journey` | Onboarding coherent, errors have recovery steps, no dead ends | 6 | Judgment | Pre-release, major changes |
 | `git` | Clean working tree, no stale worktrees, tags match versions | 5 | Mechanical | On demand |
+| `improve` | Improvement opportunities in docs, code, and tests — structure, readability, deduplication, bloat | varies | Judgment | On demand, periodic review |
 
 ---
 
@@ -189,6 +190,7 @@ These are scanned in addition to the baseline — useful for projects where docs
 | `--commit` | `docs-sync`, `cross-refs`*, `coverage`*, `naming`* | Fast checks after every significant change |
 | `--prerelease` | All mechanical + mixed categories for the project type | Before tagging a release |
 | `--deep` | All categories for the project type | Periodic deep review, after major refactors |
+| `--improve` | `improve` only | Dedicated improvement session — structure, readability, deduplication, bloat |
 | `--setup` | `config`, `infrastructure`*, `coverage`* | After initial project setup |
 
 *\* type: skills only — skipped automatically for other project types*
@@ -457,6 +459,99 @@ Or for a full integration check:
 Skills that should reference project-health:
 - `git-commit` — suggest `coverage` check when new SKILL.md staged
 - Pre-commit checklist in CLAUDE.md — reference `project-health --defaults` before releases
+
+---
+
+### `improve` — Improvement Opportunities
+
+> What could be made smaller, clearer, or better structured without changing what it does?
+
+Unlike `quality` (which checks structural compliance) and `logic` (which checks correctness), `improve` looks at things that already work but could be refined. Every finding includes a **bloat score** and an **impact tier** to help prioritise.
+
+---
+
+#### Bloat Score
+
+Each finding is rated on two axes:
+
+**Size reduction potential:**
+- 🔴 **HIGH** — could eliminate or reduce by >30% of lines/tokens/complexity
+- 🟡 **MEDIUM** — 10–30% reduction possible
+- 🟢 **LOW** — minor, <10%, still worth noting
+
+**Impact of fixing:**
+- **A** — affects navigation, readability, or maintenance significantly
+- **B** — noticeable improvement
+- **C** — cosmetic or marginal
+
+Combined rating examples: `🔴A` (large gain, high impact), `🟢C` (tiny, cosmetic).
+
+---
+
+#### Documentation — Structure & Organisation
+
+- [ ] **Structure re-evaluation** — would a different grouping or ordering of sections/files improve navigation? Are related topics scattered across multiple docs that should be consolidated?
+- [ ] **Modularisation opportunities** — docs over ~400 lines with multiple distinct topics that would be clearer as separate linked files
+- [ ] **Consolidation opportunities** — multiple small files covering closely related topics that would read better merged
+- [ ] **Readability** — passive voice, unexplained jargon, walls of text without examples or structure, sentences over 25 words, paragraphs that could be tables or bullet lists
+- [ ] **Redundant preamble** — sections that restate what was just said, or introductory paragraphs that add no information
+- [ ] **Dead documentation** — sections describing plans, history, or context that are no longer relevant and add noise
+
+---
+
+#### Code — Deduplication & Abstraction
+
+- [ ] **Repeated patterns** — the same block of logic appearing 3+ times; high risk because fixes applied to one copy are often missed in others
+- [ ] **Copy-paste with variation** — similar but not identical blocks; should be parameterised and shared
+- [ ] **Methods/functions doing too much** — single functions over ~30 lines that combine multiple distinct concerns and would be clearer split
+- [ ] **Hardcoded values repeated** — the same literal value (string, number, path) appearing in multiple places; should be a named constant
+- [ ] **Missing abstractions** — repeated sequences of calls that always appear together and belong in a helper
+- [ ] **Commented-out code** — dead code left in place; remove it (git history preserves it)
+
+---
+
+#### Tests — Grouping & Modularisation
+
+- [ ] **Scattered tests for the same concern** — tests for one feature spread across multiple files without clear ownership
+- [ ] **Repeated test setup** — the same fixture or arrangement code copy-pasted across multiple test methods; should be a shared helper or `setUp`
+- [ ] **Test file bloat** — test files over ~300 lines that test multiple unrelated concerns and would be clearer split by concern
+- [ ] **Naming inconsistency** — test names that don't follow a consistent pattern, making it hard to find what's covered
+- [ ] **Missing grouping** — tests that would benefit from being grouped into test classes or modules to reflect the structure of what they're testing
+
+---
+
+#### Universal Bloat Check
+
+Applies across docs, code, and tests:
+
+- [ ] **Files significantly over budget** — any file >50% larger than the guideline for its type (SKILL.md: ~400 lines, test files: ~300 lines, source files: project-specific)
+- [ ] **Deeply nested structures** — logic or document sections nested >3 levels deep that could be flattened
+- [ ] **Long parameter lists** — functions with >4 parameters that could be grouped into a config object or simplified
+- [ ] **Over-engineered solutions** — complex machinery for a problem that has a simpler solution (e.g. a validation framework for 3 rules)
+- [ ] **Excessive commentary** — more comment lines than code lines explaining obvious things; good code with good names needs fewer comments
+
+---
+
+#### Output format for `improve`
+
+Unlike other categories, `improve` presents findings as **opportunities** not failures:
+
+```
+## improve — Opportunities Found
+
+### 🔴A — High impact, significant size reduction
+- scripts/validate_all.py (lines 45–89): run_validator() logic repeated
+  for each tier; extract to a shared helper. Est. -40 lines.
+
+### 🟡B — Medium impact
+- update-primary-doc/SKILL.md (312 lines): Steps 4–7 cover two unrelated
+  concerns (discovery and validation); consider splitting into two sections
+  with a shared intro. Est. -20 lines, clearer navigation.
+
+### 🟢C — Low impact, cosmetic
+- java-dev/SKILL.md: "Code duplication" and "Code clarity" sections could
+  merge; they are adjacent and both cover style conventions.
+```
 
 ---
 
