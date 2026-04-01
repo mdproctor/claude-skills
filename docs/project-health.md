@@ -131,7 +131,7 @@ These are scanned in addition to the baseline — useful for projects where docs
 | `release` | Versions consistent, release notes will be meaningful, RELEASE.md current | 7 | Mixed | Release only |
 | `user-journey` | Onboarding coherent, errors have recovery steps, no dead ends | 6 | Judgment | Pre-release, major changes |
 | `git` | Clean working tree, no stale worktrees, tags match versions | 5 | Mechanical | On demand |
-| `improve` | Improvement opportunities in docs, code, and tests — structure, readability, deduplication, bloat | varies | Judgment | On demand, periodic review |
+| `refine` | Improvement opportunities in docs, code, and tests — structure, readability, deduplication, bloat | varies | Judgment | On demand, periodic review |
 
 ---
 
@@ -190,7 +190,7 @@ These are scanned in addition to the baseline — useful for projects where docs
 | `--commit` | `docs-sync`, `cross-refs`*, `coverage`*, `naming`* | Fast checks after every significant change |
 | `--prerelease` | All mechanical + mixed categories for the project type | Before tagging a release |
 | `--deep` | All categories for the project type | Periodic deep review, after major refactors |
-| `--improve` | `improve` only | Dedicated improvement session — structure, readability, deduplication, bloat |
+| `--refine` | `refine` only | Dedicated improvement session — structure, readability, deduplication, bloat |
 | `--setup` | `config`, `infrastructure`*, `coverage`* | After initial project setup |
 
 *\* type: skills only — skipped automatically for other project types*
@@ -462,11 +462,11 @@ Skills that should reference project-health:
 
 ---
 
-### `improve` — Improvement Opportunities
+### `refine` — Improvement Opportunities
 
 > What could be made smaller, clearer, or better structured without changing what it does?
 
-Unlike `quality` (which checks structural compliance) and `logic` (which checks correctness), `improve` looks at things that already work but could be refined. Every finding includes a **bloat score** and an **impact tier** to help prioritise.
+Unlike `quality` (which checks structural compliance) and `logic` (which checks correctness), `refine` looks at things that already work but could be refined. Every finding includes a **bloat score** and an **impact tier** to help prioritise.
 
 ---
 
@@ -532,12 +532,12 @@ Applies across docs, code, and tests:
 
 ---
 
-#### Output format for `improve`
+#### Output format for `refine`
 
-Unlike other categories, `improve` presents findings as **opportunities** not failures:
+Unlike other categories, `refine` presents findings as **opportunities** not failures:
 
 ```
-## improve — Opportunities Found
+## refine — Opportunities Found
 
 ### 🔴A — High impact, significant size reduction
 - scripts/validate_all.py (lines 45–89): run_validator() logic repeated
