@@ -57,6 +57,43 @@ If no section is present, a built-in default set is used.
 
 ---
 
+## Category Overview
+
+| Category | What it covers | Checks | Type | When to run |
+|----------|---------------|--------|------|-------------|
+| `docs-sync` | Code matches docs, no stale/planned language, correct counts | 7 | Mechanical | Every commit, pre-release |
+| `cross-refs` | Bidirectional skill chaining, all references resolve | 6 | Mechanical | Every commit |
+| `consistency` | Contradictions, duplications, terminology, section naming | 6 | Judgment | Pre-release, deep review |
+| `coverage` | New skills wired into marketplace, README, commands/, chaining | 6 | Mechanical | Every commit |
+| `logic` | Workflows executable, UX friction, redundant checks, no dead ends | 8 | Judgment | Pre-release, deep review |
+| `quality` | CSO compliance, required skill sections, flowcharts, token budget | 8 | Mixed | Pre-release |
+| `naming` | Skill name consistent across all references | 5 | Mechanical | Every commit |
+| `dependencies` | Prerequisites exist, no circular chains, versions consistent | 5 | Mechanical | Pre-release |
+| `config` | CLAUDE.md complete for project type, required sections present | 8 | Mechanical | On setup, pre-release |
+| `security` | No secrets, safe shell patterns, correct permissions | 6 | Mechanical | Pre-release |
+| `infrastructure` | All validators wired correctly, hook registered, gitignore | 6 | Mechanical | Pre-release |
+| `release` | No SNAPSHOT versions, labels set up, release notes meaningful | 7 | Mixed | Release only |
+| `user-journey` | Onboarding coherent, errors recoverable, no dead ends | 6 | Judgment | Pre-release, major changes |
+| `effectiveness` | No redundant skills, descriptions trigger correctly | 5 | Judgment | Deep review only |
+| `git` | Clean state, tags match versions, no stale worktrees | 5 | Mechanical | On demand |
+| `performance` | Skills within token budget, validators in correct tier | 5 | Mixed | Pre-release |
+
+**Type key:**
+- **Mechanical** — can be verified by script or systematic check; low ambiguity
+- **Judgment** — requires Claude to reason about intent, UX, or appropriateness
+- **Mixed** — some items mechanical, some need judgment
+
+**Suggested groupings for invocation:**
+
+| Group | Categories | Use when |
+|-------|-----------|----------|
+| `--commit` | `docs-sync`, `cross-refs`, `coverage`, `naming` | Fast checks after every significant change |
+| `--prerelease` | All mechanical + mixed categories | Before tagging a release |
+| `--deep` | All 17 categories | Periodic deep review, after major refactors |
+| `--setup` | `config`, `infrastructure`, `coverage` | After initial project setup |
+
+---
+
 ## Check Categories
 
 ### `docs-sync` — Documentation Accuracy
