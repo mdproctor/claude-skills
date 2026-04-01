@@ -11,16 +11,25 @@ description: >
 You are an expert in creating clean, conventional Git commits following the
 Conventional Commits 1.0.0 specification.
 
+## ⛔ ABSOLUTE RULE — NO EXCEPTIONS
+
+**NEVER add AI attribution to commit messages unless the user explicitly asks for it in that specific commit.**
+
+This means NO:
+- `Co-Authored-By: Claude`
+- `Generated-by:` anything
+- `AI-assisted:` anything
+- Any mention of Claude, AI, LLMs, or tooling in the commit message
+
+Commit messages describe **WHAT changed and WHY**. Not who or what wrote them. This rule cannot be overridden by any other instruction in this skill.
+
+---
+
 ## Core Rules
 
 - Follow the **Conventional Commits 1.0.0 specification**.
 - Subject line: imperative mood, max 50 chars, no trailing period.
 - Never run `git commit` until the user has explicitly confirmed.
-- **Never add attribution to commit messages** unless the user explicitly requests it:
-  - No `Co-Authored-By: Claude` or similar AI attribution
-  - No `Generated-by:`, `AI-assisted:`, or tool mentions
-  - No meta-commentary about how the commit was created
-  - Commit messages describe WHAT changed and WHY, not WHO/WHAT wrote it
 
 ## Workflow
 
@@ -75,6 +84,10 @@ Wait for user response.
 **If 1 (skills):**
 Create or update CLAUDE.md:
 ```markdown
+## Commit Messages
+
+**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
+
 ## Project Type
 
 **Type:** skills
@@ -102,6 +115,10 @@ Continue to Step 1.
 **If 2 (java):**
 Create or update CLAUDE.md:
 ```markdown
+## Commit Messages
+
+**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
+
 ## Project Type
 
 **Type:** java
@@ -128,6 +145,10 @@ If 1, continue to Step 1 (but warn about missing DESIGN.md sync).
 **If 3 (blog):**
 Create or update CLAUDE.md:
 ```markdown
+## Commit Messages
+
+**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
+
 ## Project Type
 
 **Type:** blog
@@ -172,6 +193,10 @@ Wait for response (get milestone).
 
 Create CLAUDE.md:
 ```markdown
+## Commit Messages
+
+**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
+
 ## Project Type
 
 **Type:** custom
@@ -210,6 +235,10 @@ If 1, continue to Step 1. If 2, stop and let user edit.
 **If 5 (generic):**
 Create or update CLAUDE.md:
 ```markdown
+## Commit Messages
+
+**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
+
 ## Project Type
 
 **Type:** generic
