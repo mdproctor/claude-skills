@@ -288,7 +288,7 @@ After all skills installed successfully:
    Effect: Prompts for CLAUDE.md setup when opening new repositories
 
 ✅ Skills installed: 11
-   Location: ~/.claude/skills/.marketplace/
+   Location: ~/.claude/plugins/cache/mdproctor-skills/
    Status: Available in ALL conversations (current and future)
 
 ✅ Dependencies resolved

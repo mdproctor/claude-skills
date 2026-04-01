@@ -59,7 +59,7 @@ scripts/claude-skill uninstall java-dev
 scripts/claude-skill uninstall-all -y
 ```
 
-**Installed skills location:** `~/.claude/skills/.marketplace/`
+**Installed skills location:** `~/.claude/plugins/cache/mdproctor-skills/`
 
 ---
 
@@ -1100,49 +1100,45 @@ This makes the cloned repository a **complete skill development environment**. S
 
 ### Local Development Workflow
 
-The recommended workflow uses symlinks so edits to source files are immediately reflected in Claude Code — no sync step required.
+The recommended workflow copies your local edits directly into Claude Code's plugin cache, so changes are live in the next session you open.
 
 **One-time setup:**
 ```bash
 git clone https://github.com/mdproctor/claude-skills.git ~/claude-skills
 cd ~/claude-skills
 
-# Install all skills as symlinks (edits instantly live)
-scripts/claude-skill sync-local --all --link -y
+# Install all skills from local source into Claude Code's cache
+scripts/claude-skill sync-local --all -y
 ```
 
-**Daily workflow:**
+**After editing a skill:**
 ```bash
-# Edit any skill — the change is live immediately in Claude Code
 vim java-dev/SKILL.md
 
-# No sync needed — the symlink means Claude Code sees the change instantly
+# Push the change into Claude Code's cache
+scripts/claude-skill sync-local -y
 ```
 
-**Updating after a `git pull`:**
+**After a `git pull`:**
 ```bash
-# Symlinks already point to the source, so nothing to do.
-# If you switched from copies to symlinks, run once:
-scripts/claude-skill sync-local --link -y
+git pull
+scripts/claude-skill sync-local -y   # update cache with latest
 ```
 
 ### `sync-local` Reference
 
 ```bash
-# Update all currently-installed skills from local source
+# Update already-installed skills from local source
 scripts/claude-skill sync-local
 
-# Also install skills not yet installed
+# Also install skills not yet in the cache (default: update only)
 scripts/claude-skill sync-local --all
 
-# Use symlinks instead of copies (recommended for development)
-scripts/claude-skill sync-local --link
-
-# All-in-one: install everything as symlinks, no prompt
-scripts/claude-skill sync-local --all --link -y
+# Skip confirmation prompt
+scripts/claude-skill sync-local --all -y
 ```
 
-`sync-local` only touches `.marketplace/` — it never modifies the source files or git history.
+`sync-local` writes to Claude Code's plugin cache (`~/.claude/plugins/cache/mdproctor-skills/`) and updates the registry files. It never modifies the source files or git history.
 
 ---
 

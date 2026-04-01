@@ -213,7 +213,7 @@ Final confirmation before removal:
 You are about to uninstall 11 skills:
 
 This action will:
-- Remove skills from ~/.claude/skills/.marketplace/
+- Remove skills from ~/.claude/plugins/cache/mdproctor-skills/
 - Skills will no longer be available in Claude Code
 - This cannot be undone (you can reinstall later)
 
@@ -319,7 +319,7 @@ After all skills uninstalled:
 ═══════════════════════════════════════════════════════════
 
 ✅ Skills removed: 11
-   Location: ~/.claude/skills/.marketplace/
+   Location: ~/.claude/plugins/cache/mdproctor-skills/
    Status: No longer available in Claude Code
 
 ✅ Session-start hook removed (if selected)

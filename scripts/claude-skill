@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """
-Minimal skill installer with dependency resolution.
-Uses official Claude Code marketplace.json and plugin.json formats.
-Adds dependency resolution until official support exists.
+Skill installer and local development sync tool for mdproctor/claude-skills.
+
+Skills are installed into Claude Code's plugin cache at:
+  ~/.claude/plugins/cache/mdproctor-skills/<skill>/<version>/
+
+The registry of installed skills is managed via:
+  ~/.claude/plugins/installed_plugins.json  (cache paths and metadata)
+  ~/.claude/settings.json                   (enabledPlugins list)
 """
 
 import argparse
@@ -10,19 +15,24 @@ import json
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Set
 
 MARKETPLACE_URL = "https://raw.githubusercontent.com/mdproctor/claude-skills/main/.claude-plugin/marketplace.json"
-INSTALL_DIR = Path.home() / ".claude" / "skills" / ".marketplace"
+MARKETPLACE_NAME = "mdproctor-skills"
 PLUGIN_CACHE = Path.home() / ".claude" / "plugins" / "cache"
 INSTALLED_PLUGINS_JSON = Path.home() / ".claude" / "plugins" / "installed_plugins.json"
+SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 
 HOOK_SOURCE = Path(__file__).parent.parent / "hooks" / "check_project_setup.sh"
 HOOK_DEST = Path.home() / ".claude" / "hooks" / "check_project_setup.sh"
-SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
 HOOK_COMMAND = "~/.claude/hooks/check_project_setup.sh"
 
+
+# ---------------------------------------------------------------------------
+# Network helpers
+# ---------------------------------------------------------------------------
 
 def fetch_json(url: str) -> Dict:
     """Fetch JSON from URL using curl."""
@@ -38,10 +48,9 @@ def fetch_json(url: str) -> Dict:
 
 
 def fetch_plugin_metadata(source: str, path: str, ref: str = "main") -> Dict:
-    """Fetch .claude-plugin/plugin.json from repository."""
+    """Fetch .claude-plugin/plugin.json from a GitHub repository."""
     repo_path = source.replace("https://github.com/", "")
     url = f"https://raw.githubusercontent.com/{repo_path}/{ref}/{path}/.claude-plugin/plugin.json"
-
     try:
         result = subprocess.run(
             ["curl", "-fsSL", url],
@@ -49,9 +58,12 @@ def fetch_plugin_metadata(source: str, path: str, ref: str = "main") -> Dict:
         )
         return json.loads(result.stdout)
     except Exception:
-        # plugin.json is optional
         return {"dependencies": []}
 
+
+# ---------------------------------------------------------------------------
+# Dependency resolution
+# ---------------------------------------------------------------------------
 
 def resolve_dependencies(
     skill_name: str,
@@ -59,58 +71,103 @@ def resolve_dependencies(
     resolved: List[str],
     visiting: Set[str]
 ) -> None:
-    """
-    Resolve dependencies recursively with cycle detection.
-
-    Args:
-        skill_name: Skill to install
-        marketplace: marketplace.json data
-        resolved: List of skills in install order (output)
-        visiting: Current recursion path (for cycle detection)
-    """
+    """Resolve dependencies recursively with cycle detection."""
     if skill_name in resolved:
         return
-
     if skill_name in visiting:
         print(f"❌ Circular dependency detected: {skill_name}", file=sys.stderr)
         sys.exit(1)
 
-    # Find in marketplace
-    plugin = None
-    for p in marketplace["plugins"]:
-        if p["name"] == skill_name:
-            plugin = p
-            break
-
+    plugin = next((p for p in marketplace["plugins"] if p["name"] == skill_name), None)
     if not plugin:
         print(f"❌ Skill '{skill_name}' not found in marketplace", file=sys.stderr)
         sys.exit(1)
 
     visiting.add(skill_name)
-
-    # Fetch metadata to get dependencies
     metadata = fetch_plugin_metadata(plugin["source"], plugin["path"])
     for dep in metadata.get("dependencies", []):
         dep_name = dep["name"] if isinstance(dep, dict) else dep
         resolve_dependencies(dep_name, marketplace, resolved, visiting)
-
     visiting.remove(skill_name)
     resolved.append(skill_name)
 
 
-def install_skill(plugin: Dict) -> None:
-    """Install skill using git sparse checkout."""
-    name = plugin["name"]
-    install_path = INSTALL_DIR / name
+# ---------------------------------------------------------------------------
+# Plugin registry helpers (installed_plugins.json + settings.json)
+# ---------------------------------------------------------------------------
 
-    if install_path.exists():
+def get_installed_plugins() -> Dict:
+    """Read installed_plugins.json, returning empty structure if missing."""
+    if not INSTALLED_PLUGINS_JSON.exists():
+        return {"version": 2, "plugins": {}}
+    try:
+        return json.loads(INSTALLED_PLUGINS_JSON.read_text())
+    except json.JSONDecodeError:
+        return {"version": 2, "plugins": {}}
+
+
+def save_installed_plugins(data: Dict) -> None:
+    """Write installed_plugins.json."""
+    INSTALLED_PLUGINS_JSON.parent.mkdir(parents=True, exist_ok=True)
+    INSTALLED_PLUGINS_JSON.write_text(json.dumps(data, indent=4))
+
+
+def get_claude_install_paths(marketplace_name: str = MARKETPLACE_NAME) -> Dict[str, Path]:
+    """Return {skill_name: install_path} for all installed skills from this marketplace."""
+    data = get_installed_plugins()
+    paths = {}
+    for plugin_key, installs in data.get("plugins", {}).items():
+        if f"@{marketplace_name}" in plugin_key:
+            skill_name = plugin_key.split("@")[0]
+            if installs:
+                paths[skill_name] = Path(installs[0]["installPath"])
+    return paths
+
+
+def register_plugin_in_settings(skill_name: str,
+                                 marketplace_name: str = MARKETPLACE_NAME) -> None:
+    """Add skill to enabledPlugins in settings.json."""
+    settings: dict = {}
+    if SETTINGS_PATH.exists():
+        try:
+            settings = json.loads(SETTINGS_PATH.read_text())
+        except json.JSONDecodeError:
+            pass
+    settings.setdefault("enabledPlugins", {})[f"{skill_name}@{marketplace_name}"] = True
+    SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SETTINGS_PATH.write_text(json.dumps(settings, indent=4))
+
+
+def deregister_plugin_in_settings(skill_name: str,
+                                   marketplace_name: str = MARKETPLACE_NAME) -> None:
+    """Remove skill from enabledPlugins in settings.json."""
+    if not SETTINGS_PATH.exists():
+        return
+    try:
+        settings = json.loads(SETTINGS_PATH.read_text())
+    except json.JSONDecodeError:
+        return
+    settings.get("enabledPlugins", {}).pop(f"{skill_name}@{marketplace_name}", None)
+    SETTINGS_PATH.write_text(json.dumps(settings, indent=4))
+
+
+# ---------------------------------------------------------------------------
+# Install / uninstall (from GitHub)
+# ---------------------------------------------------------------------------
+
+def install_skill(plugin: Dict) -> None:
+    """Download a skill from GitHub and install it into Claude Code's plugin cache."""
+    name = plugin["name"]
+    plugin_key = f"{name}@{MARKETPLACE_NAME}"
+
+    data = get_installed_plugins()
+    if plugin_key in data["plugins"]:
         print(f"⚠️  {name} already installed, skipping")
         return
 
-    temp_path = INSTALL_DIR / f"{name}.tmp"
+    temp_path = PLUGIN_CACHE / f"{name}.tmp"
 
     try:
-        # Git sparse checkout
         subprocess.run(
             ["git", "clone", "--depth=1", "--filter=blob:none", "--sparse",
              plugin["source"], str(temp_path)],
@@ -121,53 +178,72 @@ def install_skill(plugin: Dict) -> None:
             cwd=temp_path, check=True, capture_output=True
         )
 
-        # Atomic move
         skill_dir = temp_path / plugin["path"]
         if not skill_dir.exists():
-            raise RuntimeError(f"Path '{plugin['path']}' not found")
+            raise RuntimeError(f"Path '{plugin['path']}' not found in repo")
 
+        # Determine version from the downloaded plugin.json
+        plugin_json_path = skill_dir / ".claude-plugin" / "plugin.json"
+        version = "1.0.0-SNAPSHOT"
+        if plugin_json_path.exists():
+            try:
+                version = json.loads(plugin_json_path.read_text()).get("version", version)
+            except json.JSONDecodeError:
+                pass
+
+        git_sha = ""
+        try:
+            result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=temp_path,
+                                    capture_output=True, text=True)
+            git_sha = result.stdout.strip()
+        except Exception:
+            pass
+
+        install_path = PLUGIN_CACHE / MARKETPLACE_NAME / name / version
+        if install_path.exists():
+            shutil.rmtree(install_path)
+        install_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(skill_dir), str(install_path))
         shutil.rmtree(temp_path)
 
-        # Validate
         if not (install_path / "SKILL.md").exists():
-            raise RuntimeError("Missing SKILL.md")
+            raise RuntimeError("SKILL.md missing after install")
 
+        now = datetime.now(timezone.utc).isoformat()
+        data["plugins"][plugin_key] = [{
+            "scope": "user",
+            "installPath": str(install_path),
+            "version": version,
+            "installedAt": now,
+            "lastUpdated": now,
+            "gitCommitSha": git_sha,
+        }]
+        save_installed_plugins(data)
+        register_plugin_in_settings(name)
         print(f"✅ Installed {name}")
 
     except Exception as e:
-        # Cleanup
         if temp_path.exists():
             shutil.rmtree(temp_path)
-        if install_path.exists():
-            shutil.rmtree(install_path)
         print(f"❌ Failed to install {name}: {e}", file=sys.stderr)
         sys.exit(1)
 
 
 def cmd_install(args: argparse.Namespace) -> None:
-    """Install skill with dependency resolution."""
-    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
-
+    """Install a skill with automatic dependency resolution."""
     marketplace = fetch_json(MARKETPLACE_URL)
-
-    # Resolve dependencies
     resolved: List[str] = []
     resolve_dependencies(args.skill, marketplace, resolved, set())
 
-    # Show plan
     print(f"📦 Installing {args.skill} ({len(resolved)} skill(s)):")
     for name in resolved:
         print(f"  • {name}")
 
-    # Confirm
     if not args.yes:
-        response = input("\nProceed? (Y/n): ").strip().lower()
-        if response in ('n', 'no'):
+        if input("\nProceed? (Y/n): ").strip().lower() in ('n', 'no'):
             print("❌ Cancelled")
             return
 
-    # Install in dependency order
     for name in resolved:
         for plugin in marketplace["plugins"]:
             if plugin["name"] == name:
@@ -176,33 +252,23 @@ def cmd_install(args: argparse.Namespace) -> None:
 
 
 def cmd_install_all(args: argparse.Namespace) -> None:
-    """Install all skills from marketplace."""
-    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
-
+    """Install all skills from the marketplace."""
     marketplace = fetch_json(MARKETPLACE_URL)
-
-    # Get all skill names from marketplace
     all_skills = [plugin["name"] for plugin in marketplace["plugins"]]
-
-    # Resolve dependencies for all skills (deduplicates automatically)
     resolved: List[str] = []
     visiting: Set[str] = set()
     for skill_name in all_skills:
         resolve_dependencies(skill_name, marketplace, resolved, visiting)
 
-    # Show plan
-    print(f"📦 Installing all marketplace skills ({len(resolved)} total):")
+    print(f"📦 Installing all skills ({len(resolved)} total):")
     for name in resolved:
         print(f"  • {name}")
 
-    # Confirm
     if not args.yes:
-        response = input("\nProceed? (Y/n): ").strip().lower()
-        if response in ('n', 'no'):
+        if input("\nProceed? (Y/n): ").strip().lower() in ('n', 'no'):
             print("❌ Cancelled")
             return
 
-    # Install in dependency order
     for name in resolved:
         for plugin in marketplace["plugins"]:
             if plugin["name"] == name:
@@ -211,48 +277,62 @@ def cmd_install_all(args: argparse.Namespace) -> None:
 
 
 def cmd_uninstall(args: argparse.Namespace) -> None:
-    """Uninstall skill."""
-    install_path = INSTALL_DIR / args.skill
+    """Uninstall a skill from Claude Code's plugin cache."""
+    plugin_key = f"{args.skill}@{MARKETPLACE_NAME}"
+    data = get_installed_plugins()
 
-    if not install_path.exists() and not install_path.is_symlink():
+    if plugin_key not in data["plugins"]:
         print(f"❌ Skill '{args.skill}' not installed", file=sys.stderr)
         sys.exit(1)
 
+    install_path = Path(data["plugins"][plugin_key][0]["installPath"])
     if install_path.is_symlink():
         install_path.unlink()
-    else:
+    elif install_path.exists():
         shutil.rmtree(install_path)
+
+    del data["plugins"][plugin_key]
+    save_installed_plugins(data)
+    deregister_plugin_in_settings(args.skill)
     print(f"✅ Uninstalled {args.skill}")
 
 
 def cmd_uninstall_all(args: argparse.Namespace) -> None:
-    """Uninstall all skills."""
-    if not INSTALL_DIR.exists():
+    """Uninstall all skills from Claude Code's plugin cache."""
+    data = get_installed_plugins()
+    our_skills = {k: v for k, v in data["plugins"].items()
+                  if f"@{MARKETPLACE_NAME}" in k}
+
+    if not our_skills:
         print("No skills installed")
         return
 
-    skills = [d.name for d in INSTALL_DIR.iterdir() if d.is_dir()]
-    if not skills:
-        print("No skills installed")
-        return
+    print(f"🗑️  Uninstalling all skills ({len(our_skills)} total):")
+    for key in sorted(our_skills):
+        print(f"  • {key.split('@')[0]}")
 
-    # Show what will be removed
-    print(f"🗑️  Uninstalling all skills ({len(skills)} total):")
-    for skill in sorted(skills):
-        print(f"  • {skill}")
-
-    # Confirm
     if not args.yes:
-        response = input("\nProceed? (Y/n): ").strip().lower()
-        if response in ('n', 'no'):
+        if input("\nProceed? (Y/n): ").strip().lower() in ('n', 'no'):
             print("❌ Cancelled")
             return
 
-    # Remove all skills
-    for skill in skills:
-        shutil.rmtree(INSTALL_DIR / skill)
-        print(f"✅ Uninstalled {skill}")
+    for key, installs in our_skills.items():
+        skill_name = key.split('@')[0]
+        install_path = Path(installs[0]["installPath"])
+        if install_path.is_symlink():
+            install_path.unlink()
+        elif install_path.exists():
+            shutil.rmtree(install_path)
+        del data["plugins"][key]
+        deregister_plugin_in_settings(skill_name)
+        print(f"✅ Uninstalled {skill_name}")
 
+    save_installed_plugins(data)
+
+
+# ---------------------------------------------------------------------------
+# Hook management
+# ---------------------------------------------------------------------------
 
 def is_hook_registered(settings_path: Path = SETTINGS_PATH) -> bool:
     """Return True if the session-start hook is already in settings.json."""
@@ -299,11 +379,6 @@ def sync_hook(
     Sync the session-start hook from repo source to ~/.claude/hooks/.
 
     Returns one of: 'installed', 'updated', 'up-to-date', 'registered', 'no-source'
-    - installed:   hook file created for the first time + registered
-    - updated:     hook file content changed (improvement from repo)
-    - up-to-date:  hook file unchanged
-    - registered:  file was up-to-date but wasn't registered in settings.json
-    - no-source:   hook source file missing from repo (shouldn't happen)
     """
     if not hook_source.exists():
         return 'no-source'
@@ -329,25 +404,9 @@ def sync_hook(
     return status
 
 
-def get_claude_install_paths(marketplace_name: str) -> Dict[str, Path]:
-    """
-    Read installed_plugins.json and return {skill_name: install_path} for
-    all skills from the given marketplace. Returns empty dict if not found.
-    """
-    if not INSTALLED_PLUGINS_JSON.exists():
-        return {}
-    try:
-        data = json.loads(INSTALLED_PLUGINS_JSON.read_text())
-        paths = {}
-        for plugin_key, installs in data.get("plugins", {}).items():
-            if f"@{marketplace_name}" in plugin_key:
-                skill_name = plugin_key.split("@")[0]
-                if installs:
-                    paths[skill_name] = Path(installs[0]["installPath"])
-        return paths
-    except (json.JSONDecodeError, KeyError):
-        return {}
-
+# ---------------------------------------------------------------------------
+# Local development sync
+# ---------------------------------------------------------------------------
 
 def get_repo_root() -> Path:
     """Return the repository root (parent of the scripts/ directory)."""
@@ -355,11 +414,15 @@ def get_repo_root() -> Path:
 
 
 def cmd_sync_local(args: argparse.Namespace) -> None:
-    """Sync skills from the local repository into the installed location."""
+    """
+    Sync skills from the local repository into Claude Code's plugin cache.
+
+    By default, only updates skills already installed in the cache.
+    With --all, also installs skills from the repo that aren't yet in the cache.
+    """
     repo_root = get_repo_root()
     excluded = {'.git', 'docs', 'scripts', 'tests', '__pycache__', '.claude'}
 
-    # Find all skill directories in the local repo
     local_skills = sorted(
         [d for d in repo_root.iterdir()
          if d.is_dir() and d.name not in excluded and (d / 'SKILL.md').exists()],
@@ -370,16 +433,12 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
         print(f"No skills found in {repo_root}")
         return
 
-    # Split into update (already installed) and skipped (not installed)
-    to_sync = []
-    to_skip = []
-    for skill_dir in local_skills:
-        if (INSTALL_DIR / skill_dir.name).exists():
-            to_sync.append(skill_dir)
-        elif args.all:
-            to_sync.append(skill_dir)
-        else:
-            to_skip.append(skill_dir)
+    claude_paths = get_claude_install_paths()
+
+    to_update = [s for s in local_skills if s.name in claude_paths]
+    to_install = [s for s in local_skills if s.name not in claude_paths and args.all]
+    to_sync = to_update + to_install
+    to_skip = [s for s in local_skills if s not in to_sync]
 
     if not to_sync:
         print("No installed skills to update.")
@@ -387,69 +446,70 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
             print(f"  {len(to_skip)} uninstalled skills skipped (use --all to include them)")
         return
 
-    mode = "Linking" if args.link else "Copying"
-    print(f"📦 {mode} {len(to_sync)} skill(s) from {repo_root}:\n")
-    for skill_dir in to_sync:
-        status = "update" if (INSTALL_DIR / skill_dir.name).exists() else "new"
-        print(f"  • {skill_dir.name} ({status})")
-
+    print(f"📦 Syncing {len(to_sync)} skill(s) from {repo_root}:\n")
+    for skill_dir in to_update:
+        print(f"  • {skill_dir.name} (update)")
+    for skill_dir in to_install:
+        print(f"  • {skill_dir.name} (new)")
     if to_skip:
         print(f"\n  Skipping {len(to_skip)} uninstalled: {', '.join(s.name for s in to_skip)}")
         print("  Use --all to include them.")
 
     if not args.yes:
-        response = input("\nProceed? (Y/n): ").strip().lower()
-        if response in ('n', 'no'):
+        if input("\nProceed? (Y/n): ").strip().lower() in ('n', 'no'):
             print("❌ Cancelled")
             return
 
-    INSTALL_DIR.mkdir(parents=True, exist_ok=True)
+    data = get_installed_plugins()
     print()
     synced = 0
+
     for skill_dir in to_sync:
-        install_path = INSTALL_DIR / skill_dir.name
+        install_path = claude_paths.get(skill_dir.name)
+
+        if install_path is None:
+            # New skill: determine install path from local plugin.json
+            plugin_json = skill_dir / ".claude-plugin" / "plugin.json"
+            version = "1.0.0-SNAPSHOT"
+            if plugin_json.exists():
+                try:
+                    version = json.loads(plugin_json.read_text()).get("version", version)
+                except json.JSONDecodeError:
+                    pass
+            install_path = PLUGIN_CACHE / MARKETPLACE_NAME / skill_dir.name / version
+
         try:
-            # Remove existing install or symlink
             if install_path.is_symlink():
                 install_path.unlink()
             elif install_path.exists():
                 shutil.rmtree(install_path)
 
-            if args.link:
-                install_path.symlink_to(skill_dir.resolve())
-            else:
-                shutil.copytree(skill_dir, install_path)
+            install_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(skill_dir, install_path)
 
-            print(f"  {'🔗' if args.link else '✅'} {skill_dir.name}")
+            # Register new skills in both registry files
+            plugin_key = f"{skill_dir.name}@{MARKETPLACE_NAME}"
+            now = datetime.now(timezone.utc).isoformat()
+            if plugin_key not in data["plugins"]:
+                data["plugins"][plugin_key] = [{
+                    "scope": "user",
+                    "installPath": str(install_path),
+                    "version": install_path.name,
+                    "installedAt": now,
+                    "lastUpdated": now,
+                }]
+                register_plugin_in_settings(skill_dir.name)
+            else:
+                data["plugins"][plugin_key][0]["lastUpdated"] = now
+
+            print(f"  ✅ {skill_dir.name}")
             synced += 1
         except Exception as e:
             print(f"  ❌ {skill_dir.name}: {e}")
 
-    action = "linked" if args.link else "synced"
-    print(f"\n{synced}/{len(to_sync)} skills {action}.")
+    save_installed_plugins(data)
+    print(f"\n{synced}/{len(to_sync)} skills synced.")
 
-    # Also sync to Claude Code's real plugin cache so changes are immediately live.
-    # Always copy here — never symlink. Claude Code manages this directory and
-    # will silently remove symlinks it doesn't recognise.
-    claude_paths = get_claude_install_paths("mdproctor-skills")
-    if claude_paths:
-        cache_synced = 0
-        for skill_dir in to_sync:
-            install_path = claude_paths.get(skill_dir.name)
-            if not install_path:
-                continue
-            try:
-                if install_path.is_symlink():
-                    install_path.unlink()
-                elif install_path.exists():
-                    shutil.rmtree(install_path)
-                shutil.copytree(skill_dir, install_path)
-                cache_synced += 1
-            except Exception as e:
-                print(f"  ⚠️  Claude cache sync failed for {skill_dir.name}: {e}")
-        print(f"✅ {cache_synced}/{len(to_sync)} skills synced to Claude Code plugin cache")
-
-    # Sync the session-start hook
     hook_status = sync_hook()
     hook_messages = {
         'installed':  '🔗 Session-start hook installed and registered',
@@ -463,18 +523,18 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
 
 def cmd_list(args: argparse.Namespace) -> None:
     """List installed skills."""
-    if not INSTALL_DIR.exists():
-        print("No skills installed")
-        return
-
-    skills = [d.name for d in INSTALL_DIR.iterdir() if d.is_dir()]
-    if not skills:
+    paths = get_claude_install_paths()
+    if not paths:
         print("No skills installed")
     else:
-        print(f"📦 Installed skills ({len(skills)}):")
-        for skill in sorted(skills):
+        print(f"📦 Installed skills ({len(paths)}):")
+        for skill in sorted(paths):
             print(f"  • {skill}")
 
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -482,37 +542,29 @@ def main() -> int:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # install
-    install_parser = subparsers.add_parser("install", help="Install a skill")
+    install_parser = subparsers.add_parser("install", help="Install a skill from the marketplace")
     install_parser.add_argument("skill", help="Skill name")
-    install_parser.add_argument("-y", "--yes", action="store_true",
-                               help="Skip confirmation")
+    install_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
 
-    # install-all
     install_all_parser = subparsers.add_parser("install-all", help="Install all marketplace skills")
-    install_all_parser.add_argument("-y", "--yes", action="store_true",
-                                   help="Skip confirmation")
+    install_all_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
 
-    # uninstall
     uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall a skill")
     uninstall_parser.add_argument("skill", help="Skill name")
 
-    # uninstall-all
     uninstall_all_parser = subparsers.add_parser("uninstall-all", help="Uninstall all skills")
-    uninstall_all_parser.add_argument("-y", "--yes", action="store_true",
-                                     help="Skip confirmation")
+    uninstall_all_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
 
-    # sync-local
-    sync_parser = subparsers.add_parser("sync-local",
-        help="Sync skills from local repo into installed location")
-    sync_parser.add_argument("--all", action="store_true",
-        help="Also install skills not currently installed (default: update only)")
-    sync_parser.add_argument("--link", action="store_true",
-        help="Symlink instead of copy (edits are instantly reflected)")
-    sync_parser.add_argument("-y", "--yes", action="store_true",
-        help="Skip confirmation")
+    sync_parser = subparsers.add_parser(
+        "sync-local",
+        help="Sync skills from local repo into Claude Code's plugin cache"
+    )
+    sync_parser.add_argument(
+        "--all", action="store_true",
+        help="Also install skills not yet in the cache (default: update only)"
+    )
+    sync_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
 
-    # list
     subparsers.add_parser("list", help="List installed skills")
 
     args = parser.parse_args()
