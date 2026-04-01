@@ -3,6 +3,7 @@
 **Status:** Design phase — not yet implemented as a skill
 **Skill name (planned):** `project-health`
 **Slash command (planned):** `/project-health`
+**Companion skill:** [`project-refine`](project-refine.md) — dedicated improvement and bloat reduction
 
 This document tracks the design and scope of the `project-health` skill. It is a working document — update it as the skill evolves.
 
@@ -10,16 +11,50 @@ This document tracks the design and scope of the `project-health` skill. It is a
 
 ## Purpose
 
-A single skill that covers all the systematic verification, validation, and improvement checks that get asked for repeatedly during development. Instead of asking Claude ad-hoc, the user invokes a named, configurable, consistent check.
+Answers the question: **is the project correct, complete, and consistent?**
+
+A systematic correctness and compliance check run at commit time, pre-release, or on demand. Every category checks whether things are right — and includes refinement questions specific to that category ("could this correct thing be better?"). It does not cover general improvement work across docs, code, and tests — that belongs to [`project-refine`](project-refine.md).
 
 It replaces:
-- "do a deep analysis of our work"
 - "make sure docs and code are in sync"
 - "check for duplications, conflicts, gaps"
 - "look for potential bugs or poor UX"
 - pre-release system reviews
 
 Other skills can reference specific check categories when they need things verified.
+
+---
+
+## Relationship with project-refine
+
+`project-health` and [`project-refine`](project-refine.md) are companion skills designed to work together:
+
+| | `project-health` | `project-refine` |
+|--|-----------------|-----------------|
+| **Question** | Is it correct? | Could it be better? |
+| **Output** | CRITICAL / HIGH / MEDIUM / LOW findings | 🔴🟡🟢 bloat score opportunities |
+| **Mindset** | Pass / fail | Improvement suggestions |
+| **Runs at** | Every commit (subset), pre-release, on demand | Periodic sessions, on demand |
+| **Blocks work?** | CRITICAL findings should block release | Never blocks — always advisory |
+| **Refinement notes** | ✅ Within each category (domain-specific) | ✅ Across docs, code, and tests |
+
+**Using them together:**
+
+```bash
+# 1. Verify correctness first
+/project-health --prerelease
+
+# 2. Once health is green, look for improvement opportunities
+/project-refine
+
+# Or run both in sequence for a full review
+/project-health --all
+/project-refine
+```
+
+The refinement questions within each `project-health` category (e.g. "could `docs-sync` be improved?") are domain-specific — they belong in `project-health` because they're refinement considerations *about a specific correctness domain*. General improvement work (docs restructuring, code deduplication, test grouping, bloat reduction) belongs in `project-refine` because it cuts across domains and requires a different mindset.
+
+**Shared infrastructure:** both skills use the same document scanning scope, CLAUDE.md configuration section, and project type awareness. Running one does not duplicate work done by the other.
 
 ---
 
@@ -41,8 +76,10 @@ Other skills can reference specific check categories when they need things verif
 # Predefined groups (see Suggested Invocation Groups)
 /project-health --commit
 /project-health --prerelease
-/project-health --refine
 /project-health --setup
+
+# For improvement and bloat reduction, use the companion skill
+/project-refine
 ```
 
 ---
@@ -142,7 +179,7 @@ Each category covers two dimensions:
 | `artifacts` | All required primary artifacts for this project type exist | Are any required artifacts over-complicated? | Mechanical | On setup, pre-release |
 | `conventions` | Project conventions are documented in CLAUDE.md and followed | Could conventions be expressed more concisely? | Mixed | Pre-release |
 | `framework` | Documented patterns and examples are correct for the project's framework | Could framework guidance be simplified? | Judgment | Pre-release, deep review |
-| `refine` | — (refinement is the purpose of this category) | Docs structure, code deduplication, test grouping, universal bloat | Judgment | On demand, periodic review |
+| *(see project-refine)* | — | Docs structure, code deduplication, test grouping, universal bloat — handled by [`project-refine`](project-refine.md) | Judgment | On demand, periodic |
 
 ---
 
@@ -222,10 +259,11 @@ Each category covers two dimensions:
 | `--commit` | `docs-sync`, `cross-refs`*, `coverage`*, `naming`* | Fast checks after every significant change |
 | `--prerelease` | All mechanical + mixed categories for the project type | Before tagging a release |
 | `--deep` | All categories for the project type | Periodic deep review, after major refactors |
-| `--refine` | `refine` only | Dedicated improvement session |
-| `--setup` | `config`, `infrastructure`*, `coverage`* | After initial project setup |
+| `--setup` | `config`, `artifacts`, `infrastructure`*, `coverage`* | After initial project setup |
 
 *\* type: skills only — skipped automatically for other project types*
+
+For dedicated improvement sessions, use [`/project-refine`](project-refine.md).
 
 ---
 
@@ -597,45 +635,7 @@ Every project uses a framework with specific patterns. This check verifies that 
 
 ---
 
-### `refine` — Improvement Opportunities
-
-Unlike other categories, `refine` has no Quality dimension — everything here is a refinement opportunity in what already works. Findings are rated with a **bloat score** (see Output Format) to help prioritise.
-
-**Documentation** — Could docs be better structured, smaller, or easier to read?
-- [ ] Would a different grouping or ordering of sections improve navigation?
-- [ ] Are there docs over ~400 lines with multiple distinct topics that would be clearer as separate linked files?
-- [ ] Are there multiple small files covering closely related topics that would read better merged?
-- [ ] Are there readability issues — passive voice, unexplained jargon, walls of text, sentences over 25 words?
-- [ ] Are there sections that restate what was just said, or introductory paragraphs that add no information?
-- [ ] Are there sections describing plans, history, or context that are no longer relevant?
-
-**Code** — Could code be deduplicated, abstracted, or simplified?
-- [ ] Are there the same blocks of logic appearing 3+ times? (high risk: fix one, miss others)
-- [ ] Are there similar but not identical blocks that should be parameterised and shared?
-- [ ] Are there functions over ~30 lines combining multiple distinct concerns?
-- [ ] Are there literal values (strings, numbers, paths) repeated in multiple places?
-- [ ] Are there repeated sequences of calls that always appear together and belong in a helper?
-- [ ] Is there commented-out code? (remove it — git history preserves it)
-
-**Tests** — Could tests be better grouped, modularised, or deduplicated?
-- [ ] Are there tests for one feature spread across multiple files without clear ownership?
-- [ ] Is the same fixture or arrangement code copy-pasted across multiple test methods?
-- [ ] Are there test files over ~300 lines testing multiple unrelated concerns?
-- [ ] Do test names follow a consistent pattern, making it easy to see what's covered?
-- [ ] Would any tests benefit from being grouped into classes or modules?
-
-**Universal bloat** — What is oversized or over-engineered across docs, code, and tests?
-- [ ] Are there files >50% larger than the guideline for their type?
-- [ ] Are there logic or document sections nested >3 levels deep that could be flattened?
-- [ ] Are there functions with >4 parameters that could be grouped into a config object?
-- [ ] Are there complex solutions for problems that have a simpler answer?
-- [ ] Are there more comment lines than code lines explaining obvious things?
-
----
-
 ## Output Format
-
-### Quality and other categories
 
 Findings grouped by severity:
 
@@ -659,30 +659,7 @@ Findings grouped by severity:
 ✅ consistency, security, infrastructure, release
 ```
 
----
-
-### `refine` output — bloat score
-
-Refinement findings are presented as **opportunities** not failures, rated on two axes:
-
-**Size reduction potential:** 🔴 HIGH (>30% reduction possible) · 🟡 MEDIUM (10–30%) · 🟢 LOW (<10%)
-**Impact of fixing:** A (navigation/readability/maintenance) · B (noticeable improvement) · C (cosmetic)
-
-```
-## refine — Opportunities Found
-
-### 🔴A — High impact, significant size reduction
-- scripts/validate_all.py (lines 45–89): run_validator() logic repeated
-  for each tier; extract to a shared helper. Est. -40 lines.
-
-### 🟡B — Medium impact
-- update-primary-doc/SKILL.md (312 lines): Steps 4–7 cover two unrelated
-  concerns; splitting would improve navigation. Est. -20 lines.
-
-### 🟢C — Low impact, cosmetic
-- java-dev/SKILL.md: "Code duplication" and "Code clarity" are adjacent
-  and both cover style; could merge. Est. -5 lines.
-```
+For improvement opportunities and bloat scoring, see [`project-refine`](project-refine.md) — its output format uses 🔴🟡🟢 bloat scores rather than severity ratings.
 
 ---
 
@@ -697,7 +674,6 @@ Some checks are fast and important enough to run after every significant commit.
 - `naming` — skill name drift
 
 **Not suitable for every commit:**
-- `refine` — judgment-heavy, designed for periodic sessions
 - `user-journey` — expensive
 - `effectiveness` — subjective
 - `git` — stateful
