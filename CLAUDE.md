@@ -293,6 +293,16 @@ All major skills include "Common Pitfalls" tables documenting real mistakes:
 
 **Quality check:** During deep analysis, verify no third-party skills are documented anywhere.
 
+## How Claude Code Loads Skills
+
+Skills live in `~/.claude/skills/<skill-name>/` and are **auto-discovered** — no registration in `settings.json` or `installed_plugins.json` is needed.
+
+**Skills must be real directories, not symlinks.** Claude Code does not follow symlinks in `~/.claude/skills/`. A symlink at `~/.claude/skills/java-dev` pointing elsewhere will be silently ignored — the skill will not load. Always copy skill content into the directory.
+
+**Skills need a `commands/` directory for slash commands.** A skill with only a `SKILL.md` is loadable by Claude via the Skill tool (triggered automatically by description matching) but does NOT create a `/skill-name` slash command in the UI. To register a slash command, the skill must have `commands/<skill-name>.md`. Use `python scripts/generate_commands.py` to create missing command files.
+
+**`~/.claude/plugins/cache/` is the wrong location.** That directory is managed by Claude Code's marketplace package manager (`/plugin install`). Skills placed there work but require versioned subdirectories, `installed_plugins.json` registration, and `enabledPlugins` entries — unnecessary complexity. Always use `~/.claude/skills/` instead.
+
 ## Editing Skills
 
 When modifying existing skills:
