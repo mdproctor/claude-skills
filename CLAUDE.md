@@ -325,6 +325,7 @@ Failing to execute these checks before committing is a failure, not a decision. 
 
 Run these checks **before every commit** to this repository:
 
+- [ ] **Commit message** → No `Co-Authored-By`, `Generated-by`, or AI attribution of any kind. Commit messages describe WHAT and WHY only.
 - [ ] **New skill added?** → Run `python scripts/generate_commands.py` to create its slash command file
 - [ ] **SKILL.md files modified?** → Follow readme-sync.md workflow (NEVER skip, let it decide if README needs updates)
 - [ ] **CLAUDE.md modified?** → Follow relevant update workflow if applicable
