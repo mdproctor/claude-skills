@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-This is a skill collection for Claude Code, providing specialized guidance for Java/Quarkus development workflows. Skills are markdown files with YAML frontmatter that Claude Code loads to execute specific development tasks.
+This is a skill collection for Claude Code, providing specialized guidance for professional software development workflows. Skills are markdown files with YAML frontmatter that Claude Code loads to execute specific development tasks.
 
 ## Project Type
 
@@ -107,60 +107,17 @@ Skills follow a hierarchical naming pattern:
 
 **Why this matters:** The naming pattern makes it clear which skills are generic foundations vs. language/tool-specific implementations. When adding support for new languages, create skills like `go-code-review` (extends `code-review-principles`), `gradle-dependency-update` (extends `dependency-management-principles`), etc.
 
-#### Extending to New Languages: Pattern Examples
+#### Extending to New Languages
 
-**When adding support for new languages/frameworks, follow established patterns to maintain consistency.**
+When adding a new language, apply these principles consistently:
 
-**Python ecosystem:**
-- `python-dev` — NOT `python-development` (keep 1-word suffix for consistency with `java-dev`)
-- `python-code-review` — extends `code-review-principles` for Python (consistent with `java-code-review`)
-- `pytest-runner` — NOT just `pytest` (suffix clarifies it's a test runner skill)
-- `pip-dependency-update` — extends `dependency-management-principles` for pip
+1. **Canonical names** — `go-dev` not `golang-dev`, `ts-dev` not `javascript-dev`
+2. **1-word base suffix** — `*-dev`, `*-code-review`, `*-security-audit` (not `*-development`)
+3. **Tool prefix for tools** — `cargo-*`, `npm-*`, `pip-*`, `gomod-*`
+4. **Framework prefix for frameworks** — `react-*`, `vue-*`, `django-*`
+5. **Consistency over brevity** — match existing patterns
 
-**Go ecosystem:**
-- `go-dev` — NOT `golang-dev` (use language's canonical name)
-- `go-code-review` — extends `code-review-principles` for Go
-- `go-security-audit` — extends `security-audit-principles` for Go-specific issues
-- `gomod-dependency-update` — extends `dependency-management-principles` for go.mod
-
-**Rust ecosystem:**
-- `rust-dev` — follows same pattern
-- `rust-code-review` — extends `code-review-principles` for Rust
-- `cargo-dependency-update` — extends `dependency-management-principles` for Cargo.toml
-
-**JavaScript/TypeScript ecosystem:**
-- `ts-dev` — TypeScript development (abbreviated to avoid `typescript-dev` length)
-- `ts-code-review` — extends `code-review-principles` for TypeScript
-- `npm-dependency-update` — extends `dependency-management-principles` for package.json
-- `react-dev` — framework-specific (follows `quarkus-flow-dev` pattern)
-
-**Common naming mistakes to avoid:**
-
-| Mistake | Why Wrong | Correct |
-|---------|-----------|---------|
-| `python-development` | Inconsistent with `java-dev` | `python-dev` |
-| `golang-dev` | "Go" is canonical name | `go-dev` |
-| `python-review` | Doesn't match `java-code-review` pattern | `python-code-review` |
-| `pytest` | Ambiguous (skill or tool?) | `pytest-runner` or `pytest-dev` |
-| `javascript-dev` | Too long, TypeScript more common | `ts-dev` (covers both) |
-| `react` | Just framework name | `react-dev` |
-
-**Key principles:**
-1. **Consistency over brevity** — match existing patterns even if longer
-2. **1-word base** — `*-dev`, `*-code-review`, `*-security-audit` (NOT `*-development`, `*-reviewing`)
-3. **Canonical names** — Go not Golang, Python not Py, TypeScript not JavaScript
-4. **Tool prefix for tool-specific** — `cargo-*`, `npm-*`, `pip-*`, `gomod-*`
-5. **Framework prefix for framework-specific** — `react-*`, `vue-*`, `django-*`
-
-**Testing consistency:**
-```bash
-# List all language-specific skills
-ls -d *-dev *-code-review *-security-audit 2>/dev/null
-
-# Should show consistent patterns:
-# java-dev, python-dev, go-dev (NOT python-development, golang-dev)
-# java-code-review, python-code-review, go-code-review (NOT python-review)
-```
+Quick check: `ls -d *-dev *-code-review *-security-audit 2>/dev/null` should show a consistent pattern.
 
 ### Skill Chaining
 
@@ -368,29 +325,6 @@ Run these checks **before every commit** to this repository:
 - [ ] **Framework changes** (same pattern across multiple skills)? → Document in README.md AND QUALITY.md if validation-related
 - [ ] **Infrastructure changes** (validators, test infrastructure, orchestrators)? → Update README.md § Repository Structure, QUALITY.md § Implementation Status, and this file § Validation Script Roadmap
 
-### Anti-Rationalization Rules
-
-**Do NOT rationalize skipping these checks:**
-- ❌ "Just internal changes" → Wrong, internal changes can warrant documentation
-- ❌ "Not significant enough" → Wrong, let the workflow decide significance
-- ❌ "I know what needs updating" → Wrong, you'll miss things (proven multiple times)
-- ❌ "The completion doc is sufficient" → Wrong, README/QUALITY.md must stay current
-- ❌ "This is meta-work about infrastructure" → Wrong, infrastructure changes need MORE documentation, not less
-- ✅ **ALWAYS execute the checklist** — it exists to catch what you miss
-
-### Enforcement Pattern
-
-**Before committing:**
-1. Read this checklist top to bottom
-2. For each item that applies: Execute it (don't just think about it)
-3. If you're unsure if an item applies: Execute it anyway
-4. Only after all applicable items executed: Commit
-
-**This is the same discipline as:**
-- Running tests before committing code
-- Validating syntax before pushing
-- Code review before merging
-
 ### When Adding a Skill to a Bundle (or Changing Bundles)
 
 Bundle membership is defined in **`.claude-plugin/marketplace.json` § `bundles`** — the single source of truth. The install/uninstall wizard skills read this at runtime, so the menus and counts update automatically.
@@ -430,63 +364,11 @@ but this checklist ensures the new type is fully wired into all workflows.**
 
 ---
 
-## Meta-Rule: Checklists Are Mandatory By Default
+## Meta-Rule: Checklists Are Mandatory
 
-**CRITICAL: All checklists in this file and in skills are MANDATORY unless explicitly marked (advisory).**
+All checklists in this file and in skills are **MANDATORY** unless explicitly marked `(advisory)`, `Optional:`, or `Consider:`. If not marked, do it.
 
-**This applies to:**
-- Pre-Commit Checklists
-- Success Criteria sections in skills
-- Validation checklists
-- Deep Analysis checklists
-- Review checklists
-- Any numbered or bulleted procedure
-
-**Default assumption: MANDATORY.**
-
-If an item is truly optional or advisory, it will be explicitly marked:
-- "(advisory)" suffix
-- "Optional:" prefix
-- "Consider:" prefix (judgment call)
-
-**If not marked advisory, it's mandatory. Period.**
-
-**Why this matters:**
-
-Treating checklists as advisory leads to:
-- Skipped steps
-- Incomplete work
-- Documentation drift
-- Rationalization ("I know better")
-- Repeated regressions
-
-Treating checklists as mandatory ensures:
-- Consistent execution
-- Complete work
-- Up-to-date documentation
-- Discipline over judgment
-- Prevention of known failures
-
-**The test:**
-- "Should I do this?" → Wrong question
-- "Is this marked (advisory)?" → Right question
-  - If no → Do it
-  - If yes → Use judgment
-
-**This is fundamental discipline, like:**
-- Running tests before committing
-- Reading the file before editing it
-- Validating syntax before pushing
-- Following TDD cycle (red-green-refactor)
-
-**Exception handling:**
-If you believe a checklist item doesn't apply to your situation, that's a flag to:
-1. Re-read the item carefully
-2. Check if you're rationalizing
-3. If still uncertain → Execute it anyway (safer to over-apply than skip)
-4. If it truly doesn't apply → Document why in commit message
-
-**Never skip checklist items silently.**
+If a checklist item seems inapplicable: re-read it, check for rationalization, execute it anyway if uncertain. If it truly doesn't apply, document why in the commit message. Never skip silently.
 
 ---
 
@@ -542,7 +424,6 @@ When you identify a problem and prepare a solution, STOP and consider:
 
 **Language/framework foundation skills** (others build on these):
 - `java-dev` — all Java development extends this
-- `git-commit` — generic conventional commits (extended by `java-git-commit`)
 
 **Workflow integrators** (chain multiple skills):
 - `git-commit` — automatically invokes `skill-validation.md` workflow (if SKILL.md staged), `update-claude-md` (if CLAUDE.md exists), and `readme-sync.md` (if README.md exists and skill changes). Routes to java-git-commit or custom-git-commit based on project type
@@ -560,17 +441,6 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `java-update-design` — DESIGN.md synchronization (architecture documentation), invoked by `java-git-commit`. For type: java projects only
 - `update-claude-md` — CLAUDE.md synchronization (workflow documentation), invoked by `git-commit`, `java-git-commit`, and `custom-git-commit`
 - `readme-sync.md` — README.md synchronization (skills repository documentation), invoked by `git-commit`. For type: skills projects only
-
-## README Synchronization
-
-When adding/modifying skills, update README sections:
-
-- **Skills** section: Add/update skill description with trigger conditions
-- **How Skills Work Together**: Update chaining workflows if changed
-- **Skill Chaining Reference** table: Add new chaining relationships
-- **Key Features**: Note new flowcharts, Prerequisites sections, etc.
-
-The README is the single source of truth for the skill collection's architecture.
 
 ## Quality Assurance Framework
 
@@ -613,8 +483,8 @@ For complete inventory of validation scripts by tier:
 📖 **[QUALITY.md § Validation Script Roadmap](QUALITY.md#validation-script-roadmap)**
 
 **Quick reference:**
-- **COMMIT tier (<2s)**: 7 validators (frontmatter, CSO, flowcharts, references, naming, sections, structure)
-- **PUSH tier (<30s)**: 5 validators + 3 test tools (cross-document, temporal, usability, edge cases, behavior, readme sync, regression tests, coverage)
+- **COMMIT tier (<2s)**: 8 validators (frontmatter, CSO, references, naming, sections, structure, project-types, flowcharts)
+- **PUSH tier (<30s)**: cross-document, temporal, usability, edge cases, behavior, readme sync + regression tests, coverage
 - **CI tier (<5min)**: Python quality (mypy, flake8, bandit) + functional tests
 
 ### Success Criteria
@@ -641,139 +511,19 @@ For complete details on validation rules, integration points, corruption pattern
 
 ### Running Validators Locally
 
-**Before committing changes, test locally to catch issues early:**
-
-#### Validating a Single Document
-
 ```bash
-# Validate README.md before staging
-python scripts/validate_document.py README.md
-
-# Validate DESIGN.md after editing
-python scripts/validate_document.py docs/DESIGN.md
-
-# Validate custom primary doc
-python scripts/validate_document.py docs/vision.md
-```
-
-**Output examples:**
-
-**Clean document (exit code 0):**
-```
-✅ No issues found in README.md
-```
-
-**Critical issues (exit code 1):**
-```
-❌ CRITICAL issues found in DESIGN.md:
-  - Line 45: Duplicate header "## Architecture Overview"
-  - Line 127: Corrupted table (header followed by prose)
-
-Fix these issues before committing.
-```
-
-**Warnings (exit code 2):**
-```
-⚠️  WARNING issues found in CLAUDE.md:
-  - Line 234: Orphaned section header (no content before next section)
-  - Large structural change: 156 lines modified
-
-Review recommended but not blocking.
-```
-
-#### Validating All Staged Files
-
-```bash
-# Validate all .md files about to be committed
-git diff --staged --name-only | grep '\.md$' | while read file; do
-  python scripts/validate_document.py "$file"
-done
-```
-
-#### Validating Specific Project Type Docs
-
-**For type: skills repositories:**
-```bash
-# Validate README.md and CLAUDE.md
+# Validate a specific document
 python scripts/validate_document.py README.md
 python scripts/validate_document.py CLAUDE.md
+
+# Validate all staged .md files
+git diff --staged --name-only | grep '\.md$' | xargs -I{} python scripts/validate_document.py {}
+
+# Run full commit-tier validation suite
+python scripts/validate_all.py --tier commit
 ```
 
-**For type: java repositories:**
-```bash
-# Validate DESIGN.md and CLAUDE.md
-python scripts/validate_document.py docs/DESIGN.md
-python scripts/validate_document.py CLAUDE.md
-```
+Exit codes: `0` = clean · `1` = CRITICAL (blocks commit) · `2` = WARNING (review recommended) · `3` = NOTE
 
-**For type: custom repositories:**
-```bash
-# Validate your primary doc (example: vision.md)
-python scripts/validate_document.py docs/vision.md
-python scripts/validate_document.py CLAUDE.md
-```
+Local validation is optional but recommended — pre-commit validation runs automatically and is mandatory.
 
-#### Common Workflow: Edit → Validate → Stage → Commit
-
-```bash
-# 1. Edit document
-vim README.md
-
-# 2. Validate locally
-python scripts/validate_document.py README.md
-
-# 3. If clean, stage
-git add README.md
-
-# 4. Commit (validation runs again automatically)
-# git-commit invokes validation as pre-commit gate
-```
-
-**Why validate locally:**
-- Catch corruption before staging
-- Faster feedback loop (no need to attempt commit)
-- Understand issues in context (see the file while fixing)
-- Learn document quality patterns over time
-
-**Integration with workflows:**
-- Local validation is **optional** (but recommended)
-- Pre-commit validation is **mandatory** (runs automatically)
-- Both use the same `validate_document.py` script (consistent rules)
-
----
-
-## Issue #002: Document Corruption During Sync
-
-**Symptom:** Duplicate sections, corrupted tables, orphaned headers
-
-**Impact:** Unreadable documentation, broken links, user confusion
-
-**Root Cause:** Sync operations (update-claude-md, java-update-design, etc.) can introduce corruption when proposing large changes
-
-**Detection:** Automated - `validate_document.py` checks all .md files
-
-**Prevention:**
-- Universal validation in all sync workflows
-- Pre-commit gate in git-commit for all project types
-- Automated revert if validation fails
-- Documentation in CLAUDE.md "Document Sync Quality Assurance"
-
-**Test Coverage:** ✅ Automated validation on all sync operations
-```
-
-### Success Criteria
-
-Document sync quality assurance is working when:
-
-- ✅ All sync workflows validate before staging
-- ✅ git-commit validates all staged .md files (all project types)
-- ✅ CRITICAL corruption is automatically caught and reverted
-- ✅ Zero document corruption reaches commits
-- ✅ Validation script is portable to all projects using these skills
-- ✅ Users never need to manually check for corruption
-
-**Not complete until:**
-- validate_document.py created and tested
-- All 4 sync workflows updated (update-claude-md, java-update-design, update-primary-doc, readme-sync.md)
-- git-commit updated to validate all .md files
-- CLAUDE.md documentation complete
