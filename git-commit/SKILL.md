@@ -41,9 +41,9 @@ Extract the type (skills | java | blog | custom | generic).
   > This is a type: java project. Please use `java-git-commit` instead:
   > `/java-git-commit` or say "java commit"
 
-- **type: blog** → Continue with Step 1 (this skill handles blog repos;
-  a dedicated `blog-git-commit` skill with post validation and index sync
-  will be added when the primary document is defined)
+- **type: blog** → STOP and tell user:
+  > This is a type: blog project. Please use `blog-git-commit` instead:
+  > `/blog-git-commit` or say "blog commit"
 
 - **type: custom** → STOP and tell user:
   > This is a type: custom project. Please use `custom-git-commit` instead:

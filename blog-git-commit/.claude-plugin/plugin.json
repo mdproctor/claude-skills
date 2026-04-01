@@ -1,0 +1,5 @@
+{
+  "name": "blog-git-commit",
+  "description": "Commit changes to a GitHub Pages / Jekyll blog with blog-specific conventions",
+  "version": "1.0.0-SNAPSHOT"
+}

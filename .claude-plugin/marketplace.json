@@ -71,6 +71,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "blog-git-commit",
+      "source": "./blog-git-commit",
+      "description": "GitHub Pages / Jekyll blog commits with content-specific conventions and validation",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "java-dev",
       "source": "./java-dev",
       "description": "Java/Quarkus development workflow",
