@@ -428,7 +428,9 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
     action = "linked" if args.link else "synced"
     print(f"\n{synced}/{len(to_sync)} skills {action}.")
 
-    # Also sync to Claude Code's real plugin cache so changes are immediately live
+    # Also sync to Claude Code's real plugin cache so changes are immediately live.
+    # Always copy here — never symlink. Claude Code manages this directory and
+    # will silently remove symlinks it doesn't recognise.
     claude_paths = get_claude_install_paths("mdproctor-skills")
     if claude_paths:
         cache_synced = 0
@@ -441,14 +443,11 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
                     install_path.unlink()
                 elif install_path.exists():
                     shutil.rmtree(install_path)
-                if args.link:
-                    install_path.symlink_to(skill_dir.resolve())
-                else:
-                    shutil.copytree(skill_dir, install_path)
+                shutil.copytree(skill_dir, install_path)
                 cache_synced += 1
             except Exception as e:
                 print(f"  ⚠️  Claude cache sync failed for {skill_dir.name}: {e}")
-        print(f"{'🔗' if args.link else '✅'} {cache_synced}/{len(to_sync)} skills synced to Claude Code plugin cache")
+        print(f"✅ {cache_synced}/{len(to_sync)} skills synced to Claude Code plugin cache")
 
     # Sync the session-start hook
     hook_status = sync_hook()

@@ -616,7 +616,9 @@ class TestGetClaudeInstallPaths(unittest.TestCase):
                  patch.object(cs, "sync_hook", return_value='up-to-date'):
                 cs.cmd_sync_local(make_args())
 
-            # Cache should now have the updated content
+            # Cache should now be a real directory (never a symlink)
+            self.assertFalse(cache_path.is_symlink())
+            self.assertTrue(cache_path.is_dir())
             updated = (cache_path / "SKILL.md").read_text()
             self.assertNotEqual(updated, "old cached version")
             self.assertIn("git-commit", updated)
