@@ -89,27 +89,53 @@ The refinement questions within each `project-health` category (e.g. "could `doc
 
 ---
 
+## Tiers
+
+Every invocation has a depth level. Pass `--tier N` or omit it to be prompted:
+
+```bash
+/project-health --tier 2
+# or omit to be asked:
+#   How thorough should this check be?
+#   1 - Quick    validators only (~30s)
+#   2 - Standard universal quality checks (~5 min)
+#   3 - Full     universal + type-specific quality (~15 min)
+#   4 - Deep     everything + refinement questions (~30 min)
+```
+
+| Tier | What runs | Named alias |
+|------|-----------|-------------|
+| 1 | `validate_all.py --tier commit` only | `--commit` |
+| 2 | Universal quality checks, mechanical only | — |
+| 3 | Full universal quality + type-specific quality | `--prerelease` |
+| 4 | All of tier 3 + refinement questions within each category + deep type-specific | `--deep` |
+
+Named aliases (`--commit`, `--prerelease`, `--deep`) are shorthand for the equivalent tier. Type-specific health skills inherit the same tier system.
+
+---
+
 ## Invocation
 
 ```bash
-# Interactive — presents menu of categories to select
+# Prompted for tier if omitted
 /project-health
 
-# Run specific categories
+# Explicit tier
+/project-health --tier 3
+
+# Run specific categories (at default or specified tier)
 /project-health docs-sync consistency
+/project-health docs-sync --tier 1
 
-# Run all categories for this project type
-/project-health --all
+# Named tier aliases
+/project-health --commit       # tier 1
+/project-health --prerelease   # tier 3
+/project-health --deep         # tier 4
 
-# Run categories configured as default in CLAUDE.md
-/project-health --defaults
+# Save report (date-prefixed, gitignored)
+/project-health --tier 3 --save
 
-# Predefined groups (see Suggested Invocation Groups)
-/project-health --commit
-/project-health --prerelease
-/project-health --setup
-
-# For improvement and bloat reduction, use the companion skill
+# Companion skill for improvement opportunities
 /project-refine
 ```
 

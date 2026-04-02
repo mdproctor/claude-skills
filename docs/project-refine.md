@@ -60,17 +60,50 @@ Each category in `project-health` includes refinement questions specific to that
 
 ---
 
+## Tiers
+
+Every invocation has a depth level. Pass `--tier N` or omit it to be prompted:
+
+```bash
+/project-refine --tier 2
+# or omit to be asked:
+#   How thorough should this refinement session be?
+#   1 - Quick    structural checks only, no file reading (~2 min)
+#   2 - Standard read top candidates by churn + size (~10 min)
+#   3 - Full     deeper scan, IntelliJ MCP if available (~20 min)
+#   4 - Deep     full scope, prompted for focus area (~30-45 min)
+```
+
+| Tier | Docs | Code | Cost |
+|------|------|------|------|
+| 1 | File sizes, section counts, obvious structure issues | Grep for repeated literals, file size analysis — no file reading | ~2 min |
+| 2 | Read top candidates | Read top 10 files by churn+size, search-based duplication scan | ~10 min |
+| 3 | Full doc scan | Read top 20 files, IntelliJ MCP semantic search if available | ~20 min |
+| 4 | Full doc scan | All of tier 3 plus prompts for user-specified focus area | ~30-45 min |
+
+**Focus prompt (tier 2+):** Before scanning code, project-refine asks:
+> Would you like to focus on a specific directory or package? Enter a path (e.g. `src/main/java/com/example/payment`), or press Enter to use git history and file size to find candidates automatically.
+
+---
+
 ## Invocation
 
 ```bash
-# Run all refinement domains
+# Prompted for tier if omitted
 /project-refine
 
-# Run specific domains
-/project-refine docs code
+# Explicit tier
+/project-refine --tier 2
 
-# Run configured defaults
-/project-refine --defaults
+# Run specific domains at a tier
+/project-refine docs --tier 1
+/project-refine code --tier 3
+
+# Save report (date-prefixed, gitignored)
+/project-refine --tier 3 --save
+
+# Compare against a previous report (suppress already-seen findings)
+/project-refine --compare 2026-03-15-refine-report.md
 ```
 
 ---
@@ -83,8 +116,8 @@ Shares the same `## Health Check Configuration` section as `project-health`:
 ## Health Check Configuration
 
 **Default refine domains:** docs, code, universal
-**Refine skip:** (none)
-**Performance budget:** 400 lines max per SKILL.md
+**Default refine tier:** 2
+**Refine min score:** all
 **Additional doc paths:** wiki/, design/
 ```
 
