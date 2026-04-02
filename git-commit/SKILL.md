@@ -31,6 +31,47 @@ Commit messages describe **WHAT changed and WHY**. Not who or what wrote them. T
 - Subject line: imperative mood, max 50 chars, no trailing period.
 - Never run `git commit` until the user has explicitly confirmed.
 
+## Commit Decision Flow
+
+```mermaid
+flowchart TD
+    Start((Start))
+    CLAUDE_md_exists_{CLAUDE.md exists?}
+    Interactive_setup[Interactive setup]
+    Type_declared_{Type declared?}
+    Route_to_skill_{Route to skill?}
+    Stop__Use_specialized_skill[Stop: Use specialized skill]
+    Staged_changes_{Staged changes?}
+    Stop__ask_user_to_stage[Stop: ask user to stage]
+    SKILL_md_files_{SKILL.md files?}
+    Review_skills[Review skills]
+    Generate_commit_message[Generate commit message]
+    Present_proposal[Present proposal]
+    User_confirms_{User confirms?}
+    Adjust_proposal[Adjust proposal]
+    Execute_git_commit[Execute git commit]
+    Done((Done))
+    Start --> CLAUDE_md_exists_
+    CLAUDE_md_exists_ -->|yes| Type_declared_
+    CLAUDE_md_exists_ -->|no| Interactive_setup
+    Type_declared_ -->|no| Interactive_setup
+    Type_declared_ -->|yes| Route_to_skill_
+    Interactive_setup --> Route_to_skill_
+    Route_to_skill_ -->|java/custom| Stop__Use_specialized_skill
+    Route_to_skill_ -->|skills/generic| Staged_changes_
+    Staged_changes_ -->|no| Stop__ask_user_to_stage
+    Staged_changes_ -->|yes| SKILL_md_files_
+    SKILL_md_files_ -->|yes| Review_skills
+    SKILL_md_files_ -->|no| Generate_commit_message
+    Review_skills --> Generate_commit_message
+    Generate_commit_message --> Present_proposal
+    Present_proposal --> User_confirms_
+    User_confirms_ -->|no| Adjust_proposal
+    Adjust_proposal --> Present_proposal
+    User_confirms_ -->|yes| Execute_git_commit
+    Execute_git_commit --> Done
+```
+
 ## Workflow
 
 ### Step 0 — Verify or Setup Project Type
@@ -79,181 +120,7 @@ Interactively set up project type:
 
 Wait for user response.
 
-**Based on response:**
-
-**If 1 (skills):**
-Create or update CLAUDE.md:
-```markdown
-## Commit Messages
-
-**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
-
-## Project Type
-
-**Type:** skills
-```
-
-Stage CLAUDE.md:
-```bash
-git add CLAUDE.md
-```
-
-Tell user:
-> ✅ Created CLAUDE.md with type: skills
->
-> This enables:
-> - Automatic SKILL.md validation (skill-validation.md workflow)
-> - README.md synchronization (readme-sync.md workflow)
-> - CLAUDE.md synchronization (update-claude-md)
->
-> Note: I've staged CLAUDE.md - it will be included in this commit.
->
-> Proceeding with your commit...
-
-Continue to Step 1.
-
-**If 2 (java):**
-Create or update CLAUDE.md:
-```markdown
-## Commit Messages
-
-**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
-
-## Project Type
-
-**Type:** java
-```
-
-Stage CLAUDE.md, then tell user:
-> ✅ Created CLAUDE.md with type: java
->
-> This is a Java project. For best results, please use `java-git-commit`
-> instead of `git-commit`. It provides:
-> - DESIGN.md synchronization
-> - Java-specific code review
-> - Java-specific commit scopes
->
-> Would you like me to:
-> 1. Continue with basic commit (not recommended for Java)
-> 2. Switch to java-git-commit (recommended)
->
-> Reply with 1 or 2.
-
-Wait for response. If 2, stop and tell user to invoke java-git-commit.
-If 1, continue to Step 1 (but warn about missing DESIGN.md sync).
-
-**If 3 (blog):**
-Create or update CLAUDE.md:
-```markdown
-## Commit Messages
-
-**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
-
-## Project Type
-
-**Type:** blog
-```
-
-Stage CLAUDE.md, then tell user:
-> ✅ Created CLAUDE.md with type: blog
->
-> This enables GitHub Pages blog conventions:
-> - Post filename validation (`YYYY-MM-DD-title.md`)
-> - Jekyll-aware commits
->
-> Note: A primary sync document (e.g. an index or archive page) can be
-> configured later when you know what it will be.
->
-> Proceeding with your commit...
-
-Continue to Step 1.
-
-**If 4 (custom):**
-Prompt for configuration:
-> Great! Custom projects need a bit more configuration.
->
-> **What's your primary document?** (The main document that should stay
-> synchronized with changes)
->
-> Examples:
-> - `docs/vision.md` (working groups)
-> - `THESIS.md` (research)
-> - `docs/api-design.md` (API docs)
->
-> Enter the path:
-
-Wait for response (get primary_doc_path).
-
-> **What's your current milestone?** (e.g., "Phase 1 - Discovery",
-> "Chapter 3 - Methodology", "Version 2.1.0")
->
-> Enter milestone name:
-
-Wait for response (get milestone).
-
-Create CLAUDE.md:
-```markdown
-## Commit Messages
-
-**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
-
-## Project Type
-
-**Type:** custom
-**Primary Document:** {primary_doc_path}
-
-**Sync Strategy:** bidirectional-consistency
-
-**Sync Rules:**
-| Changed Files | Document Section | Update Type |
-|---------------|------------------|-------------|
-| [Add your rules here] | [Section name] | [What to update] |
-
-**Consistency Checks:**
-- [Add your checks here]
-
-**Current Milestone:** {milestone}
-```
-
-Stage CLAUDE.md, then tell user:
-> ✅ Created CLAUDE.md with type: custom
->
-> I've added a template Sync Rules table. You'll need to fill this in to
-> enable automatic document synchronization.
->
-> For now, I'll proceed with basic commit without auto-sync. You can
-> configure sync rules anytime by editing CLAUDE.md.
->
-> Would you like to:
-> 1. Continue with basic commit now
-> 2. Edit CLAUDE.md to add sync rules first
->
-> Reply with 1 or 2.
-
-If 1, continue to Step 1. If 2, stop and let user edit.
-
-**If 5 (generic):**
-Create or update CLAUDE.md:
-```markdown
-## Commit Messages
-
-**NEVER add AI attribution to commit messages** (no `Co-Authored-By: Claude`, no `Generated-by:`, no AI mentions) unless the user explicitly requests it for a specific commit. Commit messages describe WHAT changed and WHY only.
-
-## Project Type
-
-**Type:** generic
-```
-
-Stage CLAUDE.md, then tell user:
-> ✅ Created CLAUDE.md with type: generic
->
-> This enables basic conventional commits with optional CLAUDE.md sync.
->
-> Note: I've staged CLAUDE.md - it will be included in this commit.
->
-> Proceeding with your commit...
-
-Continue to Step 1.
+**For the full per-type CLAUDE.md creation dialogs**, read **[project-type-setup.md](project-type-setup.md)** and follow the instructions for the user's chosen type, then continue to Step 1.
 
 ---
 
@@ -380,7 +247,7 @@ Skip this step entirely — no issue linking required.
 
 ### Step 3 — Generate commit message
 
-Analyze the staged changes and draft one conventional commit message (see **Message Format** below).
+Analyze the staged changes and draft one conventional commit message (see **[commit-format.md](commit-format.md)**).
 
 Hold it — don't show it yet.
 
@@ -489,47 +356,6 @@ git log --oneline -1
 | Merge conflict markers in diff | Warn before proceeding |
 | Large diff (10+ files) | Summarize by module/category rather than file-by-file |
 
-## Commit Decision Flow
-
-```mermaid
-flowchart TD
-    Start((Start))
-    CLAUDE_md_exists_{CLAUDE.md exists?}
-    Interactive_setup[Interactive setup]
-    Type_declared_{Type declared?}
-    Route_to_skill_{Route to skill?}
-    Stop__Use_specialized_skill[Stop: Use specialized skill]
-    Staged_changes_{Staged changes?}
-    Stop__ask_user_to_stage[Stop: ask user to stage]
-    SKILL_md_files_{SKILL.md files?}
-    Review_skills[Review skills]
-    Generate_commit_message[Generate commit message]
-    Present_proposal[Present proposal]
-    User_confirms_{User confirms?}
-    Adjust_proposal[Adjust proposal]
-    Execute_git_commit[Execute git commit]
-    Done((Done))
-    Start --> CLAUDE_md_exists_
-    CLAUDE_md_exists_ -->|yes| Type_declared_
-    CLAUDE_md_exists_ -->|no| Interactive_setup
-    Type_declared_ -->|no| Interactive_setup
-    Type_declared_ -->|yes| Route_to_skill_
-    Interactive_setup --> Route_to_skill_
-    Route_to_skill_ -->|java/custom| Stop__Use_specialized_skill
-    Route_to_skill_ -->|skills/generic| Staged_changes_
-    Staged_changes_ -->|no| Stop__ask_user_to_stage
-    Staged_changes_ -->|yes| SKILL_md_files_
-    SKILL_md_files_ -->|yes| Review_skills
-    SKILL_md_files_ -->|no| Generate_commit_message
-    Review_skills --> Generate_commit_message
-    Generate_commit_message --> Present_proposal
-    Present_proposal --> User_confirms_
-    User_confirms_ -->|no| Adjust_proposal
-    Adjust_proposal --> Present_proposal
-    User_confirms_ -->|yes| Execute_git_commit
-    Execute_git_commit --> Done
-```
-
 ## Common Pitfalls
 
 | Mistake | Why It's Wrong | Fix |
@@ -583,143 +409,8 @@ Commit is complete when:
 
 ## Message Format
 
-```
-<type>[optional scope]: <short imperative description>
-
-[optional body — WHAT and WHY, not HOW, wrapped at 72 chars]
-
-[optional footer — "Fixes #123", "BREAKING CHANGE: ...", etc.]
-```
-
-### Types
-
-| Type | When to use |
-|---|---|
-| `feat` | New feature or capability |
-| `fix` | Bug fix or correcting unintended behaviour |
-| `docs` | Documentation only (README, comments, guides) |
-| `refactor` | Restructuring with no functional change |
-| `test` | Adding or updating tests |
-| `build` | Build system or dependency changes |
-| `chore` | Maintenance with no production code change (CI, tooling, version bumps) |
-| `style` | Formatting only, no logic change (whitespace, imports) |
-| `perf` | Performance improvement |
-
-> `fix` vs `refactor`: if it corrects wrong behaviour → `fix`. If behaviour
-> was already correct but code is cleaner → `refactor`.
-
-### Scopes (Optional)
-
-**Scope indicates what changed.** Only use when it accurately summarizes the **entire commit**. If the scope only describes part of the changes, omit it.
-
-**When scopes add value:**
-- Large repos with clear modules: `feat(api): add export endpoint`, `fix(cli): handle empty input`
-- Monorepos with packages: `feat(auth-service): add 2FA support`
-- Component-specific changes: `docs(readme): add installation guide`
-- Helps others search history: "show me all API changes"
-
-**When to omit scope (no parentheses):**
-- Changes span multiple unrelated components
-- Scope would be vague: `(misc)`, `(various)`, `(stuff)` tells you nothing
-- Small repos where component is obvious
-- Cross-cutting changes: `feat: add project type taxonomy`
-
-**Common scope patterns:**
-
-| Repository Type | Scope Examples |
-|---|---|
-| Monorepo | Module/package names: `api`, `cli`, `web`, `auth-service` |
-| Applications | Feature areas: `auth`, `search`, `config`, `ui` |
-| Libraries | Components: `core`, `utils`, `parser`, `client` |
-| Documentation | Document names: `readme`, `guide`, `tutorial` |
-| Infrastructure | `ci`, `scripts`, `deps`, `infra` |
-
-**Consistency matters:** If you use scopes, stick to established names. Don't mix `(auth)`, `(authentication)`, `(user-auth)` across commits.
-
-> **When in doubt, omit the scope.** A clear description is better than a forced/inaccurate scope.
-
-#### Real Scope Decisions: Good vs Skip
-
-**Examples from actual commits showing when scope adds value vs when to omit:**
-
-| Situation | With Scope | Without Scope | Decision | Why |
-|-----------|------------|---------------|----------|-----|
-| Single file: `README.md` only | `docs(readme): add install guide` | `docs: add install guide` | **Use scope** | Specific, searchable, future readers can filter |
-| One module: 3 files in `api/` | `feat(api): add export endpoint` | `feat: add export endpoint` | **Use scope** | All changes are API-related, scope is accurate |
-| Cross-cutting: 13 files across 7 dirs | `feat(skills): add project taxonomy` | `feat: add project type taxonomy` | **Omit scope** | No single scope covers all changes, forced scope misleads |
-| Refactor: 4 skills + README + CLAUDE.md | `refactor(docs): modularize sync` | `refactor: modularize readme sync` | **Omit scope** | Affects skills AND docs, `(docs)` is only partial truth |
-| Mixed changes: 2 unrelated fixes | `fix(skills): implement adr + update readme` | Split into 2 commits | **Split commits** | Each fix should be separate commit, not forced into one scope |
-| Vague grouping: "various cleanup" | `chore(misc): cleanup` | `chore: cleanup validation scripts` | **Omit scope, be specific** | `(misc)` adds no value, better description is the fix |
-| Deep module: `auth/tokens/refresh.ts` | `fix(auth): handle token expiry` | `fix: handle token expiry in refresh flow` | **Use scope** | `auth` is the module, readers searching auth issues find this |
-
-**Key pattern:** Scope is good when it's a **search filter** ("show me all API changes"). Omit when it's just **ceremony** (forced to fit format but doesn't help).
-
-**Common mistakes to avoid:**
-- ❌ `feat(skills): <something not about skills>` — scope is wrong
-- ❌ `refactor(various): <description>` — `(various)` tells us nothing
-- ❌ `fix(commit): improve scope guidance` when 7 files changed — too broad, omit scope
-- ✅ `fix(cli): handle empty input` — one component, scope is accurate and useful
-- ✅ `feat: add project type taxonomy` — 13 files, no single scope fits, description is clear
-
-### Breaking changes
-
-Add `!` after the type/scope and a `BREAKING CHANGE:` footer:
-```
-feat(api)!: replace REST endpoints with GraphQL
-
-BREAKING CHANGE: all API clients must migrate to GraphQL schema.
-Fixes #88
-```
+See **[commit-format.md](commit-format.md)** for the full format spec, types table, scope guidance, and real scope decision examples.
 
 ## Examples
 
-**Simple feature:**
-```
-feat(cli): add --verbose flag for detailed output
-```
-
-**Bug fix with context:**
-```
-fix(parser): handle empty input without crashing
-
-Previously would throw NullPointerException when input was empty.
-Now returns empty result gracefully.
-
-Fixes #42
-```
-
-**Breaking change:**
-```
-feat(api)!: migrate from v1 to v2 endpoints
-
-BREAKING CHANGE: all /api/v1/* endpoints removed. Use /api/v2/* instead.
-See migration guide in docs/MIGRATION.md
-```
-
-**Documentation update:**
-```
-docs(readme): add installation instructions for Windows
-```
-
-**Refactoring:**
-```
-refactor(utils): extract validation logic to separate module
-
-No functional changes, improves testability and reusability.
-```
-
-**Cross-cutting change (no scope):**
-```
-feat: add project type taxonomy and routing
-
-Updated 13 files across multiple components.
-No single scope accurately describes all changes.
-```
-
-**Dependency update:**
-```
-build(deps): upgrade Quarkus from 3.8.1 to 3.10.0
-
-Updated quarkus.version property and verified compatibility.
-All tests pass with new platform version.
-```
+See **[commit-examples.md](commit-examples.md)** for concrete examples of well-formed commits across all common scenarios.

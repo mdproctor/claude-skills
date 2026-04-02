@@ -359,25 +359,3 @@ def find_duplication(group) -> ValidationResult:
             )
 
     return result
-
-
-def detect_contradictions(group) -> ValidationResult:
-    """
-    Find semantic conflicts across modules (requires Claude analysis).
-
-    This is expensive and should only run on explicit user request
-    (deep analysis mode). Not implemented yet - placeholder for future.
-
-    Args:
-        group: DocumentGroup to validate
-
-    Returns:
-        ValidationResult with contradiction issues
-    """
-    result = ValidationResult("Contradictions (Semantic)")
-
-    # Future implementation: Use Claude API to analyze documents for contradictions
-    # For now, just return empty result
-    result.add_note("Semantic contradiction detection not yet implemented (requires Claude analysis)")
-
-    return result

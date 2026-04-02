@@ -85,7 +85,7 @@ Each skill encodes battle-tested best practices, common pitfalls, and project-sp
 | **custom** | Working groups, research, docs, advocacy | User-configured primary document (auto-synced) | `custom-git-commit` |
 | **generic** | Everything else | CLAUDE.md optional (auto-synced) | `git-commit` |
 
-📖 **[Complete Project Type Documentation: docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md)** — Detailed taxonomy, routing logic, decision matrix, and examples for all project types.
+📖 **[Complete Project Type Documentation: docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md)** — Detailed taxonomy, routing logic, decision matrix, and examples for all project types. See [docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md) for why explicit declaration is used over auto-detection.
 
 ### Quick Setup
 
@@ -178,79 +178,15 @@ Then create `docs/DESIGN.md` (java-git-commit will block without it).
 - Auto-syncs CLAUDE.md if it exists
 - Basic conventional commits
 
-### Why Explicit Type Declaration?
+## Why This Collection Exists
 
-**We tried auto-detection.** It was fragile:
-- Research repos with pom.xml files got treated as Java projects
-- Java projects without pom.xml yet got treated as generic
-- Renaming files broke detection mid-project
+Three problems that compound silently:
 
-**Explicit declaration is better:**
-- You know exactly what workflow you're getting
-- Type won't change unexpectedly
-- Easy to override if project evolves
-- Clear error messages when using wrong skill
+**Commits without context:** "fix stuff" at 3pm is obvious. By Tuesday it's archaeology. Structured commit messages (`fix(auth): prevent token refresh race condition`) make git history searchable and release notes automatic.
 
-### Changing Project Types
+**Design docs that drift:** Code evolves; DESIGN.md doesn't get updated. Three months later, the doc describes a system that no longer exists. Automated sync keeps docs honest.
 
-Just edit CLAUDE.md and change the type. Example: research project graduates to production Java service:
-
-```diff
-## Project Type
-
--**Type:** custom
--**Primary Document:** THESIS.md
-+**Type:** java
-```
-
-Remove custom-specific fields, create `docs/DESIGN.md`, and you're done.
-
-## Why Commit Messages and Design Docs Actually Matter (Yes, Really)
-
-Let's be honest: writing good commit messages and keeping design documentation in sync with code is about as exciting as watching paint dry. It ranks somewhere between "updating Jira tickets" and "mandatory corporate training videos" on the Developer Fun Scale™.
-
-**The usual developer experience:**
-- **3:00 PM:** Write brilliant code solving a complex problem
-- **3:45 PM:** `git commit -m "fix stuff"` (you'll remember what it does, right?)
-- **3:46 PM:** Move on to next task (design doc? what design doc?)
-- **Next Tuesday:** Teammate asks "Why did we change the cache invalidation strategy?"
-- **You:** *frantically scrolls through git log* "Uhh... 'fix stuff', 'more fixes', 'actually fix it this time'..."
-- **3 months later:** You're debugging and find your own code. No idea why it works that way. Commit message: "refactor". Thanks, past you. Really helpful.
-
-**The actual cost of bad commit messages:**
-- **Debugging time:** 30 minutes trying to understand why code exists → discover commit message is "wip" → give up, rewrite it
-- **Code review delays:** Reviewer has no context → asks 10 clarifying questions → you forgot what you did → meeting scheduled
-- **Incident post-mortems:** "When did this bug get introduced?" → `git bisect` → 20 commits all say "updates" → cry
-- **Onboarding new developers:** "Just read the git history to understand the architecture" → they quit
-
-**The actual cost of stale design docs:**
-- **Architecture drift:** DESIGN.md says system uses Redis → code actually uses Hazelcast (changed 8 months ago, doc never updated)
-- **Wrong decisions:** New developer reads outdated doc → implements feature the wrong way → has to redo it
-- **Meeting overhead:** Every design question becomes "let me check the code to see what we actually did"
-- **Institutional knowledge loss:** Senior dev leaves → their mental model of the system dies with them
-
-**The automation win:**
-
-These skills make documentation *painless* by doing it *as you code*:
-- `java-git-commit` generates proper conventional commit messages automatically by analyzing your actual changes
-- `java-update-design` keeps DESIGN.md in sync with code *before* you commit, not as a quarterly exercise
-- Both work together so documentation is *part of* the commit, not a separate chore you skip
-
-**Result:** Six months from now, you'll thank yourself. Your teammates will thank you. The new hire will thank you. And that 2 AM production incident? The git history will actually help instead of making you want to rage-quit.
-
-You're not writing documentation. You're leaving breadcrumbs for Future You, who has the memory of a goldfish and the patience of a caffeinated squirrel.
-
-## Why Skills Even Exist
-
-**The problem:** Without skills, every conversation with Claude starts from scratch:
-- Claude: "Let me write this workflow with a `for` loop!"
-- You: "No, use the FuncDSL. We talked about this yesterday."
-- Claude: "Right! Let me mock the database."
-- You: "No! Real database! We *just* discussed this!"
-- Claude: "Got it! Should I use `HashMap`?"
-- You: *flips desk*
-
-**The solution:** Skills = "things we've already figured out, written down once, so we never have to explain them again." Think of them as the difference between training a golden retriever and training a goldfish.
+**Repeated explanations:** Every new session, every new collaborator needs the same context. Skills encode that context once. The right workflow runs automatically.
 
 ## Skills Architecture
 

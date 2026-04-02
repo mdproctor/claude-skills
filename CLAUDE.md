@@ -33,36 +33,15 @@ This repository follows the **type: skills** project model. All repositories usi
 
 ### Project Types
 
-Claude Code supports project types, each with tailored behaviors:
+| Type | When to Use |
+|------|-------------|
+| **`skills`** | Claude Code skill repositories |
+| **`java`** | Java/Maven/Gradle projects |
+| **`blog`** | GitHub Pages / Jekyll blogs |
+| **`custom`** | Working groups, research, docs with custom sync |
+| **`generic`** | Everything else |
 
-| Type | Description | Sync Behavior | When to Use |
-|------|-------------|---------------|-------------|
-| **`skills`** | Skills repository | Built-in (we know how skills work) | This repository |
-| **`java`** | Java/Maven/Gradle | Built-in (we know Java architecture patterns) | Java projects |
-| **`blog`** | GitHub Pages blog | Built-in (Jekyll conventions, date-prefixed posts) | GitHub Pages blogs |
-| **`custom`** | User-configured | User defines sync strategy | Everything else with special needs |
-| **`generic`** | No special handling | Basic conventional commits | Simple projects, no sync needed |
-
-**For this repository:**
-- Type: **skills**
-- Built-in validation: SKILL.md frontmatter, CSO compliance, cross-references
-- Built-in sync: README.md (readme-sync.md), CLAUDE.md (update-claude-md)
-- Workflow: git-commit → skill-review → readme-sync.md → update-claude-md → commit
-
-### Complete Project Type Reference
-
-**For comprehensive documentation on all project types, including:**
-- Why these types exist (architectural insight)
-- Type 1: Skills Repository (Built-in) — this repository's detailed behavior
-- Type 2: Java/Maven/Gradle (Built-in) — DESIGN.md sync, BOM patterns
-- Type 3: Custom (User-Configured) — working groups, research, docs
-- Type 4: Blog / GitHub Pages (Built-in) — Jekyll conventions, date-prefixed posts
-- Type 5: Generic (Fallback) — simple projects
-- Decision matrix: When to create a new built-in type
-- Routing logic and interactive setup
-- Adding support for new domains (Python, Go, etc.)
-
-**See:** 📖 **[docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md)**
+This repository is **type: skills**. See 📖 **[docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md)** for full type definitions, routing logic, and when to use each.
 
 The remainder of this document focuses on **type: skills** specific guidance.
 
