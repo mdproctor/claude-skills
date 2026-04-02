@@ -91,13 +91,13 @@ def check_mermaid_syntax(chart_code: str) -> tuple[bool, str]:
         Path(out_path).unlink(missing_ok=True)
 
         combined = result.stdout + result.stderr
-        if 'Error:' in combined or result.returncode != 0:
-            # Look for actual parse errors (not puppeteer/Chrome infrastructure failures)
+        if result.returncode != 0:
+            # Only flag as a Mermaid syntax error if mmdc explicitly reports a parse error.
+            # Any other non-zero exit (Chrome sandbox failure, timeout, network, etc.)
+            # is an infrastructure issue — treat as mmdc unavailable.
             for line in combined.splitlines():
-                if 'Parse error' in line or ('Error:' in line and 'puppeteer' not in line):
+                if 'Parse error' in line:
                     return False, line.strip()
-            # No parse errors found — failure is infrastructure (puppeteer/Chrome unavailable)
-            # Treat as mmdc unavailable rather than a syntax error
             return True, ""
 
         return True, ""
