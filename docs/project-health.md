@@ -541,10 +541,24 @@ Skills and workflows that should reference project-health:
 
 ---
 
-## Open Questions
+## Implementation Decisions
 
-- [ ] Should checks be purely Claude-driven, or should more have Python validator scripts?
-- [ ] Should `project-health` offer to auto-fix mechanical issues (counts, versions)?
-- [ ] What is the commit-time subset? (TBD — see above)
-- [ ] Should there be a `project-health --quick` that only runs the fastest checks?
-- [ ] Should findings persist anywhere (a `.health-report.md`) or always ephemeral?
+**Q1 — Claude-driven or Python validators?**
+Both, in sequence. First run `python scripts/validate_all.py --tier commit` to catch everything scriptable mechanically. Then Claude handles judgment checks the scripts can't do (logic, user-journey, conventions, framework, etc.). This reuses existing infrastructure and keeps fast checks fast.
+
+**Q2 — Auto-fix mechanical issues?**
+Yes, with confirmation — same pattern as git-commit (propose → user YES → apply). Mechanical fixes (wrong count in README, missing `commands/<name>.md`, stale version number) are offered automatically. Judgment calls are never auto-fixed. Opt-in per run, not the default.
+
+**Q3 — Commit-time subset**
+The `--commit` group runs `validate_all.py --tier commit` followed by quick universal checks (docs-sync, config, artifacts) that aren't already covered by the validators. No finer breakdown needed.
+
+**Q4 — `--quick` flag**
+Not needed — `--commit` already serves this purpose. Dropped.
+
+**Q5 — Findings persistence**
+Default: ephemeral. Optional: pass `--save` to write a date-prefixed report file (`YYYY-MM-DD-health-report.md`) so multiple runs don't overwrite each other. The file is gitignored by default. Useful for sharing findings in a PR or discussing with the team.
+
+```bash
+# Save report with date prefix (e.g. 2026-04-02-health-report.md)
+/project-health --prerelease --save
+```

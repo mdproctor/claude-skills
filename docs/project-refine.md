@@ -221,9 +221,28 @@ Findings presented as opportunities, rated by bloat score:
 
 ---
 
-## Open Questions
+## Implementation Decisions
 
-- [ ] Should `project-refine` offer to apply changes automatically for mechanical improvements (extract constant, rename file)?
-- [ ] Should it track which opportunities were accepted vs deferred, to avoid re-surfacing them?
-- [ ] Should there be a threshold below which findings aren't reported (e.g. ignore `🟢C` by default)?
-- [ ] Should the bloat score be shown as a summary metric per domain (e.g. "docs: 🟡 moderate bloat")?
+**Auto-apply changes?**
+No — all refine findings are judgment calls. project-refine never applies changes automatically. It presents opportunities; the user decides what to act on.
+
+**Track deferred findings?**
+Yes — pass `--save` to write a date-prefixed report (`YYYY-MM-DD-refine-report.md`, gitignored). On subsequent runs, pass `--compare <previous-report>` to suppress previously-seen opportunities and surface only new ones. This prevents the same 🟢C finding appearing every session.
+
+**Threshold for reporting?**
+Configurable in CLAUDE.md Health Check Configuration. Default: show all (🔴🟡🟢). Set `Refine min score: medium` to suppress 🟢C findings.
+
+**Summary metric per domain?**
+Yes — show a one-line summary before the detailed findings:
+```
+docs: 🟡 moderate    code: 🔴 high    tests: 🟢 low    universal: 🟢 low
+```
+
+**Saving reports:**
+```bash
+# Save report with date prefix (e.g. 2026-04-02-refine-report.md)
+/project-refine --save
+
+# Show only findings not in a previous report
+/project-refine --compare 2026-03-15-refine-report.md
+```
