@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -51,8 +51,8 @@ class ValidationIssue:
 class ValidationResult:
     """Results of a validation run."""
     validator_name: str
-    issues: List[ValidationIssue]
-    files_checked: int
+    issues: List[ValidationIssue] = field(default_factory=list)
+    files_checked: int = 0
 
     @property
     def critical_count(self) -> int:
@@ -96,6 +96,38 @@ class ValidationResult:
             'passed': self.passed,
             'issues': [issue.to_dict() for issue in self.issues]
         }
+
+    # Compatibility API (mirrors the simpler add_*/has_*/list interface)
+
+    def add_critical(self, message: str, file_path: str = '') -> None:
+        self.issues.append(ValidationIssue(Severity.CRITICAL, file_path, None, message))
+
+    def add_warning(self, message: str, file_path: str = '') -> None:
+        self.issues.append(ValidationIssue(Severity.WARNING, file_path, None, message))
+
+    def add_note(self, message: str, file_path: str = '') -> None:
+        self.issues.append(ValidationIssue(Severity.NOTE, file_path, None, message))
+
+    def has_critical(self) -> bool:
+        return self.critical_count > 0
+
+    def has_warnings(self) -> bool:
+        return self.warning_count > 0
+
+    def has_issues(self) -> bool:
+        return self.critical_count > 0 or self.warning_count > 0
+
+    @property
+    def critical(self) -> List[str]:
+        return [i.message for i in self.issues if i.severity == Severity.CRITICAL]
+
+    @property
+    def warnings(self) -> List[str]:
+        return [i.message for i in self.issues if i.severity == Severity.WARNING]
+
+    @property
+    def notes(self) -> List[str]:
+        return [i.message for i in self.issues if i.severity == Severity.NOTE]
 
 
 def find_skills_root() -> Path:

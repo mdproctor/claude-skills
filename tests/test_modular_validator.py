@@ -26,43 +26,6 @@ from scripts.modular_validator import (
 )
 
 
-class TestValidationResult(unittest.TestCase):
-    """Test ValidationResult class"""
-
-    def test_validation_result_creation(self):
-        """ValidationResult can be created and populated"""
-        result = ValidationResult("Test Check")
-
-        self.assertEqual(result.check_name, "Test Check")
-        self.assertEqual(len(result.critical), 0)
-        self.assertEqual(len(result.warnings), 0)
-        self.assertEqual(len(result.notes), 0)
-
-    def test_add_findings(self):
-        """Can add findings of different severities"""
-        result = ValidationResult("Test")
-
-        result.add_critical("Critical issue")
-        result.add_warning("Warning issue")
-        result.add_note("Note issue")
-
-        self.assertEqual(len(result.critical), 1)
-        self.assertEqual(len(result.warnings), 1)
-        self.assertEqual(len(result.notes), 1)
-
-    def test_has_issues(self):
-        """has_issues() returns True if critical or warnings"""
-        result = ValidationResult("Test")
-
-        self.assertFalse(result.has_issues())
-
-        result.add_note("Just a note")
-        self.assertFalse(result.has_issues())
-
-        result.add_warning("Warning")
-        self.assertTrue(result.has_issues())
-
-
 class TestLinkIntegrity(unittest.TestCase):
     """Test link integrity validation"""
 

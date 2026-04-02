@@ -23,53 +23,11 @@ except ImportError:
     # Fallback for testing
     DocumentGroup = None
 
-
-class ValidationResult:
-    """Results from a validation check"""
-
-    def __init__(self, check_name: str):
-        self.check_name = check_name
-        self.critical: List[str] = []
-        self.warnings: List[str] = []
-        self.notes: List[str] = []
-
-    def add_critical(self, message: str):
-        self.critical.append(message)
-
-    def add_warning(self, message: str):
-        self.warnings.append(message)
-
-    def add_note(self, message: str):
-        self.notes.append(message)
-
-    def has_critical(self) -> bool:
-        return len(self.critical) > 0
-
-    def has_warnings(self) -> bool:
-        return len(self.warnings) > 0
-
-    def has_issues(self) -> bool:
-        return self.has_critical() or self.has_warnings()
-
-    def __str__(self):
-        lines = [f"Validation: {self.check_name}"]
-
-        if self.critical:
-            lines.append("  CRITICAL:")
-            for msg in self.critical:
-                lines.append(f"    - {msg}")
-
-        if self.warnings:
-            lines.append("  WARNING:")
-            for msg in self.warnings:
-                lines.append(f"    - {msg}")
-
-        if self.notes:
-            lines.append("  NOTE:")
-            for msg in self.notes:
-                lines.append(f"    - {msg}")
-
-        return '\n'.join(lines)
+# Use the shared ValidationResult — re-exported so callers importing from here continue to work
+try:
+    from scripts.utils.common import ValidationResult, ValidationIssue, Severity
+except ImportError:
+    from utils.common import ValidationResult, ValidationIssue, Severity
 
 
 def validate_document_group(group) -> List[ValidationResult]:
