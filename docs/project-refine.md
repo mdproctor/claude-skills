@@ -101,9 +101,6 @@ Every invocation has a depth level. Pass `--tier N` or omit it to be prompted:
 
 # Save report (date-prefixed, gitignored)
 /project-refine --tier 3 --save
-
-# Compare against a previous report (suppress already-seen findings)
-/project-refine --compare 2026-03-15-refine-report.md
 ```
 
 ---
@@ -249,7 +246,7 @@ Findings presented as opportunities, rated by bloat score:
 No — all refine findings are judgment calls. project-refine never applies changes automatically. It presents opportunities; the user decides what to act on.
 
 **Track deferred findings?**
-Yes — pass `--save` to write a date-prefixed report (`YYYY-MM-DD-refine-report.md`, gitignored). On subsequent runs, pass `--compare <previous-report>` to suppress previously-seen opportunities and surface only new ones. This prevents the same 🟢C finding appearing every session.
+Not for now — every run shows all current findings. If this becomes noisy in practice, a defer mechanism can be added later. Use `--save` to keep a dated record of what was found.
 
 **Threshold for reporting?**
 Configurable in CLAUDE.md Health Check Configuration. Default: show all (🔴🟡🟢). Set `Refine min score: medium` to suppress 🟢C findings.
