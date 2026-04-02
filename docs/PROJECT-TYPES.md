@@ -277,6 +277,7 @@ git-commit (for type: generic)
 - Personal projects
 - Experiments
 - Anything without special documentation needs
+- **TypeScript/Node.js projects** — use `type: generic` with the TypeScript skill suite (`ts-dev`, `ts-code-review`, `ts-security-audit`, `npm-dependency-update`, `ts-project-health`) loaded via description matching. TypeScript does not have a dedicated project type because there is no TypeScript-specific architecture document (equivalent of Java's DESIGN.md) that needs automated sync.
 
 ---
 

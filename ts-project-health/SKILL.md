@@ -1,9 +1,9 @@
 ---
 name: ts-project-health
 description: >
-  Use when a TypeScript or Node.js project needs a health review, or when
-  invoked automatically by project-health on TypeScript project type detection.
-  Extends project-health with TypeScript-specific categories.
+  Use when a TypeScript or Node.js project needs a health review. Invoked
+  directly via /ts-project-health or suggested by project-health. Extends
+  project-health with TypeScript-specific categories.
 ---
 
 # ts-project-health
@@ -236,7 +236,7 @@ Severity scale (same as `project-health`):
 
 ## Skill Chaining
 
-**Invoked by:** `project-health` automatically when `type: ts` detected in CLAUDE.md
+**Invoked by:** User directly via `/ts-project-health`, or by `project-health` if `type: ts` is configured in CLAUDE.md (TypeScript is not a built-in project type; see `docs/PROJECT-TYPES.md` for supported types)
 
 **Can be invoked directly:** Yes — `/ts-project-health` runs universal checks first,
 then TypeScript-specific checks, producing identical output to the auto-chained flow

@@ -507,7 +507,6 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `java-project-health` — extends project-health for type: java
 - `blog-project-health` — extends project-health for type: blog
 - `custom-project-health` — extends project-health for type: custom
-- `ts-project-health` — extends project-health for TypeScript/Node.js projects
 
 ## Quality Assurance Framework
 
@@ -525,7 +524,7 @@ For complete details on the division of labor, validation tiers, what gets check
 
 ### Automated Validation
 
-**14 validators across 3 tiers (COMMIT/PUSH/CI):**
+**17 validators across 3 tiers (COMMIT/PUSH/CI):**
 
 For complete validator specifications, tier assignments, and implementation details:
 📖 **[QUALITY.md § Implementation Status](QUALITY.md#implementation-status)**

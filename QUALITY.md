@@ -759,7 +759,7 @@ Claude:
 - ✅ Automatic revert on corruption
 - ✅ Modular documentation support (primary + modules)
 
-**Validation Infrastructure (14 validators across 3 tiers):**
+**Validation Infrastructure (17 validators across 3 tiers):**
 
 **COMMIT Tier (<2s budget):**
 - ✅ `validate_frontmatter.py` — YAML structure, required fields
@@ -768,6 +768,7 @@ Claude:
 - ✅ `validate_naming.py` — Naming conventions
 - ✅ `validate_sections.py` — Required sections by type
 - ✅ `validate_structure.py` — File organization
+- ✅ `validate_project_types.py` — Project type list consistency
 
 **PUSH Tier (<30s budget):**
 - ✅ `validate_flowcharts.py` — Mermaid syntax via mmdc (puppeteer, too slow for COMMIT), semantic labels
@@ -777,6 +778,8 @@ Claude:
 - ✅ `validate_edge_cases.py` — Edge case coverage, error handling
 - ✅ `validate_behavior.py` — Behavioral consistency (invocation claims, blocking logic)
 - ✅ `validate_readme_sync.py` — README/CLAUDE.md sync validation
+- ✅ `validate_links.py` — External URL reachability (parallel HTTP, skip 403/429)
+- ✅ `validate_examples.py` — Code fence balance (CRITICAL) + YAML/JSON syntax (WARNING)
 
 **CI Tier (<5min budget):**
 - ✅ `validate_python_quality.py` — mypy, flake8, bandit (static analysis)

@@ -141,4 +141,4 @@ Package-manager-specific skills (`maven-dependency-update` for Maven/Quarkus,
 `npm-dependency-update`, `go-dependency-update`, etc.) implement these principles
 with package-manager-specific commands, file formats, and tooling.
 
-**Extended by:** [`maven-dependency-update`] for Maven/Quarkus projects (and future package-manager-specific skills)
+**Extended by:** [`maven-dependency-update`] for Maven/Quarkus projects, [`npm-dependency-update`] for npm/yarn/pnpm projects (and future package-manager-specific skills)

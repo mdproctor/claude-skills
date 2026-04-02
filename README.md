@@ -230,9 +230,9 @@ This collection follows a **layered architecture** where foundation skills provi
 
 | Skill | Domain | Extended By |
 |-------|--------|-------------|
-| **code-review-principles** | Universal code review | java-code-review |
-| **security-audit-principles** | Universal OWASP Top 10 | java-security-audit |
-| **dependency-management-principles** | Universal BOM patterns | maven-dependency-update |
+| **code-review-principles** | Universal code review | java-code-review, ts-code-review |
+| **security-audit-principles** | Universal OWASP Top 10 | java-security-audit, ts-security-audit |
+| **dependency-management-principles** | Universal BOM patterns | maven-dependency-update, npm-dependency-update |
 | **observability-principles** | Universal logging/tracing/metrics | quarkus-observability |
 
 ### Layer 5: Java/Quarkus Development (4 skills)
@@ -725,6 +725,22 @@ Type-specific health checks for TypeScript/Node.js projects, extending project-h
 
 Skills are designed to chain together for complete workflows:
 
+### Development → Review → Commit (TypeScript repositories)
+```
+ts-dev
+  → ts-code-review (manual or before committing)
+    → ts-security-audit (if auth/payment/PII code)
+      → git-commit
+        → update-claude-md (automatic)
+```
+
+### Dependency Update → Security Review (TypeScript)
+```
+npm-dependency-update
+  → ts-code-review (when adding new packages)
+    → git-commit
+```
+
 ### Development → Review → Commit (Java repositories)
 ```
 java-dev or quarkus-flow-dev
@@ -1121,6 +1137,12 @@ Claude: [Uses git-commit]
 | `adr` | `java-git-commit` | manual | Stage ADR with related changes |
 | `java-update-design` | `update-claude-md` | manual | Architecture changes often need workflow doc updates too |
 | `readme-sync.md` | `update-claude-md` | manual | Skill changes often need workflow doc updates too |
+| `ts-dev` | `ts-code-review` | manual | User triggers review |
+| `ts-code-review` | `ts-security-audit` | conditional | Security-critical code detected (auth/payment/PII) |
+| `ts-code-review` | `git-commit` | manual | User wants to commit after review |
+| `ts-security-audit` | `git-commit` | manual | After security review complete |
+| `npm-dependency-update` | `adr` | manual | Major version jump or significant new package |
+| `npm-dependency-update` | `git-commit` | manual | After successful dependency updates |
 
 ---
 ## License
