@@ -95,7 +95,7 @@ Once you've run the skills and seen the output:
 - **28 skills** installed and synced in `~/.claude/skills/`
 - **All tests passing:** `python3 -m pytest tests/ -q`
 - **All validators passing:** `python3 scripts/validate_all.py`
-- **Design docs** in `docs/`: `project-health.md`, `project-refine.md`, `java/blog/custom/skills-project-health.md`, `project-refine.md`
+- **Design docs** in `docs/`: `project-health.md`, `project-refine.md`, `java-project-health.md`, `blog-project-health.md`, `custom-project-health.md`, `skills-project-health.md`
 
 ---
 

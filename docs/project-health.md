@@ -1,12 +1,12 @@
 # project-health — Design Document
 
-**Status:** Design phase — not yet implemented as a skill
-**Skill name (planned):** `project-health`
-**Slash command (planned):** `/project-health`
+**Status:** Implemented — live skill
+**Skill name:** `project-health`
+**Slash command:** `/project-health`
 **Companion skill:** [`project-refine`](project-refine.md) — dedicated improvement and bloat reduction
 **Type-specific skills:** [`java-project-health`](java-project-health.md) · [`blog-project-health`](blog-project-health.md) · [`custom-project-health`](custom-project-health.md) · [`skills-project-health`](skills-project-health.md)
 
-This document tracks the design and scope of the `project-health` skill. It is a working document — update it as the skill evolves.
+This document tracks the design and scope of the `project-health` skill. Update it as the skill evolves.
 
 ---
 

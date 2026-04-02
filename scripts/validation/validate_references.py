@@ -37,18 +37,43 @@ def build_skill_index() -> dict[str, Path]:
     return skill_index
 
 
-def extract_all_references(content: str) -> set[str]:
-    """Extract all potential skill references from content."""
-    # Find all backtick-quoted identifiers
-    pattern = r'`([a-z][a-z0-9-]+)`'
-    all_matches = set(re.findall(pattern, content))
+# Terms that look like skill names (2-4 hyphenated parts) but are not skill
+# directories. Keeping this explicit prevents false-positive CRITICALs.
+KNOWN_NON_SKILLS = {
+    # Check categories defined in project-health (not separate skill directories)
+    'docs-sync', 'user-journey', 'primary-doc', 'cross-refs',
+    # Check categories defined in java-project-health
+    'java-dependencies', 'java-architecture', 'java-code-quality',
+    # Future planned extension skills — mentioned as examples in principles skills
+    # but not yet implemented. Add here when referenced, remove when created.
+    'python-code-review', 'python-security-audit', 'python-observability',
+    'go-dependency-update', 'go-observability',
+    'npm-dependency-update',
+}
 
-    # Filter to likely skill names (2-4 hyphenated parts)
+
+def extract_structured_references(content: str) -> set[str]:
+    """Extract skill references only from Skill Chaining and Prerequisites sections.
+
+    Scanning the full document body produces too many false positives: check
+    category names, external library names, and example names all look like
+    skill references but are not. Restricting to structured chaining sections
+    captures only references that are genuinely meant to point to other skills.
+    """
+    # Pull content from ## Skill Chaining and ## Prerequisites sections only
+    section_pattern = r'(?:^|\n)##\s+(?:Skill\s+Chaining|Prerequisites)[^\n]*\n(.*?)(?=\n##\s|\Z)'
+    structured_content = ''
+    for match in re.finditer(section_pattern, content, re.DOTALL | re.IGNORECASE):
+        structured_content += match.group(1) + '\n'
+
+    # Find all backtick-quoted identifiers within those sections
+    pattern = r'`([a-z][a-z0-9-]+)`'
     skill_refs = set()
-    for match in all_matches:
+    for match in re.findall(pattern, structured_content):
+        if match in KNOWN_NON_SKILLS:
+            continue
         parts = match.split('-')
         if 2 <= len(parts) <= 4:
-            # Exclude obvious non-skills
             if not any(ext in parts for ext in ['md', 'json', 'yml', 'yaml', 'sh', 'py', 'js']):
                 skill_refs.add(match)
 
@@ -65,8 +90,8 @@ def validate_skill_references(skill_path: Path, skill_index: dict[str, Path]) ->
 
     skill_name = get_skill_name_from_path(skill_path)
 
-    # Extract all skill references
-    references = extract_all_references(content)
+    # Extract skill references from structured chaining/prerequisites sections only
+    references = extract_structured_references(content)
 
     # Check each reference exists
     for ref in references:

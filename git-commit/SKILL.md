@@ -260,11 +260,11 @@ Continue to Step 1.
 ### Step 0b — Offer issue tracking (new projects only)
 
 This runs once after any new CLAUDE.md is created (not on existing projects
-that already have a `## Work Tracking` section).
+that already have issue tracking enabled).
 
 Check if CLAUDE.md already has Work Tracking configured:
 ```bash
-grep -q "## Work Tracking" CLAUDE.md 2>/dev/null && echo "exists" || echo "absent"
+grep -q "Issue tracking.*enabled" CLAUDE.md 2>/dev/null && echo "exists" || echo "absent"
 ```
 
 If absent and this is a freshly created CLAUDE.md, ask:
@@ -378,13 +378,13 @@ Skip this step entirely — no issue linking required.
 
 ---
 
-### Step 2b — Generate commit message
+### Step 3 — Generate commit message
 
 Analyze the staged changes and draft one conventional commit message (see **Message Format** below).
 
 Hold it — don't show it yet.
 
-### Step 2a — Sync CLAUDE.md (if exists)
+### Step 4 — Sync CLAUDE.md (if exists)
 
 Check if CLAUDE.md exists:
 ```bash
@@ -397,9 +397,9 @@ ls CLAUDE.md 2>/dev/null
 - Hold those proposals too
 
 **If CLAUDE.md doesn't exist:**
-- Skip to Step 2b
+- Skip to Step 5
 
-### Step 2b — Sync README.md (if skills repo)
+### Step 5 — Sync README.md (if skills repo)
 
 Check if README.md exists and skill changes detected:
 ```bash
@@ -414,9 +414,9 @@ ls README.md 2>/dev/null && git diff --staged --name-only | grep -E '(SKILL\.md|
 - Hold those proposals too
 
 **If README.md doesn't exist or no skill changes:**
-- Skip to Step 3 (present proposal)
+- Skip to Step 6 (present proposal)
 
-### Step 3 — Present proposal
+### Step 6 — Present proposal
 
 **If skill validation, CLAUDE.md, or README.md updates proposed**, show consolidated proposal:
 ```
@@ -456,7 +456,7 @@ ls README.md 2>/dev/null && git diff --staged --name-only | grep -E '(SKILL\.md|
 Then ask exactly:
 > "Does this look good? Reply **YES** to commit, or tell me what to adjust."
 
-### Step 4 — Commit (only after explicit YES)
+### Step 7 — Commit (only after explicit YES)
 
 **If documentation updates were proposed**, run in this exact order:
 1. Let update-claude-md apply its changes (if proposed)
@@ -481,7 +481,7 @@ git commit -m "<subject>" -m "<body if any>"
 git log --oneline -1
 ```
 
-### Step 5 — Handle edge cases
+### Step 8 — Handle edge cases
 
 | Situation | Action |
 |---|---|

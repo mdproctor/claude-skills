@@ -256,7 +256,7 @@ You're not writing documentation. You're leaving breadcrumbs for Future You, who
 
 This collection follows a **layered architecture** where foundation skills provide universal principles, and specialized skills extend them for specific languages, frameworks, and workflows.
 
-### Layer 1: Commit Workflow (3 skills)
+### Layer 1: Commit Workflow (4 skills)
 
 **Pattern:** Router → Specialized Handlers
 
@@ -316,6 +316,17 @@ This collection follows a **layered architecture** where foundation skills provi
 |-------|---------|-----------|
 | **maven-dependency-update** | Maven BOM management | dependency-management-principles |
 | **adr** | Architecture Decision Records | (standalone) |
+
+### Layer 7: Health & Quality (6 skills)
+
+| Skill | Purpose | Builds On |
+|-------|---------|-----------|
+| **project-health** | Universal correctness and consistency checks | (standalone) |
+| **project-refine** | Improvement opportunities and bloat reduction | (standalone) |
+| **skills-project-health** | Skills repo health checks | project-health |
+| **java-project-health** | Java project health checks | project-health |
+| **blog-project-health** | Blog project health checks | project-health |
+| **custom-project-health** | Custom project health checks | project-health |
 
 ---
 
@@ -686,6 +697,69 @@ GitHub issue tracking with cross-cutting task detection and commit split suggest
 Once configured in CLAUDE.md, Claude applies cross-cutting detection and issue linking automatically throughout every session.
 
 **Triggers:** `/issue-workflow`, or offered automatically during CLAUDE.md creation and at session start when project type is set but Work Tracking is not.
+
+---
+
+### Layer 7: Health & Quality
+
+#### **project-health**
+Universal project correctness and consistency checker:
+- Answers: is the project correct, complete, and consistent?
+- 12 universal check categories: docs-sync, consistency, logic, config, security, release, user-journey, git, primary-doc, artifacts, conventions, framework
+- 4-tier depth: `--commit` (validators only) → `--standard` → `--prerelease` → `--deep` (+ refinement questions)
+- Auto-chains to type-specific health skill at tier 3+
+
+**Features:**
+- Mechanical auto-fix offered for fixable findings (requires YES confirmation)
+- `--save` flag writes a date-stamped report file
+- Companion to project-refine
+
+**Triggers:** "health check", "is the project healthy", "pre-release check", `/project-health`.
+
+#### **project-refine**
+Improvement-focused companion to project-health:
+- Answers: could this be smaller, clearer, or better structured?
+- Looks at bloat, duplication, consolidation, and structural opportunities
+- Covers docs, code/tests, and universal domains
+- Never blocks work — findings are always opportunities, never failures
+
+**Features:**
+- Same 4-tier depth system as project-health
+- Separate from health checks — refine only after health is green
+- Domain-scoped: can run just `docs` or `code` categories
+
+**Triggers:** "find duplication", "bloat check", "look for ways to improve docs", "do a refine session", `/project-refine`.
+
+#### **skills-project-health**
+Type-specific health checks for skill collection repositories, extending project-health:
+- Adds 8 skills-specific categories: cross-refs, coverage, quality, naming, infrastructure, dependencies, performance, effectiveness
+- Validates SKILL.md craft (CSO compliance, flowcharts, Success Criteria)
+- Checks marketplace.json integrity, slash command coverage, validator wiring
+- Auto-chained by project-health when `type: skills` is detected
+
+**Triggers:** `/skills-project-health`, or automatically chained by `project-health` at tier 3+.
+
+#### **java-project-health**
+Type-specific health checks for Java/Maven/Gradle projects, extending project-health:
+- Adds Java-specific checks: architecture consistency, dependency health, test coverage, build integrity
+- Validates DESIGN.md accuracy against codebase
+- Checks BOM alignment and Quarkus-specific patterns
+
+**Triggers:** `/java-project-health`, or automatically chained by `project-health` at tier 3+.
+
+#### **blog-project-health**
+Type-specific health checks for GitHub Pages / Jekyll blogs, extending project-health:
+- Adds blog-specific checks: post format, front matter validity, Jekyll configuration
+- Validates content freshness and navigation integrity
+
+**Triggers:** `/blog-project-health`, or automatically chained by `project-health` at tier 3+.
+
+#### **custom-project-health**
+Type-specific health checks for type: custom projects, extending project-health:
+- Adds custom checks: primary document sync, work tracking configuration, custom conventions
+- Reads Sync Rules from CLAUDE.md to validate project-specific requirements
+
+**Triggers:** `/custom-project-health`, or automatically chained by `project-health` at tier 3+.
 
 ---
 

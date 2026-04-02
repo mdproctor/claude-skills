@@ -842,6 +842,7 @@ Claude:
 
 **Phase 1: Refinement (Medium Priority)**
 - 🚧 `generate_report.py` — Comprehensive reporting (JSON/HTML/Markdown, CI integration)
+- ✅ `validate_references.py` — Scoped to chaining/prerequisites sections + KNOWN_NON_SKILLS allowlist (false positives eliminated, 2026-04-02)
 - 🚧 Refine `validate_cross_document.py` — Distinguish scope names from skill references (reduce false positives)
 - 🚧 `validate_links.py` — External URL validation (PUSH/CI tier)
 - 🚧 Usability improvements — Break up 82 dense paragraphs across skills

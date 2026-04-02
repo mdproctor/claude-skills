@@ -514,6 +514,14 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `readme-sync.md` — README.md sync, invoked by `git-commit` for type: skills only
 - `adr` — Architecture Decision Records in MADR format
 
+**Health & quality skills** (correctness and improvement):
+- `project-health` — universal health check; answers "is the project correct, complete, and consistent?"; auto-chains to type-specific skill at tier 3+
+- `project-refine` — companion to project-health for improvement opportunities; never blocks work
+- `skills-project-health` — extends project-health for type: skills (skill craft, cross-refs, marketplace, validators)
+- `java-project-health` — extends project-health for type: java
+- `blog-project-health` — extends project-health for type: blog
+- `custom-project-health` — extends project-health for type: custom
+
 ## Quality Assurance Framework
 
 **Comprehensive validation ensures skills maintain structural integrity, logical soundness, and documentation accuracy.**
@@ -541,7 +549,7 @@ For complete validator specifications, tier assignments, and implementation deta
 
 When user requests deep analysis of skills ("/skill-review", "do a deep analysis", "comprehensive review"):
 
-*These checks map to the `project-health` skill (design: [docs/project-health.md](docs/project-health.md)). Once built, invoke as `/project-health --all` or with specific categories.*
+*These checks map to the `project-health` skill. Invoke as `/project-health --deep` for a full deep analysis, or with specific categories.*
 
 📖 **[QUALITY.md § Deep Analysis Validation](QUALITY.md#deep-analysis-validation-level-2)**
 

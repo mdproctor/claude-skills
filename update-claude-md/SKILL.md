@@ -312,7 +312,7 @@ CLAUDE.md update is complete when:
 
 ## Skill Chaining
 
-**Invoked by:** [`git-commit`] when committing in any repository, [`java-git-commit`] alongside update-design
+**Invoked by:** [`git-commit`] when committing in any repository, [`java-git-commit`] alongside update-design, [`blog-git-commit`] when committing blog changes, [`custom-git-commit`] when committing custom project changes
 
 **Invokes:** None (terminal skill in the chain)
 

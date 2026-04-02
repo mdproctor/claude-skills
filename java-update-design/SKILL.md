@@ -123,40 +123,8 @@ For Java projects also check:
 
 ### Step 4: Identify architectural impact
 
-Map each change to a DESIGN.md section:
-
-| Code change | Likely DESIGN.md section |
-|---|---|
-| New REST endpoint / controller | API / Endpoints |
-| New service or module | Components / Architecture |
-| New external dependency | Dependencies / Technology Stack |
-| DB schema / entity change | Data Model |
-| New configuration property | Configuration |
-| Breaking API change | Breaking Changes / Migration |
-| Removed component | Components (mark as removed) |
-| New async flow (queue, event, scheduler) | Architecture / Data Flow |
-| New security constraint (auth, role, filter) | Security |
-| New cross-cutting concern (caching, retry, tracing) | Architecture / Cross-cutting Concerns |
-| Module extracted into separate service/jar | Components (note boundary change) |
-| New DTO / request-response contract | API / Data Contracts |
-| Interface or abstract class added | Components / Extension Points |
-
-**Java-specific signals and what they mean:**
-
-| Annotation / Pattern | Architectural signal |
-|---|---|
-| `@RestController`, `@RequestMapping` | New or changed public API surface |
-| `@Service`, `@Component` | New application logic component |
-| `@Repository`, `@Entity`, `@Table` | Data layer or schema change |
-| `@Scheduled`, `@Async` | New background job or async flow |
-| `@KafkaListener`, `@RabbitListener` | New message-driven component |
-| `@FeignClient`, `@RestTemplate` | New external service integration |
-| `@Configuration`, `@Bean` | New infrastructure wiring |
-| `@PreAuthorize`, `@Secured` | Security policy change |
-| `@Cacheable`, `@CacheEvict` | Caching strategy introduced or changed |
-| New `*Exception` class + `@ControllerAdvice` | New error handling contract |
-| New package (e.g. `adapter/`, `port/`, `domain/`) | Possible architectural layer added |
-| `pom.xml` / `build.gradle` dependency added | New external dependency — check if it implies a pattern (e.g. adding Resilience4j implies circuit breaking) |
+Map each change to a DESIGN.md section using **[mapping-reference.md](mapping-reference.md)**
+(code change → section table, and Java annotation → architectural signal table).
 
 **What to skip:**
 Skip the following changes, unless they signal a broader refactor.
@@ -411,32 +379,4 @@ DESIGN.md update is complete when:
 
 ## Starter Template
 
-Use this when DESIGN.md doesn't exist yet:
-
-```markdown
-# Project Design
-
-## Overview
-<!-- One paragraph: what this system does and why it exists. -->
-
-## Architecture
-<!-- High-level diagram or description of major components. -->
-
-## Components
-<!-- List key modules/services with a one-line description each. -->
-
-## API
-<!-- Public endpoints or interfaces exposed by this system. -->
-
-## Data Model
-<!-- Core entities and their relationships. -->
-
-## Dependencies
-<!-- External libraries, services, and infrastructure. -->
-
-## Configuration
-<!-- Key environment variables or config properties. -->
-
-## Open Questions / Future Work
-<!-- Unresolved decisions or planned changes. -->
-```
+Use this when DESIGN.md doesn't exist yet. Full template in **[starter-template.md](starter-template.md)**.

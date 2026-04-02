@@ -1,11 +1,11 @@
 # project-refine — Design Document
 
-**Status:** Design phase — not yet implemented as a skill
-**Skill name (planned):** `project-refine`
-**Slash command (planned):** `/project-refine`
+**Status:** Implemented — live skill
+**Skill name:** `project-refine`
+**Slash command:** `/project-refine`
 **Companion skill:** [`project-health`](project-health.md) — correctness and compliance checks
 
-This document tracks the design and scope of the `project-refine` skill. It is a working document — update it as the skill evolves.
+This document tracks the design and scope of the `project-refine` skill. Update it as the skill evolves.
 
 ---
 
