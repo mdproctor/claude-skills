@@ -30,17 +30,27 @@ Other skills can reference specific check categories when they need things verif
 
 ## Routing
 
-After running universal checks, `project-health` routes to the type-specific skill based on `## Project Type` in CLAUDE.md:
+After running universal checks, `project-health` **automatically chains to** the type-specific skill based on `## Project Type` in CLAUDE.md — in the same session, with output combined:
 
-| Project type | Routes to |
+| Project type | Auto-chains to |
 |---|---|
 | `java` | [`java-project-health`](java-project-health.md) |
 | `blog` | [`blog-project-health`](blog-project-health.md) |
 | `custom` | [`custom-project-health`](custom-project-health.md) |
 | `skills` | [`skills-project-health`](skills-project-health.md) |
-| `generic` | No routing — universal checks only |
+| `generic` | No chaining — universal checks only |
 
-Type-specific skills run their own categories and augment the universal categories with type-specific checks. They are invocable directly (e.g. `/java-project-health`) or automatically via routing from `project-health`.
+**How it works:**
+1. `project-health` reads `## Project Type` from CLAUDE.md
+2. Runs all universal check categories
+3. Automatically invokes the type-specific skill in the same session
+4. Output is combined into one unified report
+
+**Two valid entry points, same result:**
+- `/project-health` — universal entry point, auto-chains to type-specific. Use this when you don't know or don't care which type-specific skill applies.
+- `/java-project-health` — type-specific entry point, runs universal checks as its prerequisite first, then its own. Use this when you know you're working on a Java project.
+
+Both produce identical output. Neither redirects the user to run a second command.
 
 ---
 
