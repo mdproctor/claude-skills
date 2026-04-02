@@ -132,6 +132,10 @@ Findings are always presented as **opportunities**, never as failures. There is 
 - [ ] Are there sections describing plans, history, or context that are no longer relevant?
 - [ ] Are there documents or sections that are never read because they're hard to find or navigate to?
 
+**Consistency of structure**
+- [ ] Do tables of the same type use consistent column order and headers throughout the docs?
+- [ ] Do documents introduce concepts and then define them paragraphs later (forward references) — could define-then-use be applied?
+
 ---
 
 ### `code` — Deduplication & Abstraction
@@ -153,6 +157,10 @@ Findings are always presented as **opportunities**, never as failures. There is 
 - [ ] Are there functions, classes, or modules that are never called?
 - [ ] Are there feature flags or compatibility shims for things that no longer exist?
 
+**Scattered configuration**
+- [ ] Are configuration values or defaults (timeouts, retry counts, batch sizes) defined in multiple files — should they be consolidated?
+- [ ] Is error handling consistent across similar operations (all network calls handle timeouts the same way, all DB calls log errors identically)?
+
 ---
 
 ### `tests` — Grouping & Modularisation
@@ -167,6 +175,7 @@ Findings are always presented as **opportunities**, never as failures. There is 
 **Duplication**
 - [ ] Is the same fixture or arrangement code copy-pasted across multiple test methods?
 - [ ] Are there test patterns repeated enough to extract into shared helpers or base classes?
+- [ ] Are shared fixtures hiding critical preconditions (tests look identical but rely on different implicit setup)?
 
 **Size & scope**
 - [ ] Are there test files over ~300 lines testing multiple unrelated concerns?

@@ -46,6 +46,8 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] Skill Chaining Reference table covers all skills including new additions
 - [ ] Prerequisites sections reference skills that exist
 - [ ] All markdown links to other `.md` files resolve
+- [ ] Documented chaining reflects actual invocation — if A chains to B, the code/config actually invokes B (not just documented)
+- [ ] No Prerequisites section references a skill that has a different purpose than implied
 
 **Refinement** — Could the reference structure be simpler or more navigable?
 - [ ] Are any chains unnecessarily long?
@@ -61,6 +63,8 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] New skills appear in README.md § Skill Chaining Reference table
 - [ ] New skills appear in CLAUDE.md § Key Skills
 - [ ] Every validator is wired into `scripts/validate_all.py` at the correct tier
+- [ ] Every skill in marketplace.json has a corresponding directory and SKILL.md (no phantom skills)
+- [ ] README skill descriptions match the "Use when..." trigger conditions in each skill (no contradictions)
 
 **Refinement** — Are there integration points that could be automated or simplified?
 - [ ] Are any manual integration steps candidates for automation?
@@ -90,6 +94,7 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] Command file named `commands/<skill-name>.md`
 - [ ] Skill name in README matches actual name
 - [ ] New language skills follow established naming patterns (`lang-dev`, `lang-code-review`)
+- [ ] All references to a skill use identical spelling — no typos or variants across chaining tables, README, plugin.json, CLAUDE.md
 
 **Refinement** — Are names clear and discoverable, not just consistent?
 - [ ] Would a new user guess the right skill name without reading the docs?
@@ -103,6 +108,8 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] Session-start hook is registered in `~/.claude/settings.json`
 - [ ] Hook script matches the template in `hooks/check_project_setup.sh`
 - [ ] Generated files are in `.gitignore`
+- [ ] COMMIT-tier validators actually complete in <2s (performance regression detection)
+- [ ] `.gitignore` entries match the files that validators or scripts actually generate
 
 **Refinement** — Could the infrastructure be leaner?
 - [ ] Are any two validators doing overlapping checks that could be merged?
@@ -116,6 +123,7 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] No circular dependency chains
 - [ ] plugin.json dependency names match actual skill names
 - [ ] Marketplace dependency resolution would succeed for all skills
+- [ ] Optional dependencies (listed separately) are genuinely optional — the skill functions without them
 
 **Refinement** — Could dependency chains be simplified?
 - [ ] Are any chains deeper than necessary?
@@ -127,6 +135,8 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] No SKILL.md over ~400 lines
 - [ ] Heavy reference material extracted to separate files
 - [ ] No duplicate content across skills inflating token cost
+- [ ] No skill substantially duplicates passages from its dependency skills (each owns its scope)
+- [ ] SKILL.md content is about how to use the skill, not background theory that could be external reading
 
 **Refinement** — Could skills be leaner without losing value?
 - [ ] Are there skill sections that add length without adding guidance?
@@ -139,6 +149,8 @@ These categories only exist for skills repositories and are not present in `proj
 - [ ] No descriptions so generic they trigger on everything
 - [ ] No descriptions so specific they never trigger
 - [ ] Obvious use cases for the project type are covered
+- [ ] Skill workflow outputs match the declared use case (a "validate" skill produces pass/fail, not open-ended commentary)
+- [ ] No skill description references other skills by path rather than human-readable name (path references break on rename)
 
 **Refinement** — Are skills as useful as they could be?
 - [ ] Are any skills doing so little they'd be better absorbed into their caller?

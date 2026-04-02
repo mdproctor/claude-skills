@@ -232,6 +232,9 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] URLs and external references are correct and reachable
 - [ ] No stale "TODO" or "coming soon" references
 - [ ] Release status language matches actual state
+- [ ] Temporal claims are still accurate ("as of Q1 2026", "in the last 6 months")
+- [ ] Code examples and output samples match what the code actually produces
+- [ ] Environment variable names, config keys, and file paths match the actual source exactly
 
 **Refinement** — Could the documentation communicate the same information more effectively?
 - [ ] Are there over-explained sections where the code is self-evident?
@@ -250,6 +253,7 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] Recurring structural elements (tables, lists, headings) use consistent formatting
 - [ ] Severity levels (CRITICAL/WARNING/NOTE) used consistently
 - [ ] Terminology is consistent (e.g. "invoke" not mixed with "call" or "use")
+- [ ] The same concept is named the same way across all audience levels (novice and architecture docs agree on terms)
 
 **Refinement** — Could duplicated or scattered information be consolidated?
 - [ ] Could scattered terminology be unified in a glossary or shared reference?
@@ -262,7 +266,7 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 
 **Quality** — Do the described workflows actually work?
 - [ ] No workflow step references a script or file that doesn't exist
-- [ ] No workflow step requires an external tool (`gh`, `mvn`, etc.) without checking it's available
+- [ ] No workflow step requires an external tool (`gh`, `mvn`, etc.) without verifying it's installed
 - [ ] Hook outputs are directive (ACTION REQUIRED) not just informational
 - [ ] Hook doesn't fire on non-git directories
 - [ ] No workflow blocks progress without giving the user a way forward
@@ -270,6 +274,8 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] No redundant checks (same thing checked twice in the same flow)
 - [ ] Chained workflows don't create infinite loops
 - [ ] Exit codes are consistent and documented
+- [ ] Workflow steps that require user judgment specify clear decision criteria (not "do what makes sense")
+- [ ] Ordered workflows document what happens if steps are skipped or reordered
 
 **Refinement** — Could workflows be simpler or more intuitive?
 - [ ] Are there steps that could be combined without losing clarity?
@@ -306,6 +312,9 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] All executable scripts have correct permissions (executable for owner, not world-writable) — not just hooks
 - [ ] No secrets in git history (check recent commits)
 - [ ] Scripts validate inputs before acting on them
+- [ ] External tool dependencies are documented or checked before use (PATH assumptions are explicit)
+- [ ] Scripts that write files check the target directory exists before writing
+- [ ] Relative paths in scripts work correctly regardless of the working directory the script is called from
 
 **Refinement** — Could scripts be made safer by being simpler?
 - [ ] Are any scripts doing more than they need to (smaller attack surface = less code)?
@@ -324,6 +333,8 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] Release strategy documentation reflects current approach
 - [ ] No obviously incomplete components (stubs, empty sections, placeholder content)
 - [ ] All tests passing
+- [ ] Release notes actually reference the issues or PRs being released (not just a version number bump)
+- [ ] Release notes don't claim fixes or features that aren't in this release
 
 **Refinement** — Would the release be meaningful and well-presented?
 - [ ] Would the generated release notes tell a coherent story?
@@ -341,6 +352,8 @@ Each category below covers both **Quality** (is it correct?) and **Refinement** 
 - [ ] Error messages explain what went wrong and how to recover
 - [ ] No dead ends (every failure state has a next step)
 - [ ] Entry points (commands, slash commands, scripts) work as documented
+- [ ] Getting started has been validated from a fresh environment, not just the developer's pre-configured machine
+- [ ] Documented error recovery steps actually resolve the stated error (not generic troubleshooting)
 
 **Refinement** — Could the experience be faster or less friction-heavy?
 - [ ] Could any required setup step be inferred or automated rather than prompted?
@@ -395,6 +408,7 @@ Every project type has required primary artifacts. This check verifies they are 
 - [ ] Required configuration files are present and parseable
 - [ ] Any artifact referenced in CLAUDE.md actually exists at the declared path
 - [ ] No required artifact is empty, stubbed, or contains only placeholder content
+- [ ] No required artifact appears abandoned (no updates for unexpectedly long period given project activity)
 
 **Refinement** — Are the required artifacts appropriate in scope?
 - [ ] Is any required artifact significantly larger than it needs to be?
@@ -415,6 +429,7 @@ Every project type has conventions — commit formats, file naming rules, coding
 - [ ] File naming follows the declared conventions (type-specific — see augmentation table)
 - [ ] No convention is documented but never followed, or followed but never documented
 - [ ] Conventions referenced in skill/workflow documentation match what's actually enforced
+- [ ] Declared conventions that can be enforced automatically are enforced by tooling or validators (not just documented hope)
 
 **Refinement** — Could conventions be expressed more clearly or concisely?
 - [ ] Are any conventions so obvious they don't need documentation?

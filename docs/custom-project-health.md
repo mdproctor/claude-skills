@@ -48,6 +48,7 @@ These categories only exist for custom projects and are not present in `project-
 - [ ] No Sync Rules reference files that have been renamed or removed
 - [ ] The sync strategy (bidirectional-consistency, research-progress, etc.) matches actual usage
 - [ ] Current Milestone reflects the actual phase of the project
+- [ ] No two Sync Rules match overlapping file patterns without clear precedence
 
 **Refinement** — Could Sync Rules be cleaner or more maintainable?
 - [ ] Are there rules that overlap or could be merged?
@@ -62,6 +63,8 @@ These categories only exist for custom projects and are not present in `project-
 - [ ] No sections describe work that has been completed but still marked as planned
 - [ ] No participants listed who are no longer active
 - [ ] Referenced external documents, tools, or systems still exist
+- [ ] No completed work items remain marked as "planned" or "in progress"
+- [ ] External tool links (Notion, Figma, Jira, etc.) are all still reachable and point to current content
 
 **Refinement** — Could the project's current state be expressed more clearly?
 - [ ] Could the primary document be reorganised to surface current work more prominently?

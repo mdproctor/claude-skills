@@ -48,6 +48,8 @@ These categories only exist for Java projects and are not present in `project-he
 - [ ] @Entity classes are not used as API request/response types
 - [ ] No circular imports between packages
 - [ ] Service classes do not hold mutable state shared across requests
+- [ ] No business logic in @Entity or @Repository classes — logic belongs in services
+- [ ] No cyclic package dependencies (com.app.order → com.app.payment → com.app.order)
 
 **Refinement** — Could the architecture be simpler or better expressed?
 - [ ] Are there service classes doing too many things that could be split?
@@ -62,6 +64,8 @@ These categories only exist for Java projects and are not present in `project-he
 - [ ] No duplicate dependencies via transitive resolution
 - [ ] Test dependencies scoped correctly (not leaking to runtime)
 - [ ] `annotationProcessorPaths` includes all required processors
+- [ ] BOM overrides don't create runtime mismatches with transitive dependencies
+- [ ] No test-scoped dependency accidentally used in production code
 
 **Refinement** — Could the dependency structure be leaner?
 - [ ] Are there dependencies used in only one place that could be removed?
@@ -75,6 +79,8 @@ These categories only exist for Java projects and are not present in `project-he
 - [ ] Similar but not identical methods that should be parameterised and unified
 - [ ] Hardcoded values (strings, numbers, paths) repeated across multiple classes — should be named constants or config
 - [ ] Repeated sequences of calls that always appear together and belong in a helper method or utility class
+- [ ] Repeated string literals across classes (status codes, event names, field names) that should be constants
+- [ ] Callback or listener patterns repeated 3+ times that should share a base class or interface
 
 **Refinement** — Could small refactorings make code more shareable and reduce duplication going forward?
 - [ ] Are there methods just over the threshold for extraction — a small refactor would make them reusable?

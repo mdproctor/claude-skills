@@ -48,6 +48,8 @@ These categories only exist for blog projects and are not present in `project-he
 - [ ] No broken internal links between posts
 - [ ] No images referenced that don't exist in `assets/` or equivalent
 - [ ] Draft posts are in `_drafts/` not `_posts/` (unless intentionally published)
+- [ ] No post uses hardcoded relative links to other posts by date/title (would break on rename)
+- [ ] Archive pages (yearly/monthly) only exist for periods where posts actually exist
 
 **Refinement** — Could content organisation be better?
 - [ ] Are posts consistently categorised and tagged?
@@ -65,6 +67,8 @@ These categories only exist for blog projects and are not present in `project-he
 **Refinement** — Could the site structure be cleaner?
 - [ ] Are there layouts that are nearly identical and could be merged with parameters?
 - [ ] Could include files be better named or better organised?
+- [ ] Are there images in `assets/` that are no longer referenced by any post or layout?
+- [ ] Are there CSS or JavaScript files in `assets/` that are no longer used?
 
 ---
 
