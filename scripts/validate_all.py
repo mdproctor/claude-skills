@@ -32,6 +32,8 @@ VALIDATORS = {
         {'script': 'validate_edge_cases.py', 'name': 'Edge Cases', 'target': None},
         {'script': 'validate_behavior.py', 'name': 'Behavior', 'target': None},
         {'script': 'validate_readme_sync.py', 'name': 'README Sync', 'target': None},
+        {'script': 'validate_links.py', 'name': 'External Links', 'target': None},
+        {'script': 'validate_examples.py', 'name': 'Code Examples', 'target': None},
     ],
     'ci': [
         # CI tier: <5min budget, expensive tests
