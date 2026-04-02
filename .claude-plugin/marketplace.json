@@ -170,6 +170,42 @@
       "source": "./adr",
       "description": "Architecture Decision Record creation",
       "version": "1.0.0"
+    },
+    {
+      "name": "project-health",
+      "source": "./project-health",
+      "description": "Universal project health checks \u2014 correctness, consistency, and compliance across all project types",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "project-refine",
+      "source": "./project-refine",
+      "description": "Improvement opportunities across docs and code \u2014 structure, deduplication, and bloat reduction",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "skills-project-health",
+      "source": "./skills-project-health",
+      "description": "Health checks for Claude Code skill collection repositories \u2014 extends project-health with skills-specific checks",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "java-project-health",
+      "source": "./java-project-health",
+      "description": "Health checks for Java/Maven/Gradle projects \u2014 extends project-health with Java-specific checks",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "blog-project-health",
+      "source": "./blog-project-health",
+      "description": "Health checks for GitHub Pages/Jekyll blogs \u2014 extends project-health with blog-specific checks",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "custom-project-health",
+      "source": "./custom-project-health",
+      "description": "Health checks for custom projects \u2014 extends project-health with sync-rules and project-currency checks",
+      "version": "1.0.0-SNAPSHOT"
     }
   ]
 }

@@ -238,7 +238,7 @@ Each category covers two dimensions:
 
 ---
 
-*Type-specific checks (java, blog, custom, skills) are documented in their respective skills — see [Routing](#routing) above.*
+*Type-specific checks (java, blog, custom, skills) are documented in their respective skills — see [Routing](#routing) above. generic projects run universal checks only.* <!-- nocheck:project-types -->
 
 ### Suggested Invocation Groups
 
