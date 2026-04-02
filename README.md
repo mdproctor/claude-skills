@@ -263,6 +263,16 @@ This collection follows a **layered architecture** where foundation skills provi
 | **java-project-health** | Java project health checks | project-health |
 | **blog-project-health** | Blog project health checks | project-health |
 | **custom-project-health** | Custom project health checks | project-health |
+| **ts-project-health** | TypeScript/Node.js health checks | project-health |
+
+### Layer 8: TypeScript/Node.js Development (4 skills)
+
+| Skill | Purpose | Builds On |
+|-------|---------|-----------|
+| **ts-dev** | TypeScript development guidance | (standalone) |
+| **ts-code-review** | TypeScript code review | code-review-principles |
+| **ts-security-audit** | TypeScript/Node.js OWASP security audit | security-audit-principles |
+| **npm-dependency-update** | npm/yarn/pnpm dependency management | dependency-management-principles |
 
 ---
 
@@ -596,6 +606,50 @@ Once configured in CLAUDE.md, Claude applies cross-cutting detection and issue l
 
 ---
 
+### Layer 8: TypeScript/Node.js Development
+
+#### **ts-dev**
+Expert TypeScript development for Node.js and browser applications:
+- Strict mode enforcement (no `any`, prefer `unknown` + type guards)
+- Async/await correctness (unhandled rejections, parallel vs sequential)
+- Error handling with discriminated unions and Result types
+
+**Features:** Quick Reference table · Rule Priority flowchart · Common Pitfalls table · ❌/✅ code examples
+
+**Triggers:** Writing TypeScript, fixing bugs, refactoring, `.ts`/`.tsx` files, `tsconfig.json`, `package.json`.
+
+#### **ts-code-review**
+Pre-commit code review for TypeScript projects, extending code-review-principles:
+- Type safety (no `any`, unsafe assertions, non-null assertions)
+- Async correctness (unawaited promises, missing error handling)
+- Test quality (mocks vs real, behavioral testing)
+
+**Features:** Prerequisites section (extends code-review-principles) · Severity Decision Flow · Common Pitfalls table
+
+**Triggers:** "review the code", "check these changes", `/ts-code-review`.
+
+#### **ts-security-audit**
+OWASP Top 10 security audit for TypeScript/Node.js applications:
+- Injection (SQL, command, NoSQL, template)
+- Broken auth (JWT, bcrypt, session management, rate limiting)
+- Prototype pollution (Node.js-specific) · SSRF · Cryptographic failures
+
+**Features:** Prerequisites section (extends security-audit-principles) · Node.js Security Features table · ❌/✅ code examples · Severity flowchart
+
+**Triggers:** "security review", "audit security", "check for vulnerabilities", or offered by `ts-code-review`.
+
+#### **npm-dependency-update**
+npm/yarn/pnpm dependency management, extending dependency-management-principles:
+- Version strategy (exact vs ranges, when to pin)
+- `npm audit` triage and remediation
+- Breaking change detection with ADR integration
+
+**Features:** Prerequisites section (extends dependency-management-principles) · Semver guidance table · Version Strategy flowchart · Success Criteria
+
+**Triggers:** "update dependencies", "npm audit", "upgrade package", `package.json` changes.
+
+---
+
 ### Layer 7: Health & Quality
 
 #### **project-health**
@@ -656,6 +710,14 @@ Type-specific health checks for type: custom projects, extending project-health:
 - Reads Sync Rules from CLAUDE.md to validate project-specific requirements
 
 **Triggers:** `/custom-project-health`, or automatically chained by `project-health` at tier 3+.
+
+#### **ts-project-health**
+Type-specific health checks for TypeScript/Node.js projects, extending project-health:
+- Adds 5 TypeScript-specific categories: ts-types, ts-async, ts-build, ts-dependencies, ts-testing
+- Checks `strict: true` in tsconfig, floating promises, `npm audit` findings, lock file committed
+- Verifies `tsc --noEmit` passes and ESLint is clean
+
+**Triggers:** `/ts-project-health`, or automatically chained by `project-health` at tier 3+.
 
 ---
 

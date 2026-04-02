@@ -493,6 +493,13 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `readme-sync.md` — README.md sync, invoked by `git-commit` for type: skills only
 - `adr` — Architecture Decision Records in MADR format
 
+**TypeScript/Node.js skills:**
+- `ts-dev` — TypeScript development; strict mode, async patterns, error handling, testing
+- `ts-code-review` — extends `code-review-principles` for TypeScript/Node.js
+- `ts-security-audit` — OWASP Top 10 for TypeScript/Node.js, triggered by `ts-code-review`
+- `npm-dependency-update` — npm/yarn/pnpm dependency management, builds on `dependency-management-principles`
+- `ts-project-health` — extends project-health for TypeScript projects
+
 **Health & quality skills** (correctness and improvement):
 - `project-health` — universal health check; answers "is the project correct, complete, and consistent?"; auto-chains to type-specific skill at tier 3+
 - `project-refine` — companion to project-health for improvement opportunities; never blocks work
@@ -500,6 +507,7 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `java-project-health` — extends project-health for type: java
 - `blog-project-health` — extends project-health for type: blog
 - `custom-project-health` — extends project-health for type: custom
+- `ts-project-health` — extends project-health for TypeScript/Node.js projects
 
 ## Quality Assurance Framework
 

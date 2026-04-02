@@ -7,6 +7,20 @@
   },
   "bundles": [
     {
+      "name": "typescript",
+      "displayName": "TypeScript bundle",
+      "description": "TypeScript/Node.js development: ts-dev, code review, security audit, npm dependency management",
+      "skills": [
+        "git-commit",
+        "ts-dev",
+        "ts-code-review",
+        "ts-security-audit",
+        "npm-dependency-update",
+        "update-claude-md",
+        "adr"
+      ]
+    },
+    {
       "name": "java-quarkus",
       "displayName": "Java/Quarkus bundle",
       "description": "Backend development: java-dev, quarkus-flow-dev, code review, security audit, dependency management",
@@ -170,6 +184,36 @@
       "source": "./adr",
       "description": "Architecture Decision Record creation",
       "version": "1.0.0"
+    },
+    {
+      "name": "ts-dev",
+      "source": "./ts-dev",
+      "description": "TypeScript development workflow — strict mode, async patterns, error handling, testing",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "ts-code-review",
+      "source": "./ts-code-review",
+      "description": "TypeScript code review extending code-review-principles — type safety, async correctness",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "ts-security-audit",
+      "source": "./ts-security-audit",
+      "description": "TypeScript/Node.js OWASP Top 10 security audit — injection, auth, SSRF, prototype pollution",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "npm-dependency-update",
+      "source": "./npm-dependency-update",
+      "description": "npm/yarn/pnpm dependency management extending dependency-management-principles",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "ts-project-health",
+      "source": "./ts-project-health",
+      "description": "Health checks for TypeScript/Node.js projects — extends project-health with TS-specific checks",
+      "version": "1.0.0-SNAPSHOT"
     },
     {
       "name": "project-health",

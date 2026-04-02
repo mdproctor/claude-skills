@@ -225,5 +225,5 @@ flowchart TD
 
 ## Skill Chaining
 
-Language-specific review skills (`java-code-review`, `python-code-review`, etc.)
+Language-specific review skills (`java-code-review`, `ts-code-review`, `python-code-review`, etc.)
 implement these principles with language-specific examples and tooling.

@@ -253,6 +253,6 @@ flowchart TD
 ## Skill Chaining
 
 Language-specific security audit skills (`java-security-audit` for Java/Quarkus,
-`python-security-audit`, etc.) implement these OWASP principles with
-language-specific code examples, framework-specific security features, and
-ecosystem-specific tooling.
+`ts-security-audit` for TypeScript/Node.js, `python-security-audit`, etc.) implement
+these OWASP principles with language-specific code examples, framework-specific
+security features, and ecosystem-specific tooling.

@@ -44,6 +44,8 @@ KNOWN_NON_SKILLS = {
     'docs-sync', 'user-journey', 'primary-doc', 'cross-refs',
     # Check categories defined in java-project-health
     'java-dependencies', 'java-architecture', 'java-code-quality',
+    # Check categories defined in ts-project-health
+    'ts-types', 'ts-async', 'ts-build', 'ts-dependencies', 'ts-testing',
     # Future planned extension skills — mentioned as examples in principles skills
     # but not yet implemented. Add here when referenced, remove when created.
     'python-code-review', 'python-security-audit', 'python-observability',
