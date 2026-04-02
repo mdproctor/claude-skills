@@ -9,11 +9,12 @@ explicit config, caching, and circular reference detection.
 import sys
 import unittest
 from pathlib import Path
-from tempfile import TemporaryDirectory
 import os
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from tests.test_base import TempDirTestCase
 
 from scripts.document_discovery import (
     DocumentGroup,
@@ -30,17 +31,8 @@ from scripts.document_discovery import (
 )
 
 
-class TestDocumentDiscovery(unittest.TestCase):
+class TestDocumentDiscovery(TempDirTestCase):
     """Test document group discovery"""
-
-    def setUp(self):
-        """Create temporary directory for test files"""
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        """Clean up temporary directory"""
-        self.temp_dir.cleanup()
 
     def test_discover_single_file(self):
         """Backwards compat: single file returns group with 1 file"""
@@ -349,15 +341,8 @@ class TestDocumentDiscovery(unittest.TestCase):
         self.assertEqual(group.discovered_via, "auto")
 
 
-class TestCacheKeyConsistency(unittest.TestCase):
+class TestCacheKeyConsistency(TempDirTestCase):
     """Test that cache keys remain stable"""
-
-    def setUp(self):
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
 
     def test_cache_key_stable_for_same_structure(self):
         """Same structure should produce same cache key"""

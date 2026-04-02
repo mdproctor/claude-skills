@@ -17,6 +17,11 @@ from pathlib import Path
 from typing import List, Optional, Set
 import sys
 
+try:
+    from scripts.utils.markdown_patterns import MD_LINK_PATTERN, MD_INCLUDE_PATTERN, MD_SECTION_REF_PATTERN
+except ImportError:
+    from utils.markdown_patterns import MD_LINK_PATTERN, MD_INCLUDE_PATTERN, MD_SECTION_REF_PATTERN
+
 # Well-known documentation filenames (case-insensitive).
 # Any root-level .md file matching these names is always included in scans.
 WELL_KNOWN_DOC_NAMES: Set[str] = {
@@ -219,8 +224,7 @@ def parse_markdown_links(content: str, base_dir: Path) -> List[Path]:
         List of linked markdown file paths that exist
     """
     # Match [text](path) and [text](path#anchor)
-    pattern = r'\[([^\]]+)\]\(([^)]+)\)'
-    matches = re.findall(pattern, content)
+    matches = re.findall(MD_LINK_PATTERN, content)
 
     paths = []
     for text, link in matches:
@@ -261,8 +265,7 @@ def parse_includes(content: str, base_dir: Path) -> List[Path]:
         List of included file paths that exist
     """
     # Match <!-- include: path -->
-    pattern = r'<!--\s*include:\s*([^\s]+)\s*-->'
-    matches = re.findall(pattern, content, re.IGNORECASE)
+    matches = re.findall(MD_INCLUDE_PATTERN, content, re.IGNORECASE)
 
     paths = []
     for link in matches:
@@ -288,8 +291,7 @@ def parse_section_references(content: str, base_dir: Path) -> List[Path]:
         List of referenced file paths that exist
     """
     # Match "§ Section in file.md" or "§ Section (file.md)"
-    pattern = r'§\s+[^(]+\s+(?:in|\()\s*([^\s)]+\.md)'
-    matches = re.findall(pattern, content)
+    matches = re.findall(MD_SECTION_REF_PATTERN, content)
 
     paths = []
     for link in matches:

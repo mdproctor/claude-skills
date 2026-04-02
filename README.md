@@ -295,17 +295,11 @@ Guided removal wizard:
 #### **git-commit**
 Generic conventional commit workflow for any repository:
 - Generates conventional commit messages (Conventional Commits 1.0.0)
-- **Routes to specialized skills** based on project type (java-git-commit for type: java, blog-git-commit for type: blog, custom-git-commit for type: custom)
-- **Interactive setup** if CLAUDE.md missing (prompts for project type)
-- Works with any codebase or file types
+- **Routes to specialized skills** based on project type declared in CLAUDE.md
+- **Interactive setup** if CLAUDE.md missing (prompts for project type, creates it)
 - Proposes commit message for user review before committing
-- Base workflow extended by java-git-commit and custom-git-commit
 
-**Features:**
-- Decision Flow flowchart (stage → generate → propose → commit)
-- Conventional commit type and scope reference
-- Common Pitfalls table
-- Language-agnostic examples
+**Features:** Decision Flow flowchart · Common Pitfalls table · commit format and scope reference in separate reference files
 
 **Triggers:** "commit", "make a commit", `/git-commit` in non-Java repositories.
 
@@ -337,35 +331,22 @@ Conventional commit workflow for GitHub Pages / Jekyll blogs:
 Intelligent commit workflow for custom project types (working groups, research, documentation, advocacy):
 - **User-configured primary document sync** — reads sync strategy from CLAUDE.md
 - Flexible sync via Sync Rules table (file patterns → document sections)
-- Support for multiple sync strategies (bidirectional-consistency, research-progress, api-spec-sync, architectural-changes)
-- Milestone alignment tracking
+- Supports bidirectional-consistency, research-progress, api-spec-sync, architectural-changes strategies
 
-Extends git-commit with user-configured synchronization for projects that don't fit skills/java patterns.
-
-**Features:**
-- Decision flowchart showing complete commit + primary doc sync process
-- Common Pitfalls table (custom project mistakes)
-- Examples for 4 custom project archetypes (working groups, research, API docs, standards)
-- Flexible table-driven sync (no hardcoded project knowledge)
+**Features:** Decision flowchart · Common Pitfalls table · examples for 4 project archetypes
 
 **Triggers:** "commit" in repositories with `type: custom` declared in CLAUDE.md.
 
 ### Layer 2: Documentation Sync
 
 #### **update-claude-md**
-Maintains CLAUDE.md documentation in sync with workflow and convention changes:
-- Build commands and development workflows
-- Testing patterns and commands
-- Naming conventions and code organization
-- Repository-specific tools and processes
-- Skill lists (for skills repositories)
+Maintains CLAUDE.md in sync with workflow and convention changes: build commands, testing patterns, naming conventions, repository-specific tools, and skill lists.
 
-**Features:**
-- Common Pitfalls table (documentation mistakes)
-- Skills repository awareness (skill naming, cross-references)
-- Code repository support (build tools, testing frameworks)
+**Features:** Common Pitfalls table · starter templates for skills and code repositories
 
-Invoked automatically by `git-commit` and `java-git-commit` (if CLAUDE.md exists), or independently. Handles workflow documentation; for architectural documentation, see `java-update-design`.
+Invoked automatically by all commit skills (if CLAUDE.md exists), or independently. For architectural documentation see `java-update-design`.
+
+**Triggers:** CLAUDE.md needs updating, or automatically via `git-commit`.
 
 #### **java-update-design**
 Maintains DESIGN.md documentation in sync with code changes, capturing:
@@ -394,20 +375,15 @@ Maintains README.md documentation in sync with skill collection changes in skill
 Invoked automatically by `git-commit` (if README.md exists and skill changes detected), or independently. Specific to skills repositories; for code repositories, use project-specific documentation tools.
 
 #### **update-primary-doc**
-Generic table-driven primary document synchronization for custom projects:
-- Syncs VISION.md, THESIS.md, or user-configured primary documents
-- Reads Sync Rules from CLAUDE.md (file patterns → document sections)
+Generic table-driven primary document synchronization for custom projects. Syncs VISION.md, THESIS.md, or any user-configured primary document based on Sync Rules declared in CLAUDE.md.
 - Supports 4 built-in sync strategies + custom strategies
-- Section-aware updates (headings, subsections)
-- Glob pattern matching (*, **, exact paths)
+- Proposal-only — returns changes to calling skill for user confirmation
 
-**Features:**
-- Common Pitfalls table (sync configuration mistakes)
-- 4 sync strategies documented (bidirectional-consistency, research-progress, api-spec-sync, architectural-changes)
-- Pattern matching examples
-- Proposal-only (returns changes to calling skill for user confirmation)
+**Features:** Common Pitfalls table · sync strategy and pattern matching reference in separate files
 
-Invoked automatically by `custom-git-commit` when Sync Rules configured in CLAUDE.md. Generic processor with no hardcoded project knowledge—all behavior driven by user's Sync Rules table.
+Invoked automatically by `custom-git-commit` when Sync Rules configured.
+
+**Triggers:** Primary document needs sync, or automatically via `custom-git-commit`.
 
 ### Layer 3: Review
 
@@ -521,40 +497,24 @@ Universal observability principles: structured logging, distributed tracing, and
 ### Layer 5: Java/Quarkus Development
 
 #### **java-dev**
-Expert Java development for Quarkus server-side applications with focus on:
-- Safety-first approach (resource leaks, deadlocks, silent corruption)
-- Performance optimization for cloud deployments
+Expert Java development for Quarkus server-side applications:
+- Safety-first (resource leaks, deadlocks, silent corruption)
 - Concurrency patterns aligned with Quarkus/Vert.x event loop
 - Testing with JUnit 5, AssertJ, and Quarkus test annotations
 
-**Features:**
-- Quick Reference table (safety, concurrency, performance, testing, code quality)
-- Rule Priority Flow flowchart (Safety > Concurrency > Performance > Code Quality)
-- "Red Flags — These Thoughts Mean STOP" 4-column rationalization table (Problem-Impact-Fix)
-- "Why These Rules Matter" section with 6 real production incidents
-- ❌/✅ code examples for Safety, Concurrency, Performance sections
-- Enhanced Skill Chaining (6 comprehensive skill references)
-- RED-GREEN-REFACTOR validated (prevents resource leaks under pressure)
+**Features:** Rule Priority flowchart · "These Thoughts Mean STOP" rationalization table · ❌/✅ code examples · Quick Reference table
 
-**Triggers:** Writing Java classes, fixing bugs, refactoring, working with `.java`, `pom.xml`, or build files.
+**Triggers:** Writing Java classes, fixing bugs, refactoring, `.java`, `pom.xml`, or build files.
 
 #### **quarkus-flow-dev**
-Specialized development for quarkus-flow (CNCF Serverless Workflow) including:
+Specialized development for quarkus-flow (CNCF Serverless Workflow):
 - Workflow DSL patterns with FuncDSL
 - Task composition (function/agent/http/emit/listen)
-- Human-in-the-loop (HITL) patterns
-- LangChain4j AI service integration
+- Human-in-the-loop (HITL) patterns and LangChain4j AI service integration
 
-**Features:**
-- Prerequisites section (builds on java-dev rules)
-- Task DSL Quick Reference table (12 common patterns)
-- Complete API reference extracted to `funcDSL-reference.md`
-- Common Pitfalls table (7 mistakes and fixes)
-- HITL pattern example with full workflow
-- Enhanced Skill Chaining (includes quarkus-observability)
-- Token-optimized: 31.5% reduction from original size
+**Features:** Prerequisites section (builds on java-dev) · Task DSL Quick Reference table · Common Pitfalls table · API reference in `funcDSL-reference.md`
 
-**Triggers:** Flow subclasses, workflow YAML, mentions of "workflow", "agent", "agentic", or "LangChain4j".
+**Triggers:** Flow subclasses, workflow YAML, "workflow", "agent", "agentic", or "LangChain4j".
 
 #### **quarkus-flow-testing**
 Comprehensive testing patterns for quarkus-flow workflows:

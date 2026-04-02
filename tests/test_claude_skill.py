@@ -16,6 +16,7 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from tests.test_base import DualTempDirTestCase
 from importlib.machinery import SourceFileLoader
 _script_path = Path(__file__).parent.parent / "scripts" / "claude-skill"
 cs = SourceFileLoader("claude_skill", str(_script_path)).load_module()
@@ -41,17 +42,7 @@ def make_skill(directory: Path, name: str) -> Path:
 # sync-local: updates installed skills
 # ---------------------------------------------------------------------------
 
-class TestSyncLocalUpdatesInstalled(unittest.TestCase):
-
-    def setUp(self):
-        self.repo_tmp = TemporaryDirectory()
-        self.skills_tmp = TemporaryDirectory()
-        self.repo = Path(self.repo_tmp.name)
-        self.skills = Path(self.skills_tmp.name)
-
-    def tearDown(self):
-        self.repo_tmp.cleanup()
-        self.skills_tmp.cleanup()
+class TestSyncLocalUpdatesInstalled(DualTempDirTestCase):
 
     def _patch(self):
         return patch.multiple(cs, get_repo_root=lambda: self.repo,
@@ -86,17 +77,7 @@ class TestSyncLocalUpdatesInstalled(unittest.TestCase):
 # sync-local: skips uninstalled without --all
 # ---------------------------------------------------------------------------
 
-class TestSyncLocalSkipsUninstalled(unittest.TestCase):
-
-    def setUp(self):
-        self.repo_tmp = TemporaryDirectory()
-        self.skills_tmp = TemporaryDirectory()
-        self.repo = Path(self.repo_tmp.name)
-        self.skills = Path(self.skills_tmp.name)
-
-    def tearDown(self):
-        self.repo_tmp.cleanup()
-        self.skills_tmp.cleanup()
+class TestSyncLocalSkipsUninstalled(DualTempDirTestCase):
 
     def _patch(self):
         return patch.multiple(cs, get_repo_root=lambda: self.repo,
@@ -128,17 +109,7 @@ class TestSyncLocalSkipsUninstalled(unittest.TestCase):
 # sync-local: --all installs new skills
 # ---------------------------------------------------------------------------
 
-class TestSyncLocalAllFlag(unittest.TestCase):
-
-    def setUp(self):
-        self.repo_tmp = TemporaryDirectory()
-        self.skills_tmp = TemporaryDirectory()
-        self.repo = Path(self.repo_tmp.name)
-        self.skills = Path(self.skills_tmp.name)
-
-    def tearDown(self):
-        self.repo_tmp.cleanup()
-        self.skills_tmp.cleanup()
+class TestSyncLocalAllFlag(DualTempDirTestCase):
 
     def _patch(self):
         return patch.multiple(cs, get_repo_root=lambda: self.repo,
@@ -170,17 +141,7 @@ class TestSyncLocalAllFlag(unittest.TestCase):
 # sync-local: edge cases
 # ---------------------------------------------------------------------------
 
-class TestSyncLocalEdgeCases(unittest.TestCase):
-
-    def setUp(self):
-        self.repo_tmp = TemporaryDirectory()
-        self.skills_tmp = TemporaryDirectory()
-        self.repo = Path(self.repo_tmp.name)
-        self.skills = Path(self.skills_tmp.name)
-
-    def tearDown(self):
-        self.repo_tmp.cleanup()
-        self.skills_tmp.cleanup()
+class TestSyncLocalEdgeCases(DualTempDirTestCase):
 
     def _patch(self):
         return patch.multiple(cs, get_repo_root=lambda: self.repo,

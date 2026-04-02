@@ -23,6 +23,13 @@ except ImportError:
     # Fallback for testing
     DocumentGroup = None
 
+try:
+    from scripts.utils.markdown_patterns import MD_LINK_PATTERN, MD_HEADER_PATTERN
+    from scripts.utils.markdown_utils import normalize_anchor
+except ImportError:
+    from utils.markdown_patterns import MD_LINK_PATTERN, MD_HEADER_PATTERN
+    from utils.markdown_utils import normalize_anchor
+
 # Use the shared ValidationResult — re-exported so callers importing from here continue to work
 try:
     from scripts.utils.common import ValidationResult, ValidationIssue, Severity
@@ -94,7 +101,7 @@ def validate_link_integrity(group) -> ValidationResult:
             content = f.read()
 
         # Find all markdown links
-        links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+        links = re.findall(MD_LINK_PATTERN, content)
 
         for link_text, link_target in links:
             # Skip external URLs
@@ -155,14 +162,10 @@ def check_anchor_exists(file_path: Path, anchor: str) -> bool:
 
     # Generate anchor from header text (GitHub style)
     # "## Architecture Overview" → "architecture-overview"
-    headers = re.findall(r'^#{1,6}\s+(.+)$', content, re.MULTILINE)
+    headers = re.findall(MD_HEADER_PATTERN, content, re.MULTILINE)
 
     for header in headers:
-        # Convert to anchor format
-        header_anchor = header.lower()
-        header_anchor = re.sub(r'[^\w\s-]', '', header_anchor)
-        header_anchor = re.sub(r'[-\s]+', '-', header_anchor)
-        header_anchor = header_anchor.strip('-')
+        header_anchor = normalize_anchor(header)
 
         if header_anchor == anchor.lower():
             return True
@@ -238,7 +241,7 @@ def get_referenced_files(file_path: Path) -> Set[Path]:
     referenced = set()
 
     # Find markdown links
-    links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+    links = re.findall(MD_LINK_PATTERN, content)
 
     for link_text, link_target in links:
         # Skip external URLs

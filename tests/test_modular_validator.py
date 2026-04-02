@@ -9,11 +9,11 @@ completeness, duplication detection, and overall validation orchestration.
 import sys
 import unittest
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from tests.test_base import TempDirTestCase
 from scripts.document_discovery import DocumentGroup, ModuleFile
 from scripts.modular_validator import (
     ValidationResult,
@@ -26,15 +26,8 @@ from scripts.modular_validator import (
 )
 
 
-class TestLinkIntegrity(unittest.TestCase):
+class TestLinkIntegrity(TempDirTestCase):
     """Test link integrity validation"""
-
-    def setUp(self):
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
 
     def test_validate_link_integrity_all_valid(self):
         """All links exist → pass"""
@@ -176,15 +169,8 @@ class TestLinkIntegrity(unittest.TestCase):
         self.assertFalse(result.has_issues())
 
 
-class TestCompleteness(unittest.TestCase):
+class TestCompleteness(TempDirTestCase):
     """Test completeness validation"""
-
-    def setUp(self):
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
 
     def test_check_completeness_single_file(self):
         """Single-file group has no completeness checks"""
@@ -282,15 +268,8 @@ class TestCompleteness(unittest.TestCase):
         self.assertIn(ref2.resolve(), referenced)
 
 
-class TestDuplication(unittest.TestCase):
+class TestDuplication(TempDirTestCase):
     """Test duplication detection"""
-
-    def setUp(self):
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
 
     def test_find_duplication_single_file(self):
         """Single-file group has no duplication checks"""
@@ -374,15 +353,8 @@ class TestDuplication(unittest.TestCase):
         self.assertEqual(len(result.notes), 0)
 
 
-class TestDocumentGroupValidation(unittest.TestCase):
+class TestDocumentGroupValidation(TempDirTestCase):
     """Test overall validate_document_group() orchestration"""
-
-    def setUp(self):
-        self.temp_dir = TemporaryDirectory()
-        self.test_dir = Path(self.temp_dir.name)
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
 
     def test_validate_document_group_clean(self):
         """Clean group with valid links and content → no critical issues"""
