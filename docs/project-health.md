@@ -41,10 +41,12 @@ After running universal checks, `project-health` **automatically chains to** the
 | `generic` | No chaining — universal checks only |
 
 **How it works:**
-1. `project-health` reads `## Project Type` from CLAUDE.md
-2. Runs all universal check categories
+1. `project-health` reads `## Project Type` from CLAUDE.md — **this happens first, before any checks run**
+2. Runs all universal check categories — type context is now available, so type-sensitive checks (`primary-doc`, `artifacts`, `conventions`, `framework`) know what to look for for this project type
 3. Automatically invokes the type-specific skill in the same session
 4. Output is combined into one unified report
+
+**Why type-sensitive universal checks work:** `primary-doc`, `artifacts`, `conventions`, and `framework` are universal in *structure* but type-aware in *content* — they ask the same questions for every project but apply them to the correct artifacts for the detected type. Because type detection is always step 1, these checks always have the context they need.
 
 **Two valid entry points, same result:**
 - `/project-health` — universal entry point, auto-chains to type-specific. Use this when you don't know or don't care which type-specific skill applies.
