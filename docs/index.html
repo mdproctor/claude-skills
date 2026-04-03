@@ -2018,7 +2018,7 @@
     <div class="modal-note" id="u-note"></div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeUpdateModal()">Cancel</button>
-      <button class="btn-confirm update" onclick="closeUpdateModal()">Update All</button>
+      <button class="btn-confirm update" id="u-confirm" onclick="confirmUpdateModal()">Update All</button>
     </div>
   </div>
 </div>
@@ -2262,11 +2262,10 @@
     }, 350); // slight delay so highlight starts as scroll settles
   }
 
-  // ── Installed state (mock) ──
-  const INSTALLED = new Set(['git-commit','update-claude-md','adr','ts-dev','ts-code-review',
-    'ts-security-audit','npm-dependency-update','ts-project-health','java-dev','java-code-review',
-    'java-security-audit','java-git-commit','maven-dependency-update','project-health',
-    'project-refine','issue-workflow']);
+  // ── Installed state — populated from /api/state when running locally ──
+  const INSTALLED = new Set();   // filled by loadState()
+  const VERSIONS  = {};          // name → installed version string
+  let   AVAILABLE = {};          // name → marketplace version string
 
   // ── Dependency map ──
   const DEPS = {
@@ -2305,6 +2304,9 @@
     const container = cta && cta.parentNode;
     if (cta && container) container.insertBefore(cta, container.firstChild);
   }
+
+  // When served by web_installer.py, fetch real state and update the UI.
+  if (isLocal) loadState().catch(() => {});
 
   // ── View switching ──
   function setView(view) {
@@ -2429,16 +2431,157 @@
     'uninstall-individual':{ title:'Uninstall issue-workflow', sub:'issue-workflow will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall issue-workflow', kind:'uninstall', label:'Uninstall 1 skill' },
   };
 
-  // Update All — opens its own richer modal
+  // ── Live state: load from web_installer.py API ───────────────────────────
+
+  async function loadState() {
+    const [stateRes, mktRes] = await Promise.all([
+      fetch('/api/state'),
+      fetch('/api/marketplace'),
+    ]);
+    if (stateRes.ok) applyState(await stateRes.json());
+    if (mktRes.ok) {
+      const mkt = await mktRes.json();
+      AVAILABLE = {};
+      for (const p of (mkt.plugins || [])) { AVAILABLE[p.name] = p.version; }
+      updateInstallSummary();
+    }
+  }
+
+  function applyState(data) {
+    INSTALLED.clear();
+    Object.keys(VERSIONS).forEach(k => delete VERSIONS[k]);
+    (data.installed || []).forEach(n => INSTALLED.add(n));
+    Object.assign(VERSIONS, data.versions || {});
+    updateAllBadges();
+    updateInstallSummary();
+  }
+
+  function updateAllBadges() {
+    // Overview cards (Browse view)
+    document.querySelectorAll('[id^="ov-"]').forEach(card => {
+      const name = card.id.slice(3);
+      const inst = INSTALLED.has(name);
+      const badge = card.querySelector('.installed-badge, .not-installed-badge');
+      if (badge) {
+        badge.className = inst ? 'installed-badge' : 'not-installed-badge';
+        badge.textContent = inst ? '✓ Installed' : 'Not installed';
+      }
+      const nameEl = card.querySelector('.skill-name');
+      if (nameEl) nameEl.classList.toggle('installed', inst);
+      if (inst && VERSIONS[name]) {
+        const verEl = card.querySelector('.skill-version');
+        if (verEl) verEl.textContent = `v${VERSIONS[name]}`;
+      }
+    });
+    // Install tab skill rows
+    document.querySelectorAll('.skill-row').forEach(row => {
+      const nameEl = row.querySelector('.skill-name');
+      if (!nameEl) return;
+      const name = nameEl.textContent.trim();
+      const inst = INSTALLED.has(name);
+      row.classList.toggle('installed', inst);
+      const actionsEl = row.querySelector('.skill-actions');
+      if (actionsEl) {
+        if (inst) {
+          actionsEl.innerHTML = `<button class="btn-uninstall" onclick="openModal('uninstall-skill','${name}')">Uninstall</button>`;
+        } else {
+          actionsEl.innerHTML = `<button class="btn-install" onclick="openModal('install-skill','${name}')">Install</button>`;
+        }
+      }
+      if (inst && VERSIONS[name]) {
+        const verEl = row.querySelector('.skill-version');
+        if (verEl) verEl.textContent = `v${VERSIONS[name]}`;
+      }
+    });
+  }
+
+  function updateInstallSummary() {
+    const total = Object.keys(AVAILABLE).length || 40;
+    const count = INSTALLED.size;
+    const subEl = document.querySelector('.sync-bar-sub');
+    if (subEl) subEl.textContent = `${count} of ${total} installed`;
+    // Outdated: installed version older than available
+    const outdated = [...INSTALLED].filter(n => {
+      const inst = VERSIONS[n], avail = AVAILABLE[n];
+      if (!inst || !avail || inst === avail) return false;
+      // Treat SNAPSHOT as older than its release (matches server rule)
+      if (inst.includes('SNAPSHOT') && !avail.includes('SNAPSHOT')) return true;
+      return inst < avail;
+    });
+    const outdatedLabel = document.querySelector('.outdated-label');
+    if (outdatedLabel) {
+      if (outdated.length > 0) {
+        outdatedLabel.textContent = `⚠️ ${outdated.length} outdated`;
+        outdatedLabel.style.display = '';
+      } else {
+        outdatedLabel.style.display = 'none';
+      }
+    }
+  }
+
+  // Map a displayed claude-skill command string to an API call.
+  async function executeCmd(cmdText) {
+    const cmd = cmdText.trim();
+    let endpoint, body;
+
+    if (cmd.includes('sync-local --all')) {
+      endpoint = '/api/update';
+      body = {};
+    } else if (cmd.includes('sync-local --skills')) {
+      const m = cmd.match(/--skills\s+([a-z0-9 -]+?)(?:\s+-y)?\s*$/);
+      const skills = m ? m[1].trim().split(/\s+/) : [];
+      endpoint = '/api/install';
+      body = { skills };
+    } else if (cmd.includes('uninstall-all') || cmd.includes('uninstall --all')) {
+      endpoint = '/api/uninstall-all';
+      body = {};
+    } else if (cmd.includes('uninstall')) {
+      const m = cmd.match(/uninstall\s+([a-z0-9 -]+)\s*$/);
+      const skills = m ? m[1].trim().split(/\s+/) : [];
+      endpoint = '/api/uninstall';
+      body = { skills };
+    } else {
+      throw new Error('Unrecognized command: ' + cmd);
+    }
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  }
+
+  // ── Update All modal ──────────────────────────────────────────────────────
+
   function openUpdateModal() {
     const note = document.getElementById('u-note');
     if (autoExecute) { note.className = 'modal-note'; note.textContent = '⚡ This command will run automatically when you confirm.'; }
     else { note.className = 'modal-note manual'; note.textContent = '📋 Copy and run this command in your terminal. The page will auto-refresh once complete — or hit Refresh.'; }
+    const btn = document.getElementById('u-confirm');
+    if (btn) { btn.disabled = false; btn.textContent = 'Update All'; }
     document.getElementById('update-overlay').classList.add('open');
   }
   function closeUpdateModal() {
     document.getElementById('update-overlay').classList.remove('open');
-    if (autoExecute) showToast('✓ Skills updated — open a new Claude Code session to use the latest version');
+  }
+  async function confirmUpdateModal() {
+    if (!autoExecute) { closeUpdateModal(); return; }
+    const btn = document.getElementById('u-confirm');
+    if (btn) { btn.disabled = true; btn.textContent = 'Updating…'; }
+    try {
+      const result = await fetch('/api/update', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.json());
+      closeUpdateModal();
+      if (result.ok) {
+        showToast('✓ Skills updated — open a new Claude Code session to use the latest version');
+        await loadState();
+      } else {
+        showToast('❌ Update failed: ' + (result.error || 'unknown error'));
+      }
+    } catch (e) {
+      closeUpdateModal();
+      showToast('❌ Connection error — is web_installer.py running?');
+    }
   }
   function handleUpdateOverlayClick(e) { if (e.target === document.getElementById('update-overlay')) closeUpdateModal(); }
   function copyUpdateCmd() {
@@ -2447,6 +2590,8 @@
       btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy', 2000);
     });
   }
+
+  // ── Generic install / uninstall modal ────────────────────────────────────
 
   function openModal(type, name) {
     if (type === 'update-all') { openUpdateModal(); return; }
@@ -2464,7 +2609,6 @@
     const depText = document.getElementById('m-dep-text');
     const missingDeps = (DEPS[name] || []).filter(d => !INSTALLED.has(d));
     if (cfg.kind === 'install' && missingDeps.length > 0) {
-      // Rewrite command to include dependencies automatically
       const allSkills = [...missingDeps, name].join(' ');
       document.getElementById('m-cmd').textContent =
         `python3 scripts/claude-skill sync-local --skills ${allSkills}`;
@@ -2481,11 +2625,25 @@
     const btn = document.getElementById('m-confirm');
     btn.textContent = autoExecute ? cfg.label : 'Done';
     btn.className   = `btn-confirm ${cfg.kind}`;
-    // Wire confirm to show toast when auto-executing
-    btn.onclick = () => {
-      closeModal();
-      if (autoExecute && cfg.kind === 'install') showToast('✓ Skills installed — open a new Claude Code session to use them');
-      if (autoExecute && cfg.kind === 'uninstall') showToast('✓ Skills removed');
+    btn.disabled    = false;
+    btn.onclick = async () => {
+      if (!autoExecute) { closeModal(); return; }
+      btn.disabled = true;
+      btn.textContent = 'Running…';
+      try {
+        const result = await executeCmd(document.getElementById('m-cmd').textContent);
+        closeModal();
+        if (result.ok) {
+          const msg = cfg.kind === 'uninstall' ? '✓ Skills removed' : '✓ Skills installed — open a new Claude Code session to use them';
+          showToast(msg);
+          await loadState();
+        } else {
+          showToast('❌ ' + (result.error || 'Unknown error'));
+        }
+      } catch (e) {
+        closeModal();
+        showToast('❌ Connection error — is web_installer.py running?');
+      }
     };
     document.getElementById('overlay').classList.add('open');
   }
