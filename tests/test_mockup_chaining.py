@@ -30,7 +30,7 @@ ALL_SKILLS = {
     'update-primary-doc', 'skills-project-health', 'blog-project-health',
     'custom-project-health', 'install-skills', 'uninstall-skills',
     'python-dev', 'python-code-review', 'python-security-audit',
-    'pip-dependency-update', 'python-project-health',
+    'pip-dependency-update', 'python-project-health', 'design-snapshot',
 }
 
 # Ground truth extracted from all SKILL.md files.
@@ -43,6 +43,7 @@ CHAINING_TRUTH = {
     'custom-git-commit': {'chains_to': ['update-claude-md', 'update-primary-doc'], 'invoked_by': [], 'builds_on': ['git-commit'], 'extended_by': []},
     'custom-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
+    'design-snapshot': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'git-commit': {'chains_to': ['blog-git-commit', 'issue-workflow', 'python-code-review', 'ts-code-review', 'update-claude-md'], 'invoked_by': ['python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'issue-workflow': {'chains_to': [], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},

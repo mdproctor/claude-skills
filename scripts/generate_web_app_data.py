@@ -35,7 +35,7 @@ ALL_SKILLS = {
     'update-primary-doc', 'skills-project-health', 'blog-project-health',
     'custom-project-health', 'install-skills', 'uninstall-skills',
     'python-dev', 'python-code-review', 'python-security-audit',
-    'pip-dependency-update', 'python-project-health',
+    'pip-dependency-update', 'python-project-health', 'design-snapshot',
 }
 
 # Skills that are universal entry points — chains TO them don't require

@@ -205,6 +205,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "design-snapshot",
+      "source": "./design-snapshot",
+      "description": "Immutable dated record of design state — where we are, how we got here, where we're going",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "ts-dev",
       "source": "./ts-dev",
       "description": "TypeScript development workflow — strict mode, async patterns, error handling, testing",
