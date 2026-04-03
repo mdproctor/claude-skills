@@ -492,6 +492,8 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `update-claude-md` — CLAUDE.md sync, invoked by all commit skills
 - `readme-sync.md` — README.md sync, invoked by `git-commit` for type: skills only
 - `adr` — Architecture Decision Records in MADR format
+- `design-snapshot` — immutable dated record of design state; links to ADRs rather than duplicating them
+- `idea-log` — lightweight living log for undecided possibilities; park ideas before they evaporate, promote to ADR when ready
 
 **TypeScript/Node.js skills:**
 - `ts-dev` — TypeScript development; strict mode, async patterns, error handling, testing

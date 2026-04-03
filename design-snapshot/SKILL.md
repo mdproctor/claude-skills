@@ -285,18 +285,8 @@ Snapshot is complete when:
 
 ## Skill Chaining
 
-**Invoked by:**
-- `superpowers:brainstorming` — after design is approved, optionally creates a
-  snapshot before handing off to `writing-plans`
-- User directly: "create a design snapshot", "snapshot where we are"
+**Invoked by:** User directly: "create a design snapshot", "snapshot where we are", "document our progress"
 
-**Invokes:**
-- `adr` — if significant decisions in the snapshot have no ADRs yet (offered,
-  not automatic; user decides which decisions warrant an ADR)
-- `git-commit` — to commit the snapshot file; routes to `java-git-commit`,
-  `custom-git-commit`, etc. based on project type declared in CLAUDE.md
+**Invokes:** [`adr`] — if significant decisions in the snapshot have no ADRs yet (offered, not automatic; user decides which decisions warrant an ADR); [`git-commit`] — to commit the snapshot file (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
 
-**Does NOT invoke:**
-- `writing-plans` — snapshots record state, not implementation intent
-- `java-update-design` or `update-primary-doc` — those update living docs;
-  this creates an immutable record
+**Does NOT invoke:** `writing-plans` (snapshots record state, not implementation intent); `java-update-design` or `update-primary-doc` (those update living docs; this creates an immutable record)

@@ -246,12 +246,14 @@ This collection follows a **layered architecture** where foundation skills provi
 | **quarkus-flow-testing** | Workflow testing | java-dev, quarkus-flow-dev |
 | **quarkus-observability** | Quarkus observability config | observability-principles |
 
-### Layer 6: Utilities (2 skills)
+### Layer 6: Utilities (4 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
 | **maven-dependency-update** | Maven BOM management | dependency-management-principles |
 | **adr** | Architecture Decision Records | (standalone) |
+| **design-snapshot** | Immutable dated design state record | (standalone) |
+| **idea-log** | Living log for undecided possibilities | (standalone) |
 
 ### Layer 7: Health & Quality (7 skills)
 
@@ -603,6 +605,35 @@ Creates and manages Architecture Decision Records (ADRs) in MADR format:
 
 **Triggers:** "create an ADR", significant technical decisions, major version upgrades, new extension adoption.
 
+#### **design-snapshot**
+Creates immutable, dated records of design state:
+- Captures where the project is, how it got here, and where it's going
+- Prompts for missing ADRs after writing — surfaces decisions without ADR coverage
+- Links to existing ADRs rather than duplicating them
+- Snapshots never change after commit — create a new dated snapshot to supersede
+
+**Features:**
+- Supersession tracking (older snapshot gets "Superseded by" link)
+- Draft + confirm workflow — user approval required before writing
+- Stored in `docs/design-snapshots/YYYY-MM-DD-<topic>.md`
+
+**Triggers:** "create a design snapshot", "snapshot where we are", "document our progress", "in case we need to go back", significant pivot points.
+
+#### **idea-log**
+Lightweight living log for undecided possibilities — a parking lot for "we should consider this someday" thoughts:
+- Captures ideas before they evaporate, without committing to them
+- Reviews active ideas with staleness detection (flags entries older than 90 days)
+- Promotes ideas to ADR (architectural decision) or task when ready to act on
+- Discards — never deletes — keeping a record of "what we considered and rejected"
+
+**Features:**
+- Duplicate detection before appending new ideas
+- Priority tagging (high/medium/low) with guidance
+- Status tracking (active/promoted/discarded)
+- Invoked by code review skills when reviews surface patterns worth parking
+
+**Triggers:** "log this idea", "park that thought", "add to idea log", "we should consider this someday", or when code review surfaces a possibility worth remembering.
+
 #### **issue-workflow**
 GitHub issue tracking with cross-cutting task detection and commit split suggestions:
 - **Setup mode** — configures `## Work Tracking` in CLAUDE.md, creates standard GitHub labels, optionally reconstructs issues from git history
@@ -790,6 +821,23 @@ Write or edit a post
   → git-commit (or /blog-git-commit)
     → blog-git-commit (validates filename, type, message format)
     → update-claude-md (if CLAUDE.md exists)
+```
+
+### Idea → Decision → Documentation
+```
+Code review or brainstorm surfaces a possibility
+  → idea-log (park it before it's forgotten, no commitment required)
+    → adr (promote when ready to decide — idea becomes a formal decision)
+      → git-commit
+        → update-claude-md (automatic)
+```
+
+### Design State → Snapshot → ADRs
+```
+Significant pivot or brainstorm completed
+  → design-snapshot (freeze where the project is — immutable record)
+    → adr (for any decisions in the snapshot without an ADR yet — offered, not automatic)
+      → git-commit
 ```
 
 ### Architecture Decision → Documentation

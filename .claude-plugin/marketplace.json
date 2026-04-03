@@ -211,6 +211,12 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
+      "name": "idea-log",
+      "source": "./idea-log",
+      "description": "Lightweight living log for undecided possibilities — capture, review, promote, and discard ideas",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "ts-dev",
       "source": "./ts-dev",
       "description": "TypeScript development workflow — strict mode, async patterns, error handling, testing",
