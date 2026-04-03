@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cc-praxis — Skill Installer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6; color: #111827; font-size: 14px; line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1e1b4b; color: white; padding: 14px 24px;
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .header h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .header h1 span { color: #a5b4fc; font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+
+    .refresh-indicator { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.45); }
+    .refresh-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+    .mode-toggle { display: flex; background: rgba(255,255,255,0.1); border-radius: 7px; padding: 3px; gap: 2px; }
+    .mode-toggle button { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 5px 13px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; white-space: nowrap; }
+    .mode-toggle button.active { background: white; color: #1e1b4b; }
+
+    .btn-refresh { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.15s; }
+    .btn-refresh:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Sticky nav bar ── */
+    .nav-bar {
+      background: white; border-bottom: 1px solid #e5e7eb;
+      position: sticky; top: 52px; z-index: 90;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .nav-inner {
+      max-width: 1000px; margin: 0 auto;
+      padding: 0 16px;
+      display: flex; align-items: center; gap: 2px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px; border: none; background: transparent;
+      font-size: 12px; font-weight: 500; color: #6b7280;
+      cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent;
+      transition: all 0.15s; text-decoration: none;
+    }
+    .nav-pill:hover { color: #111827; background: #f9fafb; }
+    .nav-pill.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+    .nav-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .nav-dot.full    { background: #16a34a; }
+    .nav-dot.partial { background: #d97706; }
+    .nav-dot.empty   { background: #d1d5db; }
+    .nav-divider { width: 1px; height: 20px; background: #e5e7eb; margin: 0 4px; flex-shrink: 0; }
+
+    /* ── Layout ── */
+    .container { max-width: 1000px; margin: 0 auto; padding: 22px 16px 60px; }
+
+    .token-note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #1d4ed8; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px; }
+
+    .sync-bar { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .sync-bar-title { font-weight: 700; font-size: 15px; }
+    .sync-bar-sub { color: #6b7280; font-size: 12px; margin-top: 1px; }
+    .sync-bar-right { display: flex; align-items: center; gap: 8px; }
+    .btn-toggle-all { background: white; border: 1px solid #e5e7eb; color: #374151; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+    .btn-toggle-all:hover { background: #f3f4f6; }
+
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #9ca3af; padding: 0 4px; margin: 20px 0 8px; }
+
+    /* ── Bundle ── */
+    .bundle { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .bundle.parent { border-left: 3px solid #6366f1; }
+    .bundle.parent.state-full { border-left-color: #16a34a; }
+
+    .bundle-header { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none; gap: 10px; transition: background 0.1s; }
+    .bundle-header:hover { background: #fafafa; }
+
+    .bundle-chevron { color: #9ca3af; font-size: 10px; width: 14px; transition: transform 0.18s; flex-shrink: 0; }
+    .bundle.open .bundle-chevron { transform: rotate(90deg); }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .state-full   .bundle-header .status-dot { background: #16a34a; }
+    .state-partial .bundle-header .status-dot { background: #d97706; }
+    .state-empty  .bundle-header .status-dot { background: #d1d5db; }
+
+    /* ── Bundle name + description ── */
+    .bundle-name-col { flex: 1; min-width: 0; }
+    .bundle-name { font-weight: 600; font-size: 14px; display: block; }
+    .bundle-desc { font-size: 11px; color: #9ca3af; margin-top: 1px; display: block; }
+
+    /* ── Onboarding nudge ── */
+    .nudge { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #5b21b6; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+    .nudge-text { flex: 1; line-height: 1.5; }
+    .nudge-text strong { display: block; margin-bottom: 2px; }
+    .nudge-dismiss { background: none; border: none; color: #7c3aed; cursor: pointer; font-size: 16px; padding: 0; flex-shrink: 0; line-height: 1; }
+    .nudge-dismiss:hover { color: #5b21b6; }
+
+    /* ── Search bar — inner width matches bundle boxes ── */
+    .search-bar { background: white; border-bottom: 1px solid #f0f0f0; padding: 10px 0; }
+    .search-inner { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+    .search-input { width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 13px; color: #111827; background: #f9fafb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center; outline: none; transition: border-color 0.15s; }
+    .search-input:focus { border-color: #6366f1; background-color: white; }
+    .search-input::placeholder { color: #9ca3af; }
+
+    /* ── Dep info in modal (auto-resolved, informational not a warning) ── */
+    .modal-dep-warning { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #1e40af; display: none; }
+    .modal-dep-warning.visible { display: block; }
+    .modal-dep-warning strong { display: block; margin-bottom: 3px; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #111827; color: white; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s ease; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Skill hidden by search ── */
+    .skill-row.hidden { display: none; }
+    .overview-skill.hidden { display: none; }
+    .bundle.all-hidden { display: none; }
+
+    /* ── View switching — !important to beat .bundle.open specificity ── */
+    body.view-install  .overview-only  { display: none !important; }
+    body.view-overview .install-only   { display: none !important; }
+    body.view-overview .install-controls { display: none !important; }
+    body.view-overview .bundle-actions { display: none !important; }
+
+    /* ── View tabs in header ── */
+    .view-tabs { display: flex; background: rgba(255,255,255,0.1); border-radius: 7px; padding: 3px; gap: 2px; }
+    .view-tab { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 5px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.15s; }
+    .view-tab.active { background: white; color: #1e1b4b; }
+
+    /* ── Overview skill cards ── */
+    .overview-skills-list { display: none; border-top: 1px solid #f0f0f0; }
+    .bundle.open .overview-skills-list { display: block; }
+
+    .overview-skill {
+      padding: 14px 18px 14px 42px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .overview-skill:last-child { border-bottom: none; }
+    .overview-skill:hover { background: #fafafa; }
+
+    .overview-skill-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .overview-skill-header .skill-name { color: #111827; }
+    .overview-skill-header .skill-name.installed { color: #15803d; }
+
+    .installed-badge { font-size: 10px; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .not-installed-badge { font-size: 10px; font-weight: 700; color: #6b7280; background: #f3f4f6; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+
+    /* ── Overview hero ── */
+    .overview-hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
+      border-radius: 12px; padding: 36px 40px; margin-bottom: 24px; color: white;
+    }
+    .overview-hero h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 14px; }
+    .overview-hero h2 span { color: #a5b4fc; }
+    .overview-hero p { font-size: 14px; color: #c7d2fe; line-height: 1.65; max-width: 680px; margin-bottom: 28px; }
+    .hero-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .hero-point { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 16px 18px; }
+    .hero-point-icon { font-size: 20px; margin-bottom: 8px; }
+    .hero-point h3 { font-size: 13px; font-weight: 700; margin-bottom: 5px; color: white; }
+    .hero-point p { font-size: 12px; color: #a5b4fc; line-height: 1.5; margin: 0; }
+    .hero-stats { display: flex; gap: 24px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); }
+    .hero-stat { text-align: center; }
+    .hero-stat-num { font-size: 22px; font-weight: 800; color: white; }
+    .hero-stat-label { font-size: 11px; color: #818cf8; margin-top: 2px; }
+
+    .overview-desc { font-size: 13px; color: #374151; line-height: 1.5; margin-bottom: 8px; }
+
+    .overview-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+    .overview-meta-item { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .overview-meta-item strong { color: #374151; }
+    .overview-tag { display: inline-block; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; font-size: 10px; color: #374151; font-family: 'SF Mono','Fira Code',monospace; }
+    .overview-tag.link { cursor: pointer; border-bottom: 1px dotted #6366f1; color: #4338ca; background: #eef2ff; transition: background 0.15s; }
+    .overview-tag.link:hover { background: #e0e7ff; color: #3730a3; }
+    @keyframes skill-highlight { 0%{background:#dbeafe;box-shadow:0 0 0 3px #93c5fd} 60%{background:#eff6ff;box-shadow:0 0 0 2px #bfdbfe} 100%{background:transparent;box-shadow:none} }
+    .overview-skill.highlight { animation: skill-highlight 1.8s ease-out forwards; border-radius: 8px; }
+
+    .bundle-count { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
+    .state-full   .bundle-count { color: #15803d; background: #dcfce7; }
+    .state-partial .bundle-count { color: #92400e; background: #fef3c7; }
+    .state-empty  .bundle-count { color: #6b7280; background: #f3f4f6; }
+
+    .bundle-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn-install, .btn-uninstall, .btn-update { padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.15s; }
+    .btn-install   { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .btn-install:hover   { background: #16a34a; color: white; border-color: #16a34a; }
+    .btn-uninstall { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .btn-uninstall:hover { background: #dc2626; color: white; border-color: #dc2626; }
+    .skill-actions .btn-install,
+    .skill-actions .btn-uninstall { padding: 3px 10px; font-size: 11px; }
+
+    /* ── Update group (sync bar only) ── */
+    /* Label is absolute so it never affects flex alignment of the buttons */
+    .sync-bar { padding-bottom: 28px; }   /* makes room for the absolute label */
+    .update-group { position: relative; } /* positioning context for label */
+    .outdated-label {
+      position: absolute;
+      top: calc(100% + 4px);        /* 4px below the button */
+      left: 50%;
+      transform: translateX(-50%);  /* centre under button */
+      font-size: 10px; color: #c2410c; font-weight: 700;
+      white-space: nowrap; display: flex; align-items: center; gap: 3px;
+    }
+
+    /* ── Skills list ── */
+    .skills-list { display: none; border-top: 1px solid #f0f0f0; }
+    .bundle.open .skills-list { display: block; }
+
+    /* ── Skill row: dot | name | role | description | button ── */
+    .skill-row {
+      display: flex; align-items: flex-start;
+      padding: 9px 16px 9px 42px; gap: 12px;
+      border-bottom: 1px solid #f5f5f5; transition: background 0.1s;
+    }
+    .skill-row:last-child { border-bottom: none; }
+    .skill-row:hover { background: #fafafa; }
+
+    .skill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .skill-row.installed .skill-dot { background: #16a34a; }
+    .skill-row:not(.installed) .skill-dot { background: #d1d5db; }
+
+    .skill-name { font-weight: 600; font-size: 12px; font-family: 'SF Mono','Fira Code','Cascadia Code',monospace; width: 190px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-top: 2px; }
+    .skill-row.installed .skill-name { color: #15803d; }
+    .skill-row:not(.installed) .skill-name { color: #374151; }
+
+    /* ── Role badge ── */
+    .skill-role { width: 88px; flex-shrink: 0; padding-top: 1px; }
+    .role-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap;
+    }
+    .role-dev   { background: #dbeafe; color: #1d4ed8; }
+    .role-review { background: #fef3c7; color: #92400e; }
+    .role-security { background: #fee2e2; color: #991b1b; }
+    .role-commit { background: #ede9fe; color: #5b21b6; }
+    .role-sync   { background: #f1f5f9; color: #475569; }
+    .role-deps   { background: #ffedd5; color: #9a3412; }
+    .role-health { background: #dcfce7; color: #15803d; }
+    .role-refine { background: #ccfbf1; color: #0f766e; }
+    .role-testing { background: #e0f2fe; color: #0369a1; }
+    .role-observe { background: #e0e7ff; color: #3730a3; }
+    .role-adr    { background: #f1f5f9; color: #334155; }
+    .role-issues { background: #fce7f3; color: #9d174d; }
+    .role-setup  { background: #f3f4f6; color: #4b5563; }
+    .role-foundation { background: #f5f3ff; color: #6d28d9; }
+
+    .skill-desc { flex: 1; font-size: 12px; color: #6b7280; line-height: 1.45; min-width: 0; }
+    .skill-row.installed .skill-desc { color: #4b7c59; }
+    .skill-tags { margin-top: 3px; }
+    .skill-tag { display: inline-block; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; font-size: 10px; color: #6b7280; margin: 1px 2px 0 0; }
+
+    .skill-actions { display: flex; gap: 5px; flex-shrink: 0; padding-top: 1px; }
+
+    /* ── Version display ── */
+    .skill-name-col { width: 190px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+    .skill-version { font-size: 10px; color: #9ca3af; font-family: 'SF Mono','Fira Code',monospace; }
+    .skill-version.outdated { color: #d97706; font-weight: 700; }
+    .skill-row.outdated .skill-name { color: #92400e; }
+    .skill-row.outdated:not(.installed) .skill-name { color: #374151; }
+
+    /* ── Update button ── */
+    .btn-update { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .btn-update:hover { background: #ea580c; color: white; border-color: #ea580c; }
+    .btn-confirm.update { background: #ea580c; }
+    .btn-confirm.update:hover { background: #c2410c; }
+
+
+    /* ── Modal ── */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(15,15,35,0.45); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+    .overlay.open { display: flex; }
+    .modal { background: white; border-radius: 12px; padding: 24px; width: 540px; max-width: 92vw; box-shadow: 0 24px 64px rgba(0,0,0,0.28); animation: modal-in 0.15s ease-out; }
+    @keyframes modal-in { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+    .modal-sub   { color: #6b7280; font-size: 13px; margin-bottom: 16px; }
+    .command-box { background: #1a1730; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px; }
+    .command-box code { flex: 1; font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; color: #a5b4fc; word-break: break-all; line-height: 1.6; }
+    .btn-copy { background: rgba(255,255,255,0.1); border: none; color: #c7d2fe; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0; font-weight: 500; transition: background 0.15s; }
+    .btn-copy:hover { background: rgba(255,255,255,0.2); }
+    .modal-note { font-size: 12px; color: #6b7280; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.5; }
+    .modal-note.manual { color: #92400e; background: #fffbeb; border: 1px solid #fde68a; padding: 8px 12px; border-radius: 6px; }
+    .modal-update-info { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; font-size: 13px; color: #7c2d12; }
+    .modal-update-list { margin: 8px 0 0; padding: 0; list-style: none; }
+    .modal-update-list li { font-size: 12px; color: #9a3412; padding: 2px 0; font-family: 'SF Mono','Fira Code',monospace; }
+    .modal-mixed-warning { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; font-size: 12px; color: #991b1b; display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-cancel { background: white; border: 1px solid #e5e7eb; color: #374151; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; }
+    .btn-cancel:hover { background: #f9fafb; }
+    .btn-confirm { border: none; color: white; padding: 8px 20px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-confirm.install   { background: #16a34a; } .btn-confirm.install:hover   { background: #15803d; }
+    .btn-confirm.uninstall { background: #dc2626; } .btn-confirm.uninstall:hover { background: #b91c1c; }
+  </style>
+</head>
+<body class="view-overview">
+
+<header class="header">
+  <h1>cc-praxis <span>/ Skills</span></h1>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tab-overview" onclick="setView('overview')">Overview</button>
+    <button class="view-tab" id="tab-install" onclick="setView('install')">Install</button>
+  </div>
+  <div class="header-right install-controls">
+    <div class="refresh-indicator"><div class="refresh-dot"></div> Auto-refreshing</div>
+    <div class="mode-toggle">
+      <button class="active" id="btn-auto">⚡ Auto-execute</button>
+      <button id="btn-manual">📋 Show command</button>
+    </div>
+    <button class="btn-refresh">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- Sticky nav -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <a class="nav-pill active" href="#" onclick="navToTop(event)">All</a>
+    <div class="nav-divider"></div>
+    <a class="nav-pill" href="#b-core" onclick="navTo(event,'b-core')">
+      <span class="nav-dot partial"></span> Core
+    </a>
+    <a class="nav-pill" href="#b-principles" onclick="navTo(event,'b-principles')">
+      <span class="nav-dot empty"></span> Principles
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-pill" href="#b-ts" onclick="navTo(event,'b-ts')">
+      <span class="nav-dot full"></span> TypeScript
+    </a>
+    <a class="nav-pill" href="#b-java" onclick="navTo(event,'b-java')">
+      <span class="nav-dot partial"></span> Java / Quarkus
+    </a>
+    <div class="nav-divider"></div>
+    <a class="nav-pill" href="#b-individual" onclick="navTo(event,'b-individual')">
+      <span class="nav-dot partial"></span> Individual
+    </a>
+  </div>
+</nav>
+
+<div class="search-bar">
+  <div class="search-inner" style="display:flex;align-items:center;gap:8px;">
+    <input class="search-input" id="search-input" type="text" placeholder="Search skills…" oninput="filterSkills(this.value)" style="flex:1;width:auto;">
+    <button class="btn-toggle-all" id="btn-toggle-all" onclick="toggleAll()">⊟ Collapse All</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Overview hero — only visible in Overview tab -->
+  <div class="overview-hero overview-only">
+    <h2>Make Claude an expert in <span>your</span> tech stack.</h2>
+    <p>
+      cc-praxis is a curated collection of Claude Code skills for professional software development.
+      Where Claude Code gives you a capable generalist, cc-praxis gives you a disciplined collaborator
+      that knows your conventions, enforces your quality standards, and chains the right actions together
+      automatically — every session, every project.
+    </p>
+    <div class="hero-points">
+      <div class="hero-point">
+        <div class="hero-point-icon">🔗</div>
+        <h3>Skills that chain together</h3>
+        <p>Skills are designed as a system. ts-dev invokes ts-code-review, which escalates to ts-security-audit for auth code. The right workflow runs without you orchestrating it.</p>
+      </div>
+      <div class="hero-point">
+        <div class="hero-point-icon">🧠</div>
+        <h3>Project-aware by design</h3>
+        <p>One CLAUDE.md declaration sets the project type. Every skill reads it — commits route correctly, health checks pick the right categories, docs sync automatically.</p>
+      </div>
+      <div class="hero-point">
+        <div class="hero-point-icon">⚡</div>
+        <h3>Zero overhead when idle</h3>
+        <p>Installed skills contribute only their description (~30 words) to your context window. The full skill loads only when triggered — so having 33 skills costs almost nothing.</p>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">33</div><div class="hero-stat-label">Skills</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">5</div><div class="hero-stat-label">Bundles</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">2</div><div class="hero-stat-label">Languages</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">17</div><div class="hero-stat-label">Validators</div></div>
+    </div>
+  </div>
+
+  <div class="token-note install-only">
+    ℹ️ This installer runs entirely outside Claude — zero context window impact.
+    Installed skills contribute only their description (~30 words each) to your session;
+    the full skill body loads only when triggered.
+  </div>
+
+  <div class="nudge install-only" id="nudge">
+    <span>💡</span>
+    <div class="nudge-text">
+      <strong>New here? Start simple.</strong>
+      Install <strong>Core</strong> first, then add your language bundle (TypeScript or Java/Quarkus).
+      Open a new Claude Code session and say <em>"commit"</em> to see it in action.
+    </div>
+    <button class="nudge-dismiss" onclick="document.getElementById('nudge').style.display='none'" title="Dismiss">×</button>
+  </div>
+
+  <div class="sync-bar install-only">
+    <div>
+      <div class="sync-bar-title">All Skills</div>
+      <div class="sync-bar-sub">15 of 33 installed</div>
+    </div>
+    <div class="sync-bar-right">
+      <div class="update-group">
+        <button class="btn-update" onclick="openModal('update-all')">Update</button>
+        <div class="outdated-label">⚠️ 2 outdated</div>
+      </div>
+      <button class="btn-install"   onclick="openModal('install-all')">Install</button>
+      <button class="btn-uninstall" onclick="openModal('uninstall-all')">Uninstall</button>
+    </div>
+  </div>
+
+  <!-- ════ FOUNDATION ════ -->
+  <div class="section-label">Foundation</div>
+
+  <!-- Core: partially installed (3 of 5) -->
+  <div class="bundle parent state-partial" id="b-core">
+    <div class="bundle-header" onclick="toggleBundle('b-core')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">Core</span><span class="bundle-desc">Universal workflow tools every project needs</span></div>
+      <span class="bundle-count">3 of 5</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-install"   onclick="openModal('install-core')">Install</button>
+        <button class="btn-uninstall" onclick="openModal('uninstall-core')">Uninstall</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">git-commit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-commit">Commit</span></div>
+        <div class="skill-desc">Entry point for all commits — routes to java-git-commit, blog-git-commit, etc. based on project type.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','git-commit')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">update-claude-md</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-sync">Sync</span></div>
+        <div class="skill-desc">Keeps CLAUDE.md in sync with workflow and convention changes after every commit.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','update-claude-md')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">adr</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-adr">ADR</span></div>
+        <div class="skill-desc">Architecture Decision Records in MADR format — sequential numbering, lifecycle management.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','adr')">Uninstall</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Universal health checks — correctness, consistency, compliance. Auto-chains to type-specific skills at tier 3+.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','project-health')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">project-refine</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-refine">Refine</span></div>
+        <div class="skill-desc">Improvement opportunities — bloat, duplication, structure. Never blocks work; findings are always optional.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','project-refine')">Install</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list overview-only">
+      <div class="overview-skill" id="ov-git-commit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">git-commit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-commit">Commit</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Entry point for all commit workflows. Reads the project type from CLAUDE.md and routes to the appropriate specialised commit skill — java-git-commit for Java, blog-git-commit for blogs, custom-git-commit for custom projects. Handles interactive setup if no project type is declared.</p>
+                                <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "commit", "make a commit", /git-commit</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('issue-workflow')">issue-workflow</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-update-claude-md">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">update-claude-md</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-sync">Sync</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Keeps CLAUDE.md in sync with workflow and convention changes after every commit. Analyses the staged diff for changes to build commands, testing patterns, naming conventions, and repository structure, then proposes targeted updates.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> automatically via commit skills when CLAUDE.md exists</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-adr">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">adr</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-adr">ADR</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Creates and manages Architecture Decision Records in MADR format. Assigns sequential numbers, tracks lifecycle (Proposed → Accepted → Deprecated → Superseded), and stores records in docs/adr/. Offered automatically by maven-dependency-update on major version upgrades.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "create an ADR", significant technical decisions, major version upgrades</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Universal project health checker — answers "is the project correct, complete, and consistent?" Runs 12 check categories across 4 tiers of depth. At tier 3+, automatically chains to the type-specific health skill for your project.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "health check", "pre-release check", /project-health</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-project-refine">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">project-refine</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-refine">Refine</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Companion to project-health for improvement opportunities — bloat, duplication, consolidation, and structural improvements. Never blocks work; findings are always opportunities not failures. Run after health is green.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "find duplication", "bloat check", "improve docs structure", /project-refine</div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Principles: empty -->
+  <div class="bundle parent state-empty" id="b-principles">
+    <div class="bundle-header" onclick="toggleBundle('b-principles')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">Principles</span><span class="bundle-desc">Foundations extended by language-specific skills</span></div>
+      <span class="bundle-count">0 of 4</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-install" onclick="openModal('install-principles')">Install</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">code-review-principles</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-foundation">Foundation</span></div>
+        <div class="skill-desc">Universal code review — safety, concurrency, testing philosophy.
+          <div class="skill-tags"><span class="skill-tag">extended by: java-code-review</span><span class="skill-tag">extended by: ts-code-review</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','code-review-principles')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">security-audit-principles</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-foundation">Foundation</span></div>
+        <div class="skill-desc">Universal OWASP Top 10 for server-side applications.
+          <div class="skill-tags"><span class="skill-tag">extended by: java-security-audit</span><span class="skill-tag">extended by: ts-security-audit</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','security-audit-principles')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">dependency-management-principles</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-foundation">Foundation</span></div>
+        <div class="skill-desc">Universal dependency management — BOM alignment, compatibility, version strategy.
+          <div class="skill-tags"><span class="skill-tag">extended by: maven-dependency-update</span><span class="skill-tag">extended by: npm-dependency-update</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','dependency-management-principles')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">observability-principles</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-foundation">Foundation</span></div>
+        <div class="skill-desc">Universal logging, tracing, and metrics — MDC patterns, OpenTelemetry concepts.
+          <div class="skill-tags"><span class="skill-tag">extended by: quarkus-observability</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','observability-principles')">Install</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list overview-only">
+      <div class="overview-skill" id="ov-code-review-principles">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">code-review-principles</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Universal code review checklist covering safety (resource leaks, deadlocks), concurrency, performance, testing philosophy, and review workflow. Language-agnostic — extended by java-code-review and ts-code-review which add language-specific examples and tooling.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-security-audit-principles">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">security-audit-principles</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Universal OWASP Top 10 security audit checklist for server-side applications. Covers injection, broken auth, access control, cryptographic failures, misconfiguration, vulnerable components, and SSRF. Extended by language-specific audits with code examples.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-dependency-management-principles">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">dependency-management-principles</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Universal dependency management workflow — BOM alignment, compatibility checking, version drift prevention, and when to create ADRs for dependency decisions. Package-manager-agnostic foundation extended by maven-dependency-update and npm-dependency-update.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-observability-principles">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">observability-principles</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Universal observability guidance — the three pillars (logs, traces, metrics), MDC/correlation ID patterns, HTTP header propagation, and OpenTelemetry concepts. Technology-agnostic foundation extended by framework-specific skills like quarkus-observability.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ LANGUAGES ════ -->
+  <div class="section-label">Languages</div>
+
+  <!-- TypeScript: fully installed (5 of 5) -->
+  <div class="bundle state-full" id="b-ts">
+    <div class="bundle-header" onclick="toggleBundle('b-ts')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">TypeScript</span><span class="bundle-desc">TypeScript/Node.js development, review, security and dependencies</span></div>
+      <span class="bundle-count">5 of 5</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-uninstall" onclick="openModal('uninstall-ts')">Uninstall</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row installed outdated">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">ts-dev</div>
+          <div class="skill-version outdated">v1.0.0 → v1.1.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-dev">Dev</span></div>
+        <div class="skill-desc">Expert TypeScript development — strict mode, async patterns, error handling, testing.
+          <div class="skill-tags"><span class="skill-tag">→ ts-code-review</span><span class="skill-tag">→ ts-security-audit</span></div>
+        </div>
+        <div class="skill-actions">
+          <button class="btn-uninstall" onclick="openModal('uninstall-skill','ts-dev')">Uninstall</button>
+        </div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">ts-code-review</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-review">Review</span></div>
+        <div class="skill-desc">TypeScript code review — type safety, async correctness, error handling.
+          <div class="skill-tags"><span class="skill-tag">builds on: code-review-principles</span><span class="skill-tag">→ ts-security-audit</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','ts-code-review')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">ts-security-audit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-security">Security</span></div>
+        <div class="skill-desc">OWASP Top 10 for TypeScript/Node.js — injection, JWT, prototype pollution, SSRF.
+          <div class="skill-tags"><span class="skill-tag">builds on: security-audit-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','ts-security-audit')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">npm-dependency-update</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-deps">Deps</span></div>
+        <div class="skill-desc">npm/yarn/pnpm dependency management — semver strategy, audit triage, ADR for majors.
+          <div class="skill-tags"><span class="skill-tag">builds on: dependency-management-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','npm-dependency-update')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">ts-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for TypeScript/Node.js — strict mode, floating promises, npm audit findings.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','ts-project-health')">Uninstall</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list overview-only">
+      <div class="overview-skill" id="ov-ts-dev">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">ts-dev</div><div class="skill-version outdated">v1.0.0 → v1.1.0</div></div>
+          <span class="role-pill role-dev">Dev</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Expert TypeScript development for Node.js and browser applications. Enforces strict mode, guides async/await correctness, error handling with discriminated unions, and testing with Jest or Vitest. Includes a Quick Reference table and "These Thoughts Mean STOP" rationalization guide.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> writing TypeScript, fixing bugs, refactoring, .ts .tsx tsconfig.json package.json</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-ts-code-review">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">ts-code-review</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-review">Review</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Pre-commit code review for TypeScript — type safety (no any, no unsafe assertions), async correctness (unawaited promises, missing error handling), and test quality. Severity-graded CRITICAL/WARNING/NOTE with a Mermaid decision flow. Extends code-review-principles.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /ts-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-ts-security-audit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">ts-security-audit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-security">Security</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">OWASP Top 10 security audit for TypeScript/Node.js. Covers SQL/NoSQL/command injection, broken auth (JWT, bcrypt, rate limiting), IDOR, prototype pollution, SSRF, cryptographic failures, and security misconfiguration. Includes a Node.js Security Features reference table.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", "audit security", offered by ts-code-review for auth/payment/PII code</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-npm-dependency-update">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">npm-dependency-update</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-deps">Deps</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">npm/yarn/pnpm dependency management with a BOM-first philosophy. Covers semver strategy (^, ~, exact), npm audit triage, breaking change detection, devDependencies separation, and ADR integration for major upgrades. Works with all three lock file formats.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "npm audit", "bump version", package.json changes</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-ts-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">ts-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">TypeScript-specific health checks extending project-health. Adds five categories: ts-types (strict mode, @ts-ignore, any usage), ts-async (floating promises, sequential awaits), ts-build (tsc --noEmit, ESLint, circular imports), ts-dependencies (npm audit, lock file), ts-testing (coverage, skipped tests).</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /ts-project-health or suggested by project-health for TypeScript projects</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Java/Quarkus: partial (5 of 10) -->
+  <div class="bundle state-partial" id="b-java">
+    <div class="bundle-header" onclick="toggleBundle('b-java')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">Java / Quarkus</span><span class="bundle-desc">Java/Quarkus development, review, security and Quarkus Flow</span></div>
+      <span class="bundle-count">5 of 10</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-install"   onclick="openModal('install-java')">Install</button>
+        <button class="btn-uninstall" onclick="openModal('uninstall-java')">Uninstall</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row installed outdated">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-dev</div>
+          <div class="skill-version outdated">v1.0.0 → v1.0.1</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-dev">Dev</span></div>
+        <div class="skill-desc">Expert Java development for Quarkus — safety-first, Vert.x event loop, JUnit 5 testing.</div>
+        <div class="skill-actions">
+          <button class="btn-uninstall" onclick="openModal('uninstall-skill','java-dev')">Uninstall</button>
+        </div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-code-review</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-review">Review</span></div>
+        <div class="skill-desc">Java/Quarkus code review — resource leaks, event loop safety, concurrency.
+          <div class="skill-tags"><span class="skill-tag">builds on: code-review-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','java-code-review')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-security-audit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-security">Security</span></div>
+        <div class="skill-desc">OWASP Top 10 for Java/Quarkus — injection, auth, Vault and OIDC integration.
+          <div class="skill-tags"><span class="skill-tag">builds on: security-audit-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','java-security-audit')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-git-commit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-commit">Commit</span></div>
+        <div class="skill-desc">Java commits with automatic DESIGN.md synchronisation via java-update-design.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','java-git-commit')">Uninstall</button></div>
+      </div>
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">maven-dependency-update</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-deps">Deps</span></div>
+        <div class="skill-desc">Maven BOM dependency management — Quarkus platform alignment, compatibility checking.
+          <div class="skill-tags"><span class="skill-tag">builds on: dependency-management-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','maven-dependency-update')">Uninstall</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-update-design</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-sync">Sync</span></div>
+        <div class="skill-desc">DESIGN.md synchronisation — maps Java annotations to architectural signals automatically.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','java-update-design')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">quarkus-flow-dev</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-dev">Dev</span></div>
+        <div class="skill-desc">Quarkus Flow workflow development — FuncDSL, human-in-the-loop, LangChain4j AI integration.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','quarkus-flow-dev')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">quarkus-flow-testing</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-testing">Testing</span></div>
+        <div class="skill-desc">Testing for Quarkus Flow — @QuarkusTest, REST integration, AI service mocking strategies.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','quarkus-flow-testing')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">quarkus-observability</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-observe">Observability</span></div>
+        <div class="skill-desc">Quarkus logging, tracing, and metrics — MDC correlation, OpenTelemetry, Prometheus.
+          <div class="skill-tags"><span class="skill-tag">builds on: observability-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','quarkus-observability')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">java-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for Java/Maven/Gradle — architecture, BOM alignment, test coverage.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','java-project-health')">Install</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list overview-only">
+      <div class="overview-skill" id="ov-java-dev">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed outdated">java-dev</div><div class="skill-version outdated">v1.0.0 → v1.0.1</div></div>
+          <span class="role-pill role-dev">Dev</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Expert Java development for Quarkus server-side applications. Safety-first approach — resource leaks, deadlocks, classloader issues, Vert.x event loop correctness. Includes Quick Reference table, Rule Priority flowchart (Safety › Concurrency › Performance › Code Quality), and 12 real production incident examples.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> writing Java, fixing bugs, refactoring, .java pom.xml build.gradle</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-java-code-review">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">java-code-review</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-review">Review</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Pre-commit code review for Java/Quarkus — resource leaks, event loop blocking, concurrency violations, reproducibility, performance in hot paths, and testing coverage. Extends code-review-principles with Quarkus/Vert.x specific checks and ❌/✅ code examples.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /java-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-java-security-audit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">java-security-audit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-security">Security</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">OWASP Top 10 security audit for Java/Quarkus — SQL/JPQL injection, broken auth, access control, cryptographic failures, Vault/OIDC integration patterns, and Quarkus security extension recommendations. Builds on security-audit-principles with Quarkus-specific examples.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", offered by java-code-review for auth/payment/PII code</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-java-git-commit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">java-git-commit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-commit">Commit</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Java-specific commit workflow extending git-commit. Requires docs/DESIGN.md — blocks commits if missing. Automatically syncs DESIGN.md via java-update-design before proposing the commit. Provides Java/Quarkus-specific commit scopes (rest, repository, service, BOM).</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: java repositories, /java-git-commit</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-maven-dependency-update">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">maven-dependency-update</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-deps">Deps</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">Maven BOM dependency management for Java/Quarkus — Quarkus platform alignment, BOM vs explicit version detection, compatibility checking, and safe upgrade proposals. Offers ADR creation for major version changes. Extends dependency-management-principles.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "upgrade Quarkus", "add dependency", pom.xml changes</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-java-update-design">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">java-update-design</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-sync">Sync</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Keeps DESIGN.md in sync with code changes — maps Java annotations to architectural signals (@RestController → API change, @Entity → data model change). Proposes targeted DESIGN.md updates and nudges when the doc grows too large to modularise.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "update the design doc", "sync DESIGN.md", automatically via java-git-commit</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-primary-doc')">update-primary-doc</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-quarkus-flow-dev">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">quarkus-flow-dev</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-dev">Dev</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Quarkus Flow (CNCF Serverless Workflow) development — FuncDSL task composition (function/agent/http/emit/listen), human-in-the-loop patterns, LangChain4j AI service integration, and YAML workflow definitions. Full API reference in funcDSL-reference.md.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> Flow subclasses, workflow YAML, "workflow", "agent", "agentic", LangChain4j</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-quarkus-flow-testing">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">quarkus-flow-testing</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-testing">Testing</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Testing patterns for Quarkus Flow workflows — @QuarkusTest for Flow classes, YAML workflow testing with @Identifier, REST integration tests with REST Assured, RFC 7807 error mapping, and AI service mocking with @InjectMock and @QuarkusTestProfile.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> writing @QuarkusTest for Flow classes, debugging workflow test failures</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-quarkus-observability">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">quarkus-observability</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-observe">Observability</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Production-grade observability for Quarkus — structured JSON logging with MDC, quarkus-flow workflow tracing, OpenTelemetry distributed tracing, Micrometer/Prometheus metrics, and log aggregator integration (Kibana, Loki, Datadog). Extends observability-principles.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "set up logging", "configure tracing", "enable metrics", "OpenTelemetry", "MDC"</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('observability-principles')">observability-principles</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-java-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">java-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Java-specific health checks extending project-health. Adds three categories: java-architecture (layer separation, circular imports, domain isolation), java-dependencies (BOM alignment, no duplicate versions, correct test scoping), java-code-quality (duplication, hardcoded values, callback patterns).</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /java-project-health or auto-chained by project-health on type: java detection</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ INDIVIDUAL ════ -->
+  <div class="section-label">Individual Skills</div>
+
+  <div class="bundle state-partial" id="b-individual">
+    <div class="bundle-header" onclick="toggleBundle('b-individual')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">Individual Skills</span><span class="bundle-desc">Standalone tools not specific to a single language</span></div>
+      <span class="bundle-count">1 of 9</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-install"   onclick="openModal('install-individual')">Install</button>
+        <button class="btn-uninstall" onclick="openModal('uninstall-individual')">Uninstall</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row installed">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">issue-workflow</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-issues">Issues</span></div>
+        <div class="skill-desc">GitHub issue tracking — cross-cutting detection, pre-commit split suggestions, release changelog.</div>
+        <div class="skill-actions"><button class="btn-uninstall" onclick="openModal('uninstall-skill','issue-workflow')">Uninstall</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">skills-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for Claude Code skill repositories — CSO compliance, marketplace, validator wiring.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','skills-project-health')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">blog-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for GitHub Pages / Jekyll blogs — post format, front matter, navigation integrity.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','blog-project-health')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">custom-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for type: custom projects — primary document sync, work tracking, conventions.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','custom-project-health')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">blog-git-commit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-commit">Commit</span></div>
+        <div class="skill-desc">GitHub Pages / Jekyll commits — content-type conventions (post/edit/draft), filename validation.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','blog-git-commit')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">custom-git-commit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-commit">Commit</span></div>
+        <div class="skill-desc">Commits for type: custom projects with configurable primary document synchronisation.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','custom-git-commit')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">update-primary-doc</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-sync">Sync</span></div>
+        <div class="skill-desc">Generic primary document sync for custom projects — table-driven by Sync Rules in CLAUDE.md.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','update-primary-doc')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">install-skills</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-setup">Setup</span></div>
+        <div class="skill-desc">One-time bootstrap wizard — configure session-start hook and install skills interactively.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','install-skills')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">uninstall-skills</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-setup">Setup</span></div>
+        <div class="skill-desc">Guided removal wizard with reverse dependency checking and optional hook removal.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','uninstall-skills')">Install</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list overview-only">
+      <div class="overview-skill" id="ov-issue-workflow">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name installed">issue-workflow</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-issues">Issues</span><span class="installed-badge">✓ Installed</span>
+        </div>
+        <p class="overview-desc">GitHub issue tracking with cross-cutting detection. Setup mode configures Work Tracking in CLAUDE.md and creates standard labels. Task intake detects when a request spans multiple concerns. Pre-commit analysis guides through git add -p splitting. Release management via gh release create --generate-notes.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /issue-workflow, offered at session start when Work Tracking not configured</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-blog-git-commit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">blog-git-commit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-commit">Commit</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Commit workflow for GitHub Pages / Jekyll blogs. Enforces content-type conventions (post/edit/draft/asset/config), validates post filenames (YYYY-MM-DD-title.md format), uses 72-char subject limit (blog titles are longer than code subjects), and validates via validate_blog_commit.py.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: blog repositories</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-custom-git-commit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">custom-git-commit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-commit">Commit</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Commit workflow for type: custom projects (working groups, research, documentation). Syncs the user-configured primary document (VISION.md, THESIS.md, etc.) based on Sync Rules declared in CLAUDE.md. Supports four built-in sync strategies plus custom strategies.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: custom repositories</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-primary-doc')">update-primary-doc</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-update-primary-doc">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">update-primary-doc</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-sync">Sync</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Generic table-driven primary document sync for type: custom projects. Reads Sync Rules from CLAUDE.md (file patterns → document sections) and proposes targeted updates. Supports bidirectional-consistency, research-progress, api-spec-sync, and architectural-changes strategies. Proposal-only — never applies changes directly.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> automatically via custom-git-commit when Sync Rules are configured</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-skills-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">skills-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Health checks specific to Claude Code skill repositories. Adds 8 skills-specific categories: cross-refs (bidirectional chaining), coverage (marketplace completeness), quality (CSO compliance, flowcharts), naming conventions, infrastructure (validators wired), dependencies, performance (token budget), effectiveness.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /skills-project-health or auto-chained by project-health on type: skills detection</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-blog-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">blog-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Health checks for GitHub Pages / Jekyll blogs. Extends project-health with blog-specific checks: post filename format (YYYY-MM-DD-title.md), front matter validity, Jekyll configuration health, content freshness, and navigation integrity.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /blog-project-health or auto-chained by project-health on type: blog detection</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-custom-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">custom-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Health checks for type: custom projects. Extends project-health with custom checks: primary document sync accuracy, work tracking configuration, Sync Rules validity, and project-specific conventions. Reads configuration from CLAUDE.md to validate project requirements.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /custom-project-health or auto-chained by project-health on type: custom detection</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-install-skills">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">install-skills</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-setup">Setup</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">One-time bootstrap wizard for new environments. Configures the session-start hook (automatic CLAUDE.md detection), offers bundle or individual skill selection with automatic dependency resolution, and verifies setup on completion. Run once per machine after adding the cc-praxis marketplace.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /install-skills — run once per environment</div>
+        </div>
+      </div>
+      </div>
+      </div>
+      <div class="overview-skill" id="ov-uninstall-skills">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">uninstall-skills</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-setup">Setup</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Guided removal wizard. Lets you remove individual skills, bundles, or everything. Checks reverse dependencies before removing (warns if other installed skills depend on the one being removed). Optionally removes the session-start hook. Requires explicit confirmation before anything is deleted.</p>
+                        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /uninstall-skills</div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Update All modal (richer — shown specifically for update-all action) -->
+<div class="overlay" id="update-overlay" onclick="handleUpdateOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">Update All Skills</div>
+    <div class="modal-sub">2 installed skills have updates available</div>
+
+    <div class="modal-update-info">
+      A new version is available. Skills are designed to work together as a set —
+      updating them all at once ensures compatibility.
+      <ul class="modal-update-list">
+        <li>ts-dev &nbsp;&nbsp;&nbsp; v1.0.0 → v1.1.0</li>
+        <li>java-dev &nbsp; v1.0.0 → v1.0.1</li>
+      </ul>
+      <div style="margin-top:8px;">
+        <a href="https://github.com/mdproctor/cc-praxis/releases" target="_blank" style="font-size:12px;color:#c2410c;text-decoration:none;font-weight:600;">View release notes →</a>
+      </div>
+    </div>
+
+    <!-- Mixed-version warning — shown when installed skills are at inconsistent versions -->
+    <div class="modal-mixed-warning">
+      ⚠️ <span>Mixed versions detected — some skills are already ahead of others.
+      We strongly recommend updating all skills together. Running mixed versions
+      can cause unexpected behaviour as skills are designed to work as a set.</span>
+    </div>
+
+    <div class="command-box">
+      <code>python3 scripts/claude-skill sync-local --all</code>
+      <button class="btn-copy" onclick="copyUpdateCmd()">Copy</button>
+    </div>
+    <div class="modal-note" id="u-note"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeUpdateModal()">Cancel</button>
+      <button class="btn-confirm update" onclick="closeUpdateModal()">Update All</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic install/uninstall modal -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="m-title">Install Skill</div>
+    <div class="modal-sub"   id="m-sub">The following will be added to ~/.claude/skills/</div>
+    <div class="modal-dep-warning" id="m-dep">
+      <strong>ℹ️ Dependency included automatically</strong>
+      <span id="m-dep-text"></span>
+    </div>
+    <div class="command-box">
+      <code id="m-cmd">python3 scripts/claude-skill sync-local --skills ts-dev</code>
+      <button class="btn-copy" id="m-copy" onclick="copyCmd()">Copy</button>
+    </div>
+    <div class="modal-note" id="m-note"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" id="m-confirm" onclick="closeModal()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Scroll to a skill card in Overview ──
+  function scrollToSkill(name) {
+    // Switch to overview if not already there
+    if (!document.body.classList.contains('view-overview')) {
+      setView('overview');
+    }
+    const target = document.getElementById('ov-' + name);
+    if (!target) return;
+    // Open the parent bundle if collapsed
+    const bundle = target.closest('.bundle');
+    if (bundle && !bundle.classList.contains('open')) bundle.classList.add('open');
+    // Measure sticky offsets dynamically
+    const header    = document.querySelector('.header');
+    const navBar    = document.querySelector('.nav-bar');
+    const searchBar = document.querySelector('.search-bar');
+    const offset = (header    ? header.offsetHeight    : 0)
+                 + (navBar    ? navBar.offsetHeight    : 0)
+                 + (searchBar ? searchBar.offsetHeight : 0)
+                 + 12;
+    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: 'smooth' });
+    // Highlight the card after scroll lands
+    target.classList.remove('highlight');
+    void target.offsetWidth; // force reflow so animation restarts
+    setTimeout(() => {
+      target.classList.add('highlight');
+      target.addEventListener('animationend', () => target.classList.remove('highlight'), { once: true });
+    }, 350); // slight delay so highlight starts as scroll settles
+  }
+
+  // ── Installed state (mock) ──
+  const INSTALLED = new Set(['git-commit','update-claude-md','adr','ts-dev','ts-code-review',
+    'ts-security-audit','npm-dependency-update','ts-project-health','java-dev','java-code-review',
+    'java-security-audit','java-git-commit','maven-dependency-update','project-health',
+    'project-refine','issue-workflow']);
+
+  // ── Dependency map ──
+  const DEPS = {
+    'ts-code-review':           ['code-review-principles'],
+    'ts-security-audit':        ['security-audit-principles'],
+    'npm-dependency-update':    ['dependency-management-principles'],
+    'ts-project-health':        ['project-health'],
+    'java-code-review':         ['code-review-principles'],
+    'java-security-audit':      ['security-audit-principles'],
+    'maven-dependency-update':  ['dependency-management-principles'],
+    'quarkus-observability':    ['observability-principles'],
+    'java-project-health':      ['project-health'],
+    'skills-project-health':    ['project-health'],
+    'blog-project-health':      ['project-health'],
+    'custom-project-health':    ['project-health'],
+  };
+
+  // ── Toast ──
+  function showToast(msg, duration = 3000) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  // ── View switching ──
+  function setView(view) {
+    document.body.className = `view-${view}`;
+    document.getElementById('tab-overview').classList.toggle('active', view === 'overview');
+    document.getElementById('tab-install').classList.toggle('active', view === 'install');
+    // Auto-expand all bundles in Overview (you're reading docs); restore install state
+    if (view === 'overview') {
+      BUNDLE_IDS.forEach(id => document.getElementById(id).classList.add('open'));
+    }
+    // Scroll to top so hero / sync-bar is visible
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Re-run search filter for the new view
+    filterSkills(document.getElementById('search-input').value);
+    updateToggleAllLabel();
+  }
+
+  // ── Search / filter ──
+  function filterSkills(query) {
+    const q = query.trim().toLowerCase();
+    const isOverview = document.body.classList.contains('view-overview');
+    document.querySelectorAll('.bundle').forEach(bundle => {
+      let visibleCount = 0;
+      // Filter the active view's rows
+      const rows = isOverview
+        ? bundle.querySelectorAll('.overview-skill')
+        : bundle.querySelectorAll('.skill-row');
+      rows.forEach(row => {
+        const name = row.querySelector('.skill-name')?.textContent.toLowerCase() || '';
+        const desc = row.querySelector('.overview-desc, .skill-desc')?.textContent.toLowerCase() || '';
+        const match = !q || name.includes(q) || desc.includes(q);
+        row.classList.toggle('hidden', !match);
+        if (match) visibleCount++;
+      });
+      bundle.classList.toggle('all-hidden', !!q && visibleCount === 0);
+      if (q && visibleCount > 0) bundle.classList.add('open');
+    });
+  }
+
+  let autoExecute = true;
+  document.getElementById('btn-auto').addEventListener('click', () => { autoExecute = true; document.getElementById('btn-auto').classList.add('active'); document.getElementById('btn-manual').classList.remove('active'); });
+  document.getElementById('btn-manual').addEventListener('click', () => { autoExecute = false; document.getElementById('btn-manual').classList.add('active'); document.getElementById('btn-auto').classList.remove('active'); });
+
+  function toggleBundle(id) { document.getElementById(id).classList.toggle('open'); updateToggleAllLabel(); }
+
+  // Collapse / Expand All
+  const BUNDLE_IDS = ['b-core','b-principles','b-ts','b-java','b-individual'];
+  function toggleAll() {
+    const anyOpen = BUNDLE_IDS.some(id => document.getElementById(id).classList.contains('open'));
+    BUNDLE_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (anyOpen) el.classList.remove('open');
+      else         el.classList.add('open');
+    });
+    updateToggleAllLabel();
+  }
+  function updateToggleAllLabel() {
+    const anyOpen = BUNDLE_IDS.some(id => document.getElementById(id).classList.contains('open'));
+    document.getElementById('btn-toggle-all').textContent = anyOpen ? '⊟ Collapse All' : '⊞ Expand All';
+  }
+
+  // Nav scroll — use scrollBy + getBoundingClientRect so the bundle top lands
+  // just below the nav bar regardless of scroll position or element height.
+  function navTo(e, id) {
+    if (e) e.preventDefault();
+    const el = document.getElementById(id);
+    if (!el) return;
+    const navBar = document.querySelector('.nav-bar');
+    const navBottom = navBar ? navBar.getBoundingClientRect().bottom : 0;
+    const elTop    = el.getBoundingClientRect().top;
+    const gap = 8;
+    window.scrollBy({ top: elTop - navBottom - gap, behavior: 'smooth' });
+  }
+
+  function navToTop(e) {
+    if (e) e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Highlight active nav pill on scroll.
+  // When no bundle is in view (e.g. at the very top), highlight "All".
+  let activePillId = null;
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        activePillId = entry.target.id;
+        document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+        const pill = document.querySelector(`.nav-pill[href="#${entry.target.id}"]`);
+        if (pill) pill.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-100px 0px -60% 0px' });
+  BUNDLE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+
+  // At top of page, highlight "All"
+  window.addEventListener('scroll', () => {
+    if (window.scrollY < 80) {
+      document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+      const allPill = document.querySelector('.nav-pill[href="#"]');
+      if (allPill) allPill.classList.add('active');
+    }
+  }, { passive: true });
+
+  const configs = {
+    'install-all':       { title:'Install All Skills', sub:'18 uninstalled skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --all', kind:'install', label:'Install All' },
+    'update-all':        { title:'Update All Skills', sub:'2 outdated skills will be updated to their latest versions', cmd:'python3 scripts/claude-skill sync-local --all', kind:'update', label:'Update All' },
+    'uninstall-all':     { title:'Uninstall All Skills', sub:'All 33 skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall --all', kind:'uninstall', label:'Uninstall All' },
+    'update-ts':         { title:'Update TypeScript Bundle', sub:'ts-dev will be updated from v1.0.0 to v1.1.0', cmd:'python3 scripts/claude-skill sync-local --skills ts-dev', kind:'update', label:'Update' },
+    'update-java':       { title:'Update Java / Quarkus Bundle', sub:'java-dev will be updated from v1.0.0 to v1.0.1', cmd:'python3 scripts/claude-skill sync-local --skills java-dev', kind:'update', label:'Update' },
+    'install-core':      { title:'Install Remaining Core Skills', sub:'project-health and project-refine will be added', cmd:'python3 scripts/claude-skill sync-local --skills project-health project-refine', kind:'install', label:'Install 2 skills' },
+    'uninstall-core':    { title:'Uninstall Installed Core Skills', sub:'git-commit, update-claude-md, and adr will be removed', cmd:'python3 scripts/claude-skill uninstall git-commit update-claude-md adr', kind:'uninstall', label:'Uninstall 3 skills' },
+    'install-principles':{ title:'Install Principles', sub:'4 foundation skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills code-review-principles security-audit-principles dependency-management-principles observability-principles', kind:'install', label:'Install 4 skills' },
+    'uninstall-ts':      { title:'Uninstall TypeScript', sub:'5 TypeScript skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall ts-dev ts-code-review ts-security-audit npm-dependency-update ts-project-health', kind:'uninstall', label:'Uninstall 5 skills' },
+    'install-java':      { title:'Install Remaining Java / Quarkus Skills', sub:'5 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills java-update-design quarkus-flow-dev quarkus-flow-testing quarkus-observability java-project-health', kind:'install', label:'Install 5 skills' },
+    'uninstall-java':    { title:'Uninstall Installed Java Skills', sub:'5 installed skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall java-dev java-code-review java-security-audit java-git-commit maven-dependency-update', kind:'uninstall', label:'Uninstall 5 skills' },
+    'install-individual':{ title:'Install Individual Skills', sub:'8 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills skills-project-health blog-project-health custom-project-health blog-git-commit custom-git-commit update-primary-doc install-skills uninstall-skills', kind:'install', label:'Install 8 skills' },
+    'uninstall-individual':{ title:'Uninstall issue-workflow', sub:'issue-workflow will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall issue-workflow', kind:'uninstall', label:'Uninstall 1 skill' },
+  };
+
+  // Update All — opens its own richer modal
+  function openUpdateModal() {
+    const note = document.getElementById('u-note');
+    if (autoExecute) { note.className = 'modal-note'; note.textContent = '⚡ This command will run automatically when you confirm.'; }
+    else { note.className = 'modal-note manual'; note.textContent = '📋 Copy and run this command in your terminal. The page will auto-refresh once complete — or hit Refresh.'; }
+    document.getElementById('update-overlay').classList.add('open');
+  }
+  function closeUpdateModal() {
+    document.getElementById('update-overlay').classList.remove('open');
+    if (autoExecute) showToast('✓ Skills updated — open a new Claude Code session to use the latest version');
+  }
+  function handleUpdateOverlayClick(e) { if (e.target === document.getElementById('update-overlay')) closeUpdateModal(); }
+  function copyUpdateCmd() {
+    navigator.clipboard.writeText('python3 scripts/claude-skill sync-local --all').then(() => {
+      const btn = document.querySelector('#update-overlay .btn-copy');
+      btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  function openModal(type, name) {
+    if (type === 'update-all') { openUpdateModal(); return; }
+    let cfg = configs[type];
+    if (!cfg && type === 'install-skill')   cfg = { title:`Install ${name}`, sub:`${name} will be added to ~/.claude/skills/`, cmd:`python3 scripts/claude-skill sync-local --skills ${name}`, kind:'install', label:'Install' };
+    if (!cfg && type === 'uninstall-skill') cfg = { title:`Uninstall ${name}`, sub:`${name} will be removed from ~/.claude/skills/`, cmd:`python3 scripts/claude-skill uninstall ${name}`, kind:'uninstall', label:'Uninstall' };
+    if (!cfg && type === 'update-skill')    cfg = { title:`Update ${name}`, sub:`${name} will be updated to its latest version`, cmd:`python3 scripts/claude-skill sync-local --skills ${name}`, kind:'update', label:'Update' };
+
+    document.getElementById('m-title').textContent = cfg.title;
+    document.getElementById('m-sub').textContent   = cfg.sub;
+    document.getElementById('m-cmd').textContent   = cfg.cmd;
+
+    // Dependency auto-resolution — include missing deps in the command transparently
+    const depEl   = document.getElementById('m-dep');
+    const depText = document.getElementById('m-dep-text');
+    const missingDeps = (DEPS[name] || []).filter(d => !INSTALLED.has(d));
+    if (cfg.kind === 'install' && missingDeps.length > 0) {
+      // Rewrite command to include dependencies automatically
+      const allSkills = [...missingDeps, name].join(' ');
+      document.getElementById('m-cmd').textContent =
+        `python3 scripts/claude-skill sync-local --skills ${allSkills}`;
+      depText.textContent = ` ${missingDeps.join(' and ')} will also be installed — it's required for this skill to work correctly.`;
+      depEl.classList.add('visible');
+    } else {
+      depEl.classList.remove('visible');
+    }
+
+    const note = document.getElementById('m-note');
+    if (autoExecute) { note.className = 'modal-note'; note.textContent = '⚡ This command will run automatically when you confirm.'; }
+    else { note.className = 'modal-note manual'; note.textContent = '📋 Copy and run this command in your terminal. The page will auto-refresh once complete — or hit Refresh.'; }
+
+    const btn = document.getElementById('m-confirm');
+    btn.textContent = autoExecute ? cfg.label : 'Done';
+    btn.className   = `btn-confirm ${cfg.kind}`;
+    // Wire confirm to show toast when auto-executing
+    btn.onclick = () => {
+      closeModal();
+      if (autoExecute && cfg.kind === 'install') showToast('✓ Skills installed — open a new Claude Code session to use them');
+      if (autoExecute && cfg.kind === 'uninstall') showToast('✓ Skills removed');
+    };
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+  function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+  function copyCmd() {
+    navigator.clipboard.writeText(document.getElementById('m-cmd').textContent).then(() => {
+      const btn = document.getElementById('m-copy'); btn.textContent = '✓ Copied';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+</script>
+</body>
+</html>

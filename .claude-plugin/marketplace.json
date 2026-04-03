@@ -7,25 +7,45 @@
   },
   "bundles": [
     {
-      "name": "typescript",
-      "displayName": "TypeScript bundle",
-      "description": "TypeScript/Node.js development: ts-dev, code review, security audit, npm dependency management",
+      "name": "core",
+      "displayName": "Core",
+      "description": "Universal workflow tools every project needs: commits, CLAUDE.md sync, architecture decisions, project health",
       "skills": [
         "git-commit",
+        "update-claude-md",
+        "adr",
+        "project-health",
+        "project-refine"
+      ]
+    },
+    {
+      "name": "principles",
+      "displayName": "Principles",
+      "description": "Universal foundations extended by language-specific skills: code review, security, dependencies, observability",
+      "skills": [
+        "code-review-principles",
+        "security-audit-principles",
+        "dependency-management-principles",
+        "observability-principles"
+      ]
+    },
+    {
+      "name": "typescript",
+      "displayName": "TypeScript",
+      "description": "TypeScript/Node.js development: ts-dev, code review, security audit, npm dependency management",
+      "skills": [
         "ts-dev",
         "ts-code-review",
         "ts-security-audit",
         "npm-dependency-update",
-        "update-claude-md",
-        "adr"
+        "ts-project-health"
       ]
     },
     {
       "name": "java-quarkus",
-      "displayName": "Java/Quarkus bundle",
-      "description": "Backend development: java-dev, quarkus-flow-dev, code review, security audit, dependency management",
+      "displayName": "Java / Quarkus",
+      "description": "Java/Quarkus backend development: java-dev, quarkus-flow, code review, security audit, dependency management",
       "skills": [
-        "git-commit",
         "java-dev",
         "java-code-review",
         "java-security-audit",
@@ -35,20 +55,7 @@
         "quarkus-flow-dev",
         "quarkus-flow-testing",
         "quarkus-observability",
-        "update-claude-md",
-        "adr"
-      ]
-    },
-    {
-      "name": "foundation",
-      "displayName": "Generic foundation",
-      "description": "Universal principles: code review, security audit, dependency management, observability",
-      "skills": [
-        "git-commit",
-        "code-review-principles",
-        "security-audit-principles",
-        "dependency-management-principles",
-        "observability-principles"
+        "java-project-health"
       ]
     }
   ],
