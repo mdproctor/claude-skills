@@ -686,22 +686,33 @@
           <span class="role-pill role-commit">Commit</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Entry point for all commit workflows. Reads the project type from CLAUDE.md and routes to the appropriate specialised commit skill — java-git-commit for Java, blog-git-commit for blogs, custom-git-commit for custom projects. Handles interactive setup if no project type is declared.</p>
-                                <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "commit", "make a commit", /git-commit</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('issue-workflow')">issue-workflow</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('issue-workflow')">issue-workflow</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-update-claude-md">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">update-claude-md</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-sync">Sync</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Keeps CLAUDE.md in sync with workflow and convention changes after every commit. Analyses the staged diff for changes to build commands, testing patterns, naming conventions, and repository structure, then proposes targeted updates.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> automatically via commit skills when CLAUDE.md exists</div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User can run `/update-claude-md` directly to sync CLAUDE.md without committing</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('blog-git-commit')">blog-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-adr">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">adr</div><div class="skill-version">v1.0.0</div></div>
@@ -709,11 +720,15 @@
         </div>
         <p class="overview-desc">Creates and manages Architecture Decision Records in MADR format. Assigns sequential numbers, tracks lifecycle (Proposed → Accepted → Deprecated → Superseded), and stores records in docs/adr/. Offered automatically by maven-dependency-update on major version upgrades.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "create an ADR", significant technical decisions, major version upgrades</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User can run `/adr` or say "create an ADR" directly when making architectural decisions</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-project-health">
         <div class="overview-skill-header">
@@ -722,10 +737,15 @@
         </div>
         <p class="overview-desc">Universal project health checker — answers "is the project correct, complete, and consistent?" Runs 12 check categories across 4 tiers of depth. At tier 3+, automatically chains to the type-specific health skill for your project.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "health check", "pre-release check", /project-health</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('python-project-health')">python-project-health</span></div>
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('python-project-health')">python-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('python-project-health')">python-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-project-refine">
         <div class="overview-skill-header">
@@ -733,11 +753,14 @@
           <span class="role-pill role-refine">Refine</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Companion to project-health for improvement opportunities — bloat, duplication, consolidation, and structural improvements. Never blocks work; findings are always opportunities not failures. Run after health is green.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "find duplication", "bloat check", "improve docs structure", /project-refine</div>
-          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        <div class="overview-meta">
+
         </div>
       </div>
+
+
+
+
     </div>
   </div>
 
@@ -811,9 +834,13 @@
         <p class="overview-desc">Universal code review checklist covering safety (resource leaks, deadlocks), concurrency, performance, testing philosophy, and review workflow. Language-agnostic — extended by java-code-review and ts-code-review which add language-specific examples and tooling.</p>
         <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
-          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-security-audit-principles">
         <div class="overview-skill-header">
@@ -823,9 +850,13 @@
         <p class="overview-desc">Universal OWASP Top 10 security audit checklist for server-side applications. Covers injection, broken auth, access control, cryptographic failures, misconfiguration, vulnerable components, and SSRF. Extended by language-specific audits with code examples.</p>
         <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
-          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-dependency-management-principles">
         <div class="overview-skill-header">
@@ -839,17 +870,25 @@
         </div>
       </div>
 
+
+
+
+
       <div class="overview-skill" id="ov-observability-principles">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">observability-principles</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Universal observability guidance — the three pillars (logs, traces, metrics), MDC/correlation ID patterns, HTTP header propagation, and OpenTelemetry concepts. Technology-agnostic foundation extended by framework-specific skills like quarkus-observability.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
           <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
         </div>
       </div>
+
+
+
+
     </div>
   </div>
 
@@ -987,125 +1026,167 @@
           <span class="role-pill role-dev">Dev</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Expert Java development for Quarkus server-side applications. Safety-first approach — resource leaks, deadlocks, classloader issues, Vert.x event loop correctness. Includes Quick Reference table, Rule Priority flowchart (Safety › Concurrency › Performance › Code Quality), and 12 real production incident examples.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> writing Java, fixing bugs, refactoring, .java pom.xml build.gradle</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-java-code-review">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">java-code-review</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-review">Review</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Pre-commit code review for Java/Quarkus — resource leaks, event loop blocking, concurrency violations, reproducibility, performance in hot paths, and testing coverage. Extends code-review-principles with Quarkus/Vert.x specific checks and ❌/✅ code examples.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /java-code-review</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "review my code", "check my changes", or explicitly invokes /java-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span></div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-java-security-audit">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">java-security-audit</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-security">Security</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">OWASP Top 10 security audit for Java/Quarkus — SQL/JPQL injection, broken auth, access control, cryptographic failures, Vault/OIDC integration patterns, and Quarkus security extension recommendations. Builds on security-audit-principles with Quarkus-specific examples.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", offered by java-code-review for auth/payment/PII code</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "security review", "audit security", or explicitly invokes for security-critical implementations</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span></div>
-          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-java-git-commit">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">java-git-commit</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-commit">Commit</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Java-specific commit workflow extending git-commit. Requires docs/DESIGN.md — blocks commits if missing. Automatically syncs DESIGN.md via java-update-design before proposing the commit. Provides Java/Quarkus-specific commit scopes (rest, repository, service, BOM).</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: java repositories, /java-git-commit</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "commit", "smart commit", or explicitly invokes /java-git-commit in Java repositories</div>
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-maven-dependency-update">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">maven-dependency-update</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-deps">Deps</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Maven BOM dependency management for Java/Quarkus — Quarkus platform alignment, BOM vs explicit version detection, compatibility checking, and safe upgrade proposals. Offers ADR creation for major version changes. Extends dependency-management-principles.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "upgrade Quarkus", "add dependency", pom.xml changes</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "update dependencies", "upgrade Quarkus", or explicitly invokes when pom.xml changes are needed</div>
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-java-update-design">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">java-update-design</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-sync">Sync</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Keeps DESIGN.md in sync with code changes — maps Java annotations to architectural signals (@RestController → API change, @Entity → data model change). Proposes targeted DESIGN.md updates and nudges when the doc grows too large to modularise.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "update the design doc", "sync DESIGN.md", automatically via java-git-commit</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User can run `/update-design` directly to sync DESIGN.md without committing</div>
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-primary-doc')">update-primary-doc</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-quarkus-flow-dev">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">quarkus-flow-dev</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-dev">Dev</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Quarkus Flow (CNCF Serverless Workflow) development — FuncDSL task composition (function/agent/http/emit/listen), human-in-the-loop patterns, LangChain4j AI service integration, and YAML workflow definitions. Full API reference in funcDSL-reference.md.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> Flow subclasses, workflow YAML, "workflow", "agent", "agentic", LangChain4j</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-observability')">quarkus-observability</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-testing')">quarkus-flow-testing</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-quarkus-flow-testing">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">quarkus-flow-testing</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-testing">Testing</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Testing patterns for Quarkus Flow workflows — @QuarkusTest for Flow classes, YAML workflow testing with @Identifier, REST integration tests with REST Assured, RFC 7807 error mapping, and AI service mocking with @InjectMock and @QuarkusTestProfile.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> writing @QuarkusTest for Flow classes, debugging workflow test failures</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User writes @QuarkusTest for Flow classes, tests YAML workflows, or debugs workflow test failures</div>
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-quarkus-observability">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">quarkus-observability</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-observe">Observability</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Production-grade observability for Quarkus — structured JSON logging with MDC, quarkus-flow workflow tracing, OpenTelemetry distributed tracing, Micrometer/Prometheus metrics, and log aggregator integration (Kibana, Loki, Datadog). Extends observability-principles.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "set up logging", "configure tracing", "enable metrics", "OpenTelemetry", "MDC"</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User mentions "logging", "tracing", "observability", "MDC", "OpenTelemetry", "Prometheus", or configures observability</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span></div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('quarkus-flow-dev')">quarkus-flow-dev</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('observability-principles')">observability-principles</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-java-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">java-project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Java-specific health checks extending project-health. Adds three categories: java-architecture (layer separation, circular imports, domain isolation), java-dependencies (BOM alignment, no duplicate versions, correct test scoping), java-code-quality (duplication, hardcoded values, callback patterns).</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /java-project-health or auto-chained by project-health on type: java detection</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/java-project-health` runs universal checks first,</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
     </div>
   </div>
 
@@ -1191,61 +1272,80 @@
           <span class="role-pill role-dev">Dev</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Expert TypeScript development for Node.js and browser applications. Enforces strict mode, guides async/await correctness, error handling with discriminated unions, and testing with Jest or Vitest. Includes a Quick Reference table and "These Thoughts Mean STOP" rationalization guide.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> writing TypeScript, fixing bugs, refactoring, .ts .tsx tsconfig.json package.json</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-ts-code-review">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">ts-code-review</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-review">Review</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Pre-commit code review for TypeScript — type safety (no any, no unsafe assertions), async correctness (unawaited promises, missing error handling), and test quality. Severity-graded CRITICAL/WARNING/NOTE with a Mermaid decision flow. Extends code-review-principles.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /ts-code-review</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "review my code", "check my changes", or explicitly invokes /ts-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-ts-security-audit">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">ts-security-audit</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-security">Security</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">OWASP Top 10 security audit for TypeScript/Node.js. Covers SQL/NoSQL/command injection, broken auth (JWT, bcrypt, rate limiting), IDOR, prototype pollution, SSRF, cryptographic failures, and security misconfiguration. Includes a Node.js Security Features reference table.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", "audit security", offered by ts-code-review for auth/payment/PII code</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "security review", "audit security", or explicitly invokes for security-critical TypeScript/Node.js implementations</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-npm-dependency-update">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">npm-dependency-update</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-deps">Deps</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">npm/yarn/pnpm dependency management with a BOM-first philosophy. Covers semver strategy (^, ~, exact), npm audit triage, breaking change detection, devDependencies separation, and ADR integration for major upgrades. Works with all three lock file formats.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "npm audit", "bump version", package.json changes</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "update dependencies", "add a package", "npm audit", or whenever `package.json` changes are needed</div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-ts-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name installed">ts-project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">TypeScript-specific health checks extending project-health. Adds five categories: ts-types (strict mode, @ts-ignore, any usage), ts-async (floating promises, sequential awaits), ts-build (tsc --noEmit, ESLint, circular imports), ts-dependencies (npm audit, lock file), ts-testing (coverage, skipped tests).</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /ts-project-health or suggested by project-health for TypeScript projects</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/ts-project-health` runs universal checks first,</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
     </div>
   </div>
 
@@ -1326,10 +1426,15 @@
         </div>
         <p class="overview-desc">Expert Python development — type hints, mutable default argument safety, asyncio patterns, @dataclass, pytest. Includes Common Pitfalls table with 12 rationalizations.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> writing Python, fixing bugs, refactoring, .py pyproject.toml requirements.txt</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-python-code-review">
         <div class="overview-skill-header">
@@ -1338,12 +1443,16 @@
         </div>
         <p class="overview-desc">Python code review — type safety (missing hints, bare Any), bare except clauses, unawaited coroutines, blocking event loop. Severity-graded CRITICAL/WARNING/NOTE.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /python-code-review</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span></div>
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "review my code", "check my changes", or explicitly invokes /python-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-python-security-audit">
         <div class="overview-skill-header">
@@ -1352,11 +1461,15 @@
         </div>
         <p class="overview-desc">OWASP Top 10 for Python — SQL/command injection, pickle deserialization (RCE risk), yaml.load vs safe_load, secrets vs random, path traversal, SSRF.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", offered by python-code-review for auth/payment/PII code</div>
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "security review", "audit security", or explicitly invokes for security-critical Python implementations</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
-          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-pip-dependency-update">
         <div class="overview-skill-header">
@@ -1365,12 +1478,14 @@
         </div>
         <p class="overview-desc">pip/poetry/pipenv dependency management — semver strategy (== vs ~=), pip audit triage, virtual env discipline, ADR for major upgrades.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "pip audit", package changes, pyproject.toml</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** User says "update dependencies", "add a package", "pip audit", or whenever `requirements.txt`, `pyproject.toml`, or `Pipfile` changes are needed</div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
         </div>
       </div>
+
+
+
+
 
       <div class="overview-skill" id="ov-python-project-health">
         <div class="overview-skill-header">
@@ -1379,11 +1494,15 @@
         </div>
         <p class="overview-desc">Health checks for Python projects — python-types (mypy), python-deps (pip audit), python-quality (flake8/ruff), python-testing (pytest), python-build.</p>
         <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /python-project-health or suggested by project-health for Python projects</div>
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/python-project-health` runs universal checks first,</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
 
     </div>
   </div>
@@ -1500,104 +1619,137 @@
           <span class="role-pill role-issues">Issues</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">GitHub issue tracking with cross-cutting detection. Setup mode configures Work Tracking in CLAUDE.md and creates standard labels. Task intake detects when a request spans multiple concerns. Pre-commit analysis guides through git add -p splitting. Release management via gh release create --generate-notes.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /issue-workflow, offered at session start when Work Tracking not configured</div>
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-blog-git-commit">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">blog-git-commit</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-commit">Commit</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Commit workflow for GitHub Pages / Jekyll blogs. Enforces content-type conventions (post/edit/draft/asset/config), validates post filenames (YYYY-MM-DD-title.md format), uses 72-char subject limit (blog titles are longer than code subjects), and validates via validate_blog_commit.py.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: blog repositories</div>
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
-          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-custom-git-commit">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">custom-git-commit</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-commit">Commit</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Commit workflow for type: custom projects (working groups, research, documentation). Syncs the user-configured primary document (VISION.md, THESIS.md, etc.) based on Sync Rules declared in CLAUDE.md. Supports four built-in sync strategies plus custom strategies.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> "commit" in type: custom repositories</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-primary-doc')">update-primary-doc</span> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes, but git-commit will route here automatically for type: custom</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('update-claude-md')">update-claude-md</span> <span class="overview-tag link" onclick="scrollToSkill('update-primary-doc')">update-primary-doc</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-update-primary-doc">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">update-primary-doc</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-sync">Sync</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Generic table-driven primary document sync for type: custom projects. Reads Sync Rules from CLAUDE.md (file patterns → document sections) and proposes targeted updates. Supports bidirectional-consistency, research-progress, api-spec-sync, and architectural-changes strategies. Proposal-only — never applies changes directly.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> automatically via custom-git-commit when Sync Rules are configured</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('custom-git-commit')">custom-git-commit</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-skills-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">skills-project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Health checks specific to Claude Code skill repositories. Adds 8 skills-specific categories: cross-refs (bidirectional chaining), coverage (marketplace completeness), quality (CSO compliance, flowcharts), naming conventions, infrastructure (validators wired), dependencies, performance (token budget), effectiveness.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /skills-project-health or auto-chained by project-health on type: skills detection</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/skills-project-health` runs universal checks first,</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-blog-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">blog-project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Health checks for GitHub Pages / Jekyll blogs. Extends project-health with blog-specific checks: post filename format (YYYY-MM-DD-title.md), front matter validity, Jekyll configuration health, content freshness, and navigation integrity.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /blog-project-health or auto-chained by project-health on type: blog detection</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/blog-project-health` runs universal checks first, then blog-specific checks, producing identical output to the auto-chained flow</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-custom-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">custom-project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Health checks for type: custom projects. Extends project-health with custom checks: primary document sync accuracy, work tracking configuration, Sync Rules validity, and project-specific conventions. Reads configuration from CLAUDE.md to validate project requirements.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /custom-project-health or auto-chained by project-health on type: custom detection</div>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> ** Yes — `/custom-project-health` runs universal checks first, then custom-specific checks, producing identical output to the auto-chained flow</div>
           <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
           <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-install-skills">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">install-skills</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-setup">Setup</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">One-time bootstrap wizard for new environments. Configures the session-start hook (automatic CLAUDE.md detection), offers bundle or individual skill selection with automatic dependency resolution, and verifies setup on completion. Run once per machine after adding the cc-praxis marketplace.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /install-skills — run once per environment</div>
+        <div class="overview-meta">
+
         </div>
       </div>
+
+
+
+
       <div class="overview-skill" id="ov-uninstall-skills">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">uninstall-skills</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-setup">Setup</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Guided removal wizard. Lets you remove individual skills, bundles, or everything. Checks reverse dependencies before removing (warns if other installed skills depend on the one being removed). Optionally removes the session-start hook. Requires explicit confirmation before anything is deleted.</p>
-                        <div class="overview-meta">
-          <div class="overview-meta-item"><strong>Triggers:</strong> /uninstall-skills</div>
+        <div class="overview-meta">
+
         </div>
       </div>
+
+
+
+
     </div>
   </div>
 
@@ -1667,44 +1819,44 @@
 <script>
   // ── Chain data (bidirectionally verified against SKILL.md files) ──
   const CHAIN = {
-    'git-commit':        {parents:[],children:['update-claude-md','java-git-commit','custom-git-commit','blog-git-commit','issue-workflow']},
-    'update-claude-md':  {parents:['git-commit','java-git-commit','custom-git-commit','blog-git-commit'],children:[]},
-    'adr':               {parents:['ts-dev','java-dev','python-dev','npm-dependency-update','maven-dependency-update','java-update-design'],children:['java-git-commit']},
-    'project-health':    {parents:[],children:['java-project-health','ts-project-health','python-project-health','blog-project-health','custom-project-health','skills-project-health']},
-    'project-refine':    {parents:[],children:[]},
-    'code-review-principles':           {parents:[],children:['java-code-review','ts-code-review']},
-    'security-audit-principles':        {parents:[],children:['java-security-audit','ts-security-audit']},
-    'dependency-management-principles': {parents:[],children:['maven-dependency-update','npm-dependency-update']},
-    'observability-principles':         {parents:[],children:['quarkus-observability']},
-    'ts-dev':            {parents:[],children:['ts-code-review','npm-dependency-update','adr']},
-    'ts-code-review':    {parents:['ts-dev','npm-dependency-update'],children:['ts-security-audit','git-commit']},
-    'ts-security-audit': {parents:['ts-code-review'],children:[]},
-    'npm-dependency-update':{parents:['ts-dev'],children:['adr','ts-code-review']},
+    'adr': {parents:['java-update-design', 'maven-dependency-update'],children:['java-git-commit', 'java-update-design']},
+    'blog-git-commit': {parents:['git-commit'],children:['update-claude-md']},
+    'blog-project-health': {parents:['project-health'],children:[]},
+    'code-review-principles': {parents:[],children:[]},
+    'custom-git-commit': {parents:[],children:['update-claude-md', 'update-primary-doc']},
+    'custom-project-health': {parents:['project-health'],children:[]},
+    'dependency-management-principles': {parents:[],children:[]},
+    'git-commit': {parents:['python-code-review', 'ts-code-review'],children:['blog-git-commit', 'issue-workflow', 'python-code-review', 'ts-code-review', 'update-claude-md']},
+    'install-skills': {parents:[],children:[]},
+    'issue-workflow': {parents:['git-commit'],children:[]},
+    'java-code-review': {parents:['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'],children:['java-git-commit', 'java-security-audit']},
+    'java-dev': {parents:[],children:['java-code-review', 'quarkus-observability']},
+    'java-git-commit': {parents:['adr', 'java-code-review', 'maven-dependency-update', 'quarkus-flow-dev', 'quarkus-flow-testing', 'quarkus-observability'],children:['java-code-review', 'java-update-design', 'update-claude-md']},
+    'java-project-health': {parents:['project-health'],children:[]},
+    'java-security-audit': {parents:['java-code-review'],children:[]},
+    'java-update-design': {parents:['adr', 'java-git-commit', 'update-claude-md'],children:['adr']},
+    'maven-dependency-update': {parents:['quarkus-observability'],children:['adr', 'java-git-commit']},
+    'npm-dependency-update': {parents:[],children:[]},
+    'observability-principles': {parents:[],children:[]},
+    'pip-dependency-update': {parents:[],children:[]},
+    'project-health': {parents:[],children:['blog-project-health', 'custom-project-health', 'java-project-health', 'python-project-health', 'skills-project-health', 'ts-project-health']},
+    'project-refine': {parents:[],children:[]},
+    'python-code-review': {parents:['git-commit', 'python-dev'],children:['git-commit', 'python-security-audit']},
+    'python-dev': {parents:[],children:['python-code-review']},
+    'python-project-health': {parents:['project-health'],children:[]},
+    'python-security-audit': {parents:['python-code-review'],children:[]},
+    'quarkus-flow-dev': {parents:[],children:['java-code-review', 'java-git-commit', 'quarkus-flow-testing', 'quarkus-observability']},
+    'quarkus-flow-testing': {parents:['quarkus-flow-dev'],children:['java-code-review', 'java-git-commit']},
+    'quarkus-observability': {parents:['java-dev', 'quarkus-flow-dev'],children:['java-git-commit', 'maven-dependency-update']},
+    'security-audit-principles': {parents:[],children:[]},
+    'skills-project-health': {parents:['project-health'],children:[]},
+    'ts-code-review': {parents:['git-commit', 'ts-dev'],children:['git-commit', 'ts-security-audit']},
+    'ts-dev': {parents:[],children:['ts-code-review']},
     'ts-project-health': {parents:['project-health'],children:[]},
-    'python-dev':           {parents:[],children:['python-code-review','pip-dependency-update','adr']},
-    'python-code-review':   {parents:['python-dev','pip-dependency-update'],children:['python-security-audit','git-commit']},
-    'python-security-audit':{parents:['python-code-review'],children:[]},
-    'pip-dependency-update':{parents:['python-dev'],children:['adr','python-code-review']},
-    'python-project-health':{parents:['project-health'],children:[]},
-    'java-dev':          {parents:[],children:['java-code-review','java-git-commit','adr','quarkus-observability']},
-    'java-code-review':  {parents:['java-dev','java-git-commit','quarkus-flow-dev','quarkus-flow-testing'],children:['java-security-audit','java-git-commit']},
-    'java-security-audit':{parents:['java-code-review'],children:[]},
-    'java-git-commit':   {parents:['git-commit','java-code-review','quarkus-flow-dev','quarkus-flow-testing','quarkus-observability','maven-dependency-update','adr','java-dev'],children:['java-code-review','java-update-design','update-claude-md']},
-    'java-update-design':{parents:['java-git-commit'],children:['adr']},
-    'maven-dependency-update':{parents:['quarkus-observability'],children:['adr','java-git-commit']},
-    'quarkus-flow-dev':  {parents:[],children:['quarkus-flow-testing','quarkus-observability','java-code-review','java-git-commit']},
-    'quarkus-flow-testing':{parents:['quarkus-flow-dev'],children:['java-code-review','java-git-commit']},
-    'quarkus-observability':{parents:['java-dev','quarkus-flow-dev'],children:['maven-dependency-update','java-git-commit']},
-    'java-project-health':{parents:['project-health'],children:[]},
-    'issue-workflow':    {parents:['git-commit'],children:[]},
-    'blog-git-commit':   {parents:['git-commit'],children:['update-claude-md']},
-    'custom-git-commit': {parents:['git-commit'],children:['update-primary-doc','update-claude-md']},
-    'update-primary-doc':{parents:['custom-git-commit'],children:[]},
-    'skills-project-health':{parents:['project-health'],children:[]},
-    'blog-project-health':{parents:['project-health'],children:[]},
-    'custom-project-health':{parents:['project-health'],children:[]},
-    'install-skills':    {parents:[],children:[]},
-    'uninstall-skills':  {parents:[],children:[]},
+    'ts-security-audit': {parents:['ts-code-review'],children:[]},
+    'uninstall-skills': {parents:[],children:[]},
+    'update-claude-md': {parents:['blog-git-commit', 'custom-git-commit', 'git-commit', 'java-git-commit'],children:['java-update-design']},
+    'update-primary-doc': {parents:['custom-git-commit'],children:[]},
   };
 
   // ── Inline chain row ──

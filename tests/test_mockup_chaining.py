@@ -36,44 +36,44 @@ ALL_SKILLS = {
 # Ground truth extracted from all SKILL.md files.
 # Update this when a skill's chaining is intentionally changed.
 CHAINING_TRUTH = {
-    'git-commit': {'chains_to': ['update-claude-md', 'java-git-commit', 'custom-git-commit', 'blog-git-commit', 'issue-workflow'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'update-claude-md': {'chains_to': [], 'invoked_by': ['git-commit', 'java-git-commit', 'custom-git-commit', 'blog-git-commit'], 'builds_on': [], 'extended_by': []},
-    'adr': {'chains_to': ['java-git-commit'], 'invoked_by': ['ts-dev', 'java-dev', 'python-dev', 'npm-dependency-update', 'pip-dependency-update', 'maven-dependency-update', 'java-update-design'], 'builds_on': [], 'extended_by': []},
-    'project-health': {'chains_to': ['java-project-health', 'ts-project-health', 'blog-project-health', 'custom-project-health', 'skills-project-health', 'python-project-health'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'project-refine': {'chains_to': [], 'invoked_by': [], 'builds_on': ['project-health'], 'extended_by': []},
-    'code-review-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'ts-code-review', 'python-code-review']},
-    'security-audit-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-security-audit', 'ts-security-audit', 'python-security-audit']},
-    'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
-    'observability-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['quarkus-observability']},
-    'ts-dev': {'chains_to': ['ts-code-review', 'npm-dependency-update', 'adr'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'ts-code-review': {'chains_to': ['ts-security-audit', 'git-commit'], 'invoked_by': ['ts-dev', 'npm-dependency-update'], 'builds_on': ['code-review-principles', 'ts-dev'], 'extended_by': []},
-    'ts-security-audit': {'chains_to': [], 'invoked_by': ['ts-code-review'], 'builds_on': ['security-audit-principles', 'ts-dev'], 'extended_by': []},
-    'npm-dependency-update': {'chains_to': ['adr', 'ts-code-review'], 'invoked_by': ['ts-dev'], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
-    'ts-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
-    'java-dev': {'chains_to': ['java-code-review', 'java-git-commit', 'adr', 'quarkus-observability'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'java-code-review': {'chains_to': ['java-security-audit', 'java-git-commit'], 'invoked_by': ['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'], 'builds_on': ['code-review-principles', 'java-dev'], 'extended_by': []},
-    'java-security-audit': {'chains_to': [], 'invoked_by': ['java-code-review'], 'builds_on': ['security-audit-principles', 'java-dev'], 'extended_by': []},
-    'java-git-commit': {'chains_to': ['java-code-review', 'java-update-design', 'update-claude-md'], 'invoked_by': ['git-commit', 'java-code-review', 'quarkus-flow-dev', 'quarkus-flow-testing', 'quarkus-observability', 'maven-dependency-update', 'adr', 'java-dev'], 'builds_on': ['git-commit'], 'extended_by': []},
-    'java-update-design': {'chains_to': ['adr'], 'invoked_by': ['java-git-commit'], 'builds_on': ['update-primary-doc'], 'extended_by': []},
-    'maven-dependency-update': {'chains_to': ['adr', 'java-git-commit'], 'invoked_by': ['quarkus-observability'], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
-    'quarkus-flow-dev': {'chains_to': ['quarkus-flow-testing', 'quarkus-observability', 'java-code-review', 'java-git-commit'], 'invoked_by': [], 'builds_on': ['java-dev'], 'extended_by': []},
-    'quarkus-flow-testing': {'chains_to': ['java-code-review', 'java-git-commit'], 'invoked_by': ['quarkus-flow-dev'], 'builds_on': ['java-dev', 'quarkus-flow-dev'], 'extended_by': []},
-    'quarkus-observability': {'chains_to': ['maven-dependency-update', 'java-git-commit'], 'invoked_by': ['java-dev', 'quarkus-flow-dev'], 'builds_on': ['observability-principles'], 'extended_by': []},
-    'java-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
-    'issue-workflow': {'chains_to': [], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
-    'blog-git-commit': {'chains_to': ['update-claude-md'], 'invoked_by': ['git-commit'], 'builds_on': ['git-commit'], 'extended_by': []},
-    'custom-git-commit': {'chains_to': ['update-primary-doc', 'update-claude-md'], 'invoked_by': ['git-commit'], 'builds_on': ['git-commit'], 'extended_by': []},
-    'update-primary-doc': {'chains_to': [], 'invoked_by': ['custom-git-commit'], 'builds_on': [], 'extended_by': []},
-    'skills-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'adr': {'chains_to': ['java-git-commit', 'java-update-design'], 'invoked_by': ['java-update-design', 'maven-dependency-update'], 'builds_on': [], 'extended_by': []},
+    'blog-git-commit': {'chains_to': ['update-claude-md'], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
     'blog-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'code-review-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'python-code-review', 'ts-code-review']},
+    'custom-git-commit': {'chains_to': ['update-claude-md', 'update-primary-doc'], 'invoked_by': [], 'builds_on': ['git-commit'], 'extended_by': []},
     'custom-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
-    'python-dev':           {'chains_to': ['python-code-review','pip-dependency-update','adr'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'python-code-review':    {'chains_to': ['python-security-audit','git-commit'], 'invoked_by': ['python-dev','pip-dependency-update'], 'builds_on': ['code-review-principles','python-dev'], 'extended_by': []},
-    'python-security-audit': {'chains_to': [], 'invoked_by': ['python-code-review'], 'builds_on': ['security-audit-principles','python-dev'], 'extended_by': []},
-    'pip-dependency-update': {'chains_to': ['adr','python-code-review'], 'invoked_by': ['python-dev'], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
-    'python-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
+    'git-commit': {'chains_to': ['blog-git-commit', 'issue-workflow', 'python-code-review', 'ts-code-review', 'update-claude-md'], 'invoked_by': ['python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'issue-workflow': {'chains_to': [], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
+    'java-code-review': {'chains_to': ['java-git-commit', 'java-security-audit'], 'invoked_by': ['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'], 'builds_on': ['code-review-principles', 'java-dev'], 'extended_by': []},
+    'java-dev': {'chains_to': ['java-code-review', 'quarkus-observability'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'java-security-audit', 'quarkus-flow-dev', 'quarkus-flow-testing']},
+    'java-git-commit': {'chains_to': ['java-code-review', 'java-update-design', 'update-claude-md'], 'invoked_by': ['adr', 'java-code-review', 'maven-dependency-update', 'quarkus-flow-dev', 'quarkus-flow-testing', 'quarkus-observability'], 'builds_on': ['git-commit'], 'extended_by': []},
+    'java-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'java-security-audit': {'chains_to': [], 'invoked_by': ['java-code-review'], 'builds_on': ['java-dev', 'security-audit-principles'], 'extended_by': []},
+    'java-update-design': {'chains_to': ['adr'], 'invoked_by': ['adr', 'java-git-commit', 'update-claude-md'], 'builds_on': ['update-primary-doc'], 'extended_by': []},
+    'maven-dependency-update': {'chains_to': ['adr', 'java-git-commit'], 'invoked_by': ['quarkus-observability'], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
+    'npm-dependency-update': {'chains_to': [], 'invoked_by': [], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
+    'observability-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['quarkus-observability']},
+    'pip-dependency-update': {'chains_to': [], 'invoked_by': [], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
+    'project-health': {'chains_to': ['blog-project-health', 'custom-project-health', 'java-project-health', 'python-project-health', 'skills-project-health', 'ts-project-health'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['blog-project-health', 'custom-project-health', 'java-project-health', 'python-project-health', 'skills-project-health', 'ts-project-health']},
+    'project-refine': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'python-code-review': {'chains_to': ['git-commit', 'python-security-audit'], 'invoked_by': ['git-commit', 'python-dev'], 'builds_on': ['code-review-principles', 'python-dev'], 'extended_by': []},
+    'python-dev': {'chains_to': ['python-code-review'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['python-code-review', 'python-security-audit']},
+    'python-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'python-security-audit': {'chains_to': [], 'invoked_by': ['python-code-review'], 'builds_on': ['python-dev', 'security-audit-principles'], 'extended_by': []},
+    'quarkus-flow-dev': {'chains_to': ['java-code-review', 'java-git-commit', 'quarkus-flow-testing', 'quarkus-observability'], 'invoked_by': [], 'builds_on': ['java-dev'], 'extended_by': ['quarkus-flow-testing']},
+    'quarkus-flow-testing': {'chains_to': ['java-code-review', 'java-git-commit'], 'invoked_by': ['quarkus-flow-dev'], 'builds_on': ['java-dev', 'quarkus-flow-dev'], 'extended_by': []},
+    'quarkus-observability': {'chains_to': ['java-git-commit', 'maven-dependency-update'], 'invoked_by': ['java-dev', 'quarkus-flow-dev'], 'builds_on': ['observability-principles'], 'extended_by': []},
+    'security-audit-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-security-audit', 'python-security-audit', 'ts-security-audit']},
+    'skills-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'ts-code-review': {'chains_to': ['git-commit', 'ts-security-audit'], 'invoked_by': ['git-commit', 'ts-dev'], 'builds_on': ['code-review-principles', 'ts-dev'], 'extended_by': []},
+    'ts-dev': {'chains_to': ['ts-code-review'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['ts-code-review', 'ts-security-audit']},
+    'ts-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'ts-security-audit': {'chains_to': [], 'invoked_by': ['ts-code-review'], 'builds_on': ['security-audit-principles', 'ts-dev'], 'extended_by': []},
     'uninstall-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'update-claude-md': {'chains_to': ['java-update-design'], 'invoked_by': ['blog-git-commit', 'custom-git-commit', 'git-commit', 'java-git-commit'], 'builds_on': [], 'extended_by': []},
+    'update-primary-doc': {'chains_to': [], 'invoked_by': ['custom-git-commit'], 'builds_on': [], 'extended_by': ['java-update-design']},
 }
 
 
@@ -267,6 +267,62 @@ def test_skillmd_chains_roughly_match_truth():
     assert not errors, (
         "SKILL.md chaining has drifted from CHAINING_TRUTH:\n" + '\n'.join(errors) +
         "\n\nTo fix: update CHAINING_TRUTH in this file and regenerate the mockup meta sections."
+    )
+
+
+def test_chain_js_matches_chaining_truth():
+    """
+    The const CHAIN object in index.html must match CHAINING_TRUTH.
+
+    This catches drift between the generator output (CHAINING_TRUTH) and the
+    CHAIN JS in the web app. If this fails, run:
+        python3 scripts/generate_web_app_data.py
+    """
+    import re
+
+    html = MOCKUP_PATH.read_text(encoding='utf-8')
+
+    # Parse const CHAIN from the HTML
+    m = re.search(r'const CHAIN = \{([\s\S]*?)\};', html)
+    assert m, "const CHAIN not found in index.html"
+
+    chain_js = {}
+    for entry in re.finditer(
+        r"'([^']+)':\s*\{parents:\[([^\]]*)\],children:\[([^\]]*)\]\}",
+        m.group(1)
+    ):
+        name     = entry.group(1)
+        parents  = sorted(s.strip("' ") for s in entry.group(2).split(',') if s.strip("' "))
+        children = sorted(s.strip("' ") for s in entry.group(3).split(',') if s.strip("' "))
+        chain_js[name] = {'parents': parents, 'children': children}
+
+    errors = []
+    for skill, truth in CHAINING_TRUTH.items():
+        if skill not in chain_js:
+            errors.append(f"'{skill}' missing from const CHAIN in index.html")
+            continue
+        js = chain_js[skill]
+
+        # children should match chains_to
+        truth_children = sorted(truth['chains_to'])
+        if js['children'] != truth_children:
+            errors.append(
+                f"'{skill}' CHAIN.children {js['children']} != "
+                f"CHAINING_TRUTH.chains_to {truth_children}"
+            )
+
+        # parents should match invoked_by
+        truth_parents = sorted(truth['invoked_by'])
+        if js['parents'] != truth_parents:
+            errors.append(
+                f"'{skill}' CHAIN.parents {js['parents']} != "
+                f"CHAINING_TRUTH.invoked_by {truth_parents}"
+            )
+
+    assert not errors, (
+        "const CHAIN in index.html doesn't match CHAINING_TRUTH.\n"
+        "Run: python3 scripts/generate_web_app_data.py\n\n"
+        + '\n'.join(errors)
     )
 
 
