@@ -46,9 +46,11 @@ KNOWN_NON_SKILLS = {
     'java-dependencies', 'java-architecture', 'java-code-quality',
     # Check categories defined in ts-project-health
     'ts-types', 'ts-async', 'ts-build', 'ts-dependencies', 'ts-testing',
+    # Check categories defined in python-project-health
+    'python-types', 'python-deps', 'python-quality', 'python-testing', 'python-build',
     # Future planned extension skills — mentioned as examples in principles skills
     # but not yet implemented. Add here when referenced, remove when created.
-    'python-code-review', 'python-security-audit', 'python-observability',
+    'python-observability',
     'go-dependency-update', 'go-observability',
     'npm-dependency-update',
 }

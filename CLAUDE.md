@@ -500,6 +500,13 @@ When you identify a problem and prepare a solution, STOP and consider:
 - `npm-dependency-update` — npm/yarn/pnpm dependency management, builds on `dependency-management-principles`
 - `ts-project-health` — extends project-health for TypeScript projects
 
+**Python skills:**
+- `python-dev` — Python development; type hints, async patterns, safety, testing with pytest
+- `python-code-review` — extends `code-review-principles` for Python
+- `python-security-audit` — OWASP Top 10 for Python, triggered by `python-code-review`
+- `pip-dependency-update` — pip/poetry/pipenv dependency management, builds on `dependency-management-principles`
+- `python-project-health` — extends project-health for Python projects
+
 **Health & quality skills** (correctness and improvement):
 - `project-health` — universal health check; answers "is the project correct, complete, and consistent?"; auto-chains to type-specific skill at tier 3+
 - `project-refine` — companion to project-health for improvement opportunities; never blocks work

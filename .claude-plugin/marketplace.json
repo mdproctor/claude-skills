@@ -57,6 +57,18 @@
         "npm-dependency-update",
         "ts-project-health"
       ]
+    },
+    {
+      "name": "python",
+      "displayName": "Python",
+      "description": "Python development: python-dev, code review, security audit, pip dependency management",
+      "skills": [
+        "python-dev",
+        "python-code-review",
+        "python-security-audit",
+        "pip-dependency-update",
+        "python-project-health"
+      ]
     }
   ],
   "plugins": [
@@ -220,6 +232,36 @@
       "name": "ts-project-health",
       "source": "./ts-project-health",
       "description": "Health checks for TypeScript/Node.js projects — extends project-health with TS-specific checks",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "python-dev",
+      "source": "./python-dev",
+      "description": "Python development workflow — type hints, async patterns, safety, testing with pytest",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "python-code-review",
+      "source": "./python-code-review",
+      "description": "Python code review extending code-review-principles — type safety, async correctness, safety",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "python-security-audit",
+      "source": "./python-security-audit",
+      "description": "Python OWASP Top 10 security audit — injection, pickle deserialization, secrets, SSRF",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "pip-dependency-update",
+      "source": "./pip-dependency-update",
+      "description": "pip/poetry/pipenv dependency management extending dependency-management-principles",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
+      "name": "python-project-health",
+      "source": "./python-project-health",
+      "description": "Health checks for Python projects — extends project-health with Python-specific checks",
       "version": "1.0.0-SNAPSHOT"
     },
     {
