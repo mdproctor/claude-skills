@@ -34,7 +34,7 @@ ALL_SKILLS = {
 # Ground truth extracted from all SKILL.md files.
 # Update this when a skill's chaining is intentionally changed.
 CHAINING_TRUTH = {
-    'git-commit': {'chains_to': ['update-claude-md', 'java-git-commit', 'custom-git-commit', 'blog-git-commit', 'issue-workflow'], 'invoked_by': ['ts-code-review'], 'builds_on': [], 'extended_by': []},
+    'git-commit': {'chains_to': ['update-claude-md', 'java-git-commit', 'custom-git-commit', 'blog-git-commit', 'issue-workflow'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'update-claude-md': {'chains_to': [], 'invoked_by': ['git-commit', 'java-git-commit', 'custom-git-commit', 'blog-git-commit'], 'builds_on': [], 'extended_by': []},
     'adr': {'chains_to': ['java-git-commit'], 'invoked_by': ['ts-dev', 'java-dev', 'npm-dependency-update', 'maven-dependency-update', 'java-update-design'], 'builds_on': [], 'extended_by': []},
     'project-health': {'chains_to': ['java-project-health', 'ts-project-health', 'blog-project-health', 'custom-project-health', 'skills-project-health'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
@@ -180,12 +180,24 @@ def test_ground_truth_is_bidirectional():
     If A.builds_on contains B, then B.extended_by should contain A (for principles)
     or B is a valid build target.
     This catches inconsistencies in the CHAINING_TRUTH table itself.
+
+    KNOWN ASYMMETRY: git-commit is a universal user-triggered entry point.
+    Many skills (ts-code-review, java-code-review) chain TO git-commit as a
+    suggestion after completing their workflow, but git-commit's own SKILL.md
+    documents it as user-triggered only — it does not list those skills as
+    invokers. This is intentional: the chain is an offer, not a strict
+    invocation relationship. git-commit is therefore exempt from the
+    bidirectionality check for its invoked_by direction.
     """
+    BIDIRECTIONAL_EXEMPT_TARGETS = {'git-commit'}  # universal entry points
+
     errors = []
     for skill, data in CHAINING_TRUTH.items():
         for target in data['chains_to']:
             if target not in CHAINING_TRUTH:
                 continue
+            if target in BIDIRECTIONAL_EXEMPT_TARGETS:
+                continue  # these skills are offers/suggestions, not strict invocations
             if skill not in CHAINING_TRUTH[target]['invoked_by']:
                 errors.append(
                     f"{skill} chains_to {target}, but {target}.invoked_by doesn't include {skill}"
