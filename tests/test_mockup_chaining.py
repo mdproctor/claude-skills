@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 SKILLS_ROOT = Path(__file__).parent.parent
-MOCKUP_PATH = SKILLS_ROOT / 'docs' / 'web-installer-mockup.html'
+MOCKUP_PATH = SKILLS_ROOT / 'docs' / 'index.html'  # canonical file (was web-installer-mockup.html)
 
 ALL_SKILLS = {
     'git-commit', 'update-claude-md', 'adr', 'project-health', 'project-refine',
@@ -29,6 +29,8 @@ ALL_SKILLS = {
     'java-project-health', 'issue-workflow', 'blog-git-commit', 'custom-git-commit',
     'update-primary-doc', 'skills-project-health', 'blog-project-health',
     'custom-project-health', 'install-skills', 'uninstall-skills',
+    'python-dev', 'python-code-review', 'python-security-audit',
+    'pip-dependency-update', 'python-project-health',
 }
 
 # Ground truth extracted from all SKILL.md files.
@@ -36,12 +38,12 @@ ALL_SKILLS = {
 CHAINING_TRUTH = {
     'git-commit': {'chains_to': ['update-claude-md', 'java-git-commit', 'custom-git-commit', 'blog-git-commit', 'issue-workflow'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'update-claude-md': {'chains_to': [], 'invoked_by': ['git-commit', 'java-git-commit', 'custom-git-commit', 'blog-git-commit'], 'builds_on': [], 'extended_by': []},
-    'adr': {'chains_to': ['java-git-commit'], 'invoked_by': ['ts-dev', 'java-dev', 'npm-dependency-update', 'maven-dependency-update', 'java-update-design'], 'builds_on': [], 'extended_by': []},
-    'project-health': {'chains_to': ['java-project-health', 'ts-project-health', 'blog-project-health', 'custom-project-health', 'skills-project-health'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'adr': {'chains_to': ['java-git-commit'], 'invoked_by': ['ts-dev', 'java-dev', 'python-dev', 'npm-dependency-update', 'pip-dependency-update', 'maven-dependency-update', 'java-update-design'], 'builds_on': [], 'extended_by': []},
+    'project-health': {'chains_to': ['java-project-health', 'ts-project-health', 'blog-project-health', 'custom-project-health', 'skills-project-health', 'python-project-health'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'project-refine': {'chains_to': [], 'invoked_by': [], 'builds_on': ['project-health'], 'extended_by': []},
-    'code-review-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'ts-code-review']},
-    'security-audit-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-security-audit', 'ts-security-audit']},
-    'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update']},
+    'code-review-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'ts-code-review', 'python-code-review']},
+    'security-audit-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-security-audit', 'ts-security-audit', 'python-security-audit']},
+    'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
     'observability-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['quarkus-observability']},
     'ts-dev': {'chains_to': ['ts-code-review', 'npm-dependency-update', 'adr'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'ts-code-review': {'chains_to': ['ts-security-audit', 'git-commit'], 'invoked_by': ['ts-dev', 'npm-dependency-update'], 'builds_on': ['code-review-principles', 'ts-dev'], 'extended_by': []},
@@ -65,6 +67,11 @@ CHAINING_TRUTH = {
     'skills-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'blog-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'custom-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
+    'python-dev':           {'chains_to': ['python-code-review','pip-dependency-update','adr'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'python-code-review':    {'chains_to': ['python-security-audit','git-commit'], 'invoked_by': ['python-dev','pip-dependency-update'], 'builds_on': ['code-review-principles','python-dev'], 'extended_by': []},
+    'python-security-audit': {'chains_to': [], 'invoked_by': ['python-code-review'], 'builds_on': ['security-audit-principles','python-dev'], 'extended_by': []},
+    'pip-dependency-update': {'chains_to': ['adr','python-code-review'], 'invoked_by': ['python-dev'], 'builds_on': ['dependency-management-principles'], 'extended_by': []},
+    'python-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'uninstall-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
 }

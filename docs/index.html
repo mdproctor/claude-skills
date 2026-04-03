@@ -401,6 +401,9 @@
     <a class="nav-pill" href="#b-ts" onclick="navTo(event,'b-ts')">
       <span class="nav-dot full"></span> TypeScript
     </a>
+    <a class="nav-pill" href="#b-python" onclick="navTo(event,'b-python')">
+      <span class="nav-dot empty"></span> Python
+    </a>
     <div class="nav-divider"></div>
     <a class="nav-pill" href="#b-individual" onclick="navTo(event,'b-individual')">
       <span class="nav-dot partial"></span> Individual
@@ -705,23 +708,25 @@
           <span class="role-pill role-adr">ADR</span><span class="installed-badge">✓ Installed</span>
         </div>
         <p class="overview-desc">Creates and manages Architecture Decision Records in MADR format. Assigns sequential numbers, tracks lifecycle (Proposed → Accepted → Deprecated → Superseded), and stores records in docs/adr/. Offered automatically by maven-dependency-update on major version upgrades.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Triggers:</strong> "create an ADR", significant technical decisions, major version upgrades</div>
           <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-git-commit')">java-git-commit</span></div>
-          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('ts-dev')">ts-dev</span> <span class="overview-tag link" onclick="scrollToSkill('java-dev')">java-dev</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('java-update-design')">java-update-design</span></div>
         </div>
       </div>
+
       <div class="overview-skill" id="ov-project-health">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">project-health</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Universal project health checker — answers "is the project correct, complete, and consistent?" Runs 12 check categories across 4 tiers of depth. At tier 3+, automatically chains to the type-specific health skill for your project.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Triggers:</strong> "health check", "pre-release check", /project-health</div>
-          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span></div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-project-health')">java-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('ts-project-health')">ts-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('blog-project-health')">blog-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('custom-project-health')">custom-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('skills-project-health')">skills-project-health</span> <span class="overview-tag link" onclick="scrollToSkill('python-project-health')">python-project-health</span></div>
         </div>
       </div>
+
       <div class="overview-skill" id="ov-project-refine">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">project-refine</div><div class="skill-version">v1.0.0</div></div>
@@ -804,33 +809,36 @@
           <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Universal code review checklist covering safety (resource leaks, deadlocks), concurrency, performance, testing philosophy, and review workflow. Language-agnostic — extended by java-code-review and ts-code-review which add language-specific examples and tooling.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
-          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-code-review')">java-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('ts-code-review')">ts-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
         </div>
       </div>
+
       <div class="overview-skill" id="ov-security-audit-principles">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">security-audit-principles</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Universal OWASP Top 10 security audit checklist for server-side applications. Covers injection, broken auth, access control, cryptographic failures, misconfiguration, vulnerable components, and SSRF. Extended by language-specific audits with code examples.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
-          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('java-security-audit')">java-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('ts-security-audit')">ts-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span></div>
         </div>
       </div>
+
       <div class="overview-skill" id="ov-dependency-management-principles">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">dependency-management-principles</div><div class="skill-version">v1.0.0</div></div>
           <span class="role-pill role-foundation">Foundation</span><span class="not-installed-badge">Not installed</span>
         </div>
         <p class="overview-desc">Universal dependency management workflow — BOM alignment, compatibility checking, version drift prevention, and when to create ADRs for dependency decisions. Package-manager-agnostic foundation extended by maven-dependency-update and npm-dependency-update.</p>
-                        <div class="overview-meta">
+        <div class="overview-meta">
           <div class="overview-meta-item"><strong>Not invoked directly</strong> — loaded via Prerequisites by language-specific skills</div>
-          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span></div>
+          <div class="overview-meta-item"><strong>Extended by:</strong> <span class="overview-tag link" onclick="scrollToSkill('maven-dependency-update')">maven-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('npm-dependency-update')">npm-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span></div>
         </div>
       </div>
+
       <div class="overview-skill" id="ov-observability-principles">
         <div class="overview-skill-header">
           <div class="skill-name-col"><div class="skill-name">observability-principles</div><div class="skill-version">v1.0.0</div></div>
@@ -1241,6 +1249,145 @@
     </div>
   </div>
 
+  <!-- Python: empty (0 of 5) -->
+  <div class="bundle state-empty" id="b-python">
+    <div class="bundle-header" onclick="toggleBundle('b-python')">
+      <span class="bundle-chevron">▶</span>
+      <span class="status-dot"></span>
+      <div class="bundle-name-col"><span class="bundle-name">Python</span><span class="bundle-desc">Python development, review, security and pip dependencies</span></div>
+      <span class="bundle-count">0 of 5</span>
+      <div class="bundle-actions" onclick="event.stopPropagation()">
+        <button class="btn-install" onclick="openModal('install-python')">Install</button>
+      </div>
+    </div>
+    <div class="skills-list install-only">
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">python-dev</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-dev">Dev</span></div>
+        <div class="skill-desc">Expert Python development — type hints, mutable default arg safety, asyncio patterns, pytest testing.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','python-dev')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">python-code-review</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-review">Review</span></div>
+        <div class="skill-desc">Python code review — type safety, bare except clauses, unawaited coroutines, blocking event loop.
+          <div class="skill-tags"><span class="skill-tag">builds on: code-review-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','python-code-review')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">python-security-audit</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-security">Security</span></div>
+        <div class="skill-desc">OWASP Top 10 for Python — SQL/command injection, pickle deserialization, yaml.load vs safe_load, secrets vs random.
+          <div class="skill-tags"><span class="skill-tag">builds on: security-audit-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','python-security-audit')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">pip-dependency-update</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-deps">Deps</span></div>
+        <div class="skill-desc">pip/poetry/pipenv dependency management — semver strategy, pip audit triage, virtual env discipline.
+          <div class="skill-tags"><span class="skill-tag">builds on: dependency-management-principles</span></div>
+        </div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','pip-dependency-update')">Install</button></div>
+      </div>
+      <div class="skill-row">
+        <div class="skill-dot"></div>
+        <div class="skill-name-col">
+          <div class="skill-name">python-project-health</div>
+          <div class="skill-version">v1.0.0</div>
+        </div>
+        <div class="skill-role"><span class="role-pill role-health">Health</span></div>
+        <div class="skill-desc">Health checks for Python projects — mypy, pip audit, flake8/ruff, pytest coverage, build integrity.</div>
+        <div class="skill-actions"><button class="btn-install" onclick="openModal('install-skill','python-project-health')">Install</button></div>
+      </div>
+    </div>
+    <div class="overview-skills-list browse-only">
+      <div class="overview-skill" id="ov-python-dev">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">python-dev</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-dev">Dev</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Expert Python development — type hints, mutable default argument safety, asyncio patterns, @dataclass, pytest. Includes Common Pitfalls table with 12 rationalizations.</p>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> writing Python, fixing bugs, refactoring, .py pyproject.toml requirements.txt</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span></div>
+        </div>
+      </div>
+
+      <div class="overview-skill" id="ov-python-code-review">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">python-code-review</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-review">Review</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Python code review — type safety (missing hints, bare Any), bare except clauses, unawaited coroutines, blocking event loop. Severity-graded CRITICAL/WARNING/NOTE.</p>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "review the code", "check these changes", /python-code-review</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-security-audit')">python-security-audit</span> <span class="overview-tag link" onclick="scrollToSkill('git-commit')">git-commit</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span> <span class="overview-tag link" onclick="scrollToSkill('pip-dependency-update')">pip-dependency-update</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('code-review-principles')">code-review-principles</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
+        </div>
+      </div>
+
+      <div class="overview-skill" id="ov-python-security-audit">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">python-security-audit</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-security">Security</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">OWASP Top 10 for Python — SQL/command injection, pickle deserialization (RCE risk), yaml.load vs safe_load, secrets vs random, path traversal, SSRF.</p>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "security review", offered by python-code-review for auth/payment/PII code</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('security-audit-principles')">security-audit-principles</span> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
+        </div>
+      </div>
+
+      <div class="overview-skill" id="ov-pip-dependency-update">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">pip-dependency-update</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-deps">Deps</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">pip/poetry/pipenv dependency management — semver strategy (== vs ~=), pip audit triage, virtual env discipline, ADR for major upgrades.</p>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> "update dependencies", "pip audit", package changes, pyproject.toml</div>
+          <div class="overview-meta-item"><strong>Chains to:</strong> <span class="overview-tag link" onclick="scrollToSkill('adr')">adr</span> <span class="overview-tag link" onclick="scrollToSkill('python-code-review')">python-code-review</span></div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('python-dev')">python-dev</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('dependency-management-principles')">dependency-management-principles</span></div>
+        </div>
+      </div>
+
+      <div class="overview-skill" id="ov-python-project-health">
+        <div class="overview-skill-header">
+          <div class="skill-name-col"><div class="skill-name">python-project-health</div><div class="skill-version">v1.0.0</div></div>
+          <span class="role-pill role-health">Health</span><span class="not-installed-badge">Not installed</span>
+        </div>
+        <p class="overview-desc">Health checks for Python projects — python-types (mypy), python-deps (pip audit), python-quality (flake8/ruff), python-testing (pytest), python-build.</p>
+        <div class="overview-meta">
+          <div class="overview-meta-item"><strong>Triggers:</strong> /python-project-health or suggested by project-health for Python projects</div>
+          <div class="overview-meta-item"><strong>Invoked by:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+          <div class="overview-meta-item"><strong>Builds on:</strong> <span class="overview-tag link" onclick="scrollToSkill('project-health')">project-health</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div class="section-label">Individual Skills</div>
 
   <div class="bundle state-partial" id="b-individual">
@@ -1522,8 +1669,8 @@
   const CHAIN = {
     'git-commit':        {parents:[],children:['update-claude-md','java-git-commit','custom-git-commit','blog-git-commit','issue-workflow']},
     'update-claude-md':  {parents:['git-commit','java-git-commit','custom-git-commit','blog-git-commit'],children:[]},
-    'adr':               {parents:['ts-dev','java-dev','npm-dependency-update','maven-dependency-update','java-update-design'],children:['java-git-commit']},
-    'project-health':    {parents:[],children:['java-project-health','ts-project-health','blog-project-health','custom-project-health','skills-project-health']},
+    'adr':               {parents:['ts-dev','java-dev','python-dev','npm-dependency-update','maven-dependency-update','java-update-design'],children:['java-git-commit']},
+    'project-health':    {parents:[],children:['java-project-health','ts-project-health','python-project-health','blog-project-health','custom-project-health','skills-project-health']},
     'project-refine':    {parents:[],children:[]},
     'code-review-principles':           {parents:[],children:['java-code-review','ts-code-review']},
     'security-audit-principles':        {parents:[],children:['java-security-audit','ts-security-audit']},
@@ -1534,6 +1681,11 @@
     'ts-security-audit': {parents:['ts-code-review'],children:[]},
     'npm-dependency-update':{parents:['ts-dev'],children:['adr','ts-code-review']},
     'ts-project-health': {parents:['project-health'],children:[]},
+    'python-dev':           {parents:[],children:['python-code-review','pip-dependency-update','adr']},
+    'python-code-review':   {parents:['python-dev','pip-dependency-update'],children:['python-security-audit','git-commit']},
+    'python-security-audit':{parents:['python-code-review'],children:[]},
+    'pip-dependency-update':{parents:['python-dev'],children:['adr','python-code-review']},
+    'python-project-health':{parents:['project-health'],children:[]},
     'java-dev':          {parents:[],children:['java-code-review','java-git-commit','adr','quarkus-observability']},
     'java-code-review':  {parents:['java-dev','java-git-commit','quarkus-flow-dev','quarkus-flow-testing'],children:['java-security-audit','java-git-commit']},
     'java-security-audit':{parents:['java-code-review'],children:[]},
@@ -1748,6 +1900,10 @@
     'skills-project-health':    ['project-health'],
     'blog-project-health':      ['project-health'],
     'custom-project-health':    ['project-health'],
+    'python-code-review':       ['code-review-principles'],
+    'python-security-audit':    ['security-audit-principles'],
+    'pip-dependency-update':    ['dependency-management-principles'],
+    'python-project-health':    ['project-health'],
   };
 
   // ── Toast ──
@@ -1814,7 +1970,7 @@
   function toggleBundle(id) { document.getElementById(id).classList.toggle('open'); updateToggleAllLabel(); }
 
   // Collapse / Expand All
-  const BUNDLE_IDS = ['b-core','b-principles','b-java','b-ts','b-individual'];
+  const BUNDLE_IDS = ['b-core','b-principles','b-java','b-ts','b-python','b-individual'];
   function toggleAll() {
     const anyOpen = BUNDLE_IDS.some(id => document.getElementById(id).classList.contains('open'));
     BUNDLE_IDS.forEach(id => {
@@ -1886,6 +2042,7 @@
     'uninstall-ts':      { title:'Uninstall TypeScript', sub:'5 TypeScript skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall ts-dev ts-code-review ts-security-audit npm-dependency-update ts-project-health', kind:'uninstall', label:'Uninstall 5 skills' },
     'install-java':      { title:'Install Remaining Java / Quarkus Skills', sub:'5 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills java-update-design quarkus-flow-dev quarkus-flow-testing quarkus-observability java-project-health', kind:'install', label:'Install 5 skills' },
     'uninstall-java':    { title:'Uninstall Installed Java Skills', sub:'5 installed skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall java-dev java-code-review java-security-audit java-git-commit maven-dependency-update', kind:'uninstall', label:'Uninstall 5 skills' },
+    'install-python':    { title:'Install Python Bundle', sub:'5 Python skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills python-dev python-code-review python-security-audit pip-dependency-update python-project-health', kind:'install', label:'Install 5 skills' },
     'install-individual':{ title:'Install Individual Skills', sub:'8 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills skills-project-health blog-project-health custom-project-health blog-git-commit custom-git-commit update-primary-doc install-skills uninstall-skills', kind:'install', label:'Install 8 skills' },
     'uninstall-individual':{ title:'Uninstall issue-workflow', sub:'issue-workflow will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall issue-workflow', kind:'uninstall', label:'Uninstall 1 skill' },
   };

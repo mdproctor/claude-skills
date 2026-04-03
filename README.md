@@ -230,9 +230,9 @@ This collection follows a **layered architecture** where foundation skills provi
 
 | Skill | Domain | Extended By |
 |-------|--------|-------------|
-| **code-review-principles** | Universal code review | java-code-review, ts-code-review |
-| **security-audit-principles** | Universal OWASP Top 10 | java-security-audit, ts-security-audit |
-| **dependency-management-principles** | Universal BOM patterns | maven-dependency-update, npm-dependency-update |
+| **code-review-principles** | Universal code review | java-code-review, ts-code-review, python-code-review |
+| **security-audit-principles** | Universal OWASP Top 10 | java-security-audit, ts-security-audit, python-security-audit |
+| **dependency-management-principles** | Universal BOM patterns | maven-dependency-update, npm-dependency-update, pip-dependency-update |
 | **observability-principles** | Universal logging/tracing/metrics | quarkus-observability |
 
 ### Layer 5: Java/Quarkus Development (4 skills)
@@ -253,7 +253,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **maven-dependency-update** | Maven BOM management | dependency-management-principles |
 | **adr** | Architecture Decision Records | (standalone) |
 
-### Layer 7: Health & Quality (6 skills)
+### Layer 7: Health & Quality (7 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
@@ -264,6 +264,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **blog-project-health** | Blog project health checks | project-health |
 | **custom-project-health** | Custom project health checks | project-health |
 | **ts-project-health** | TypeScript/Node.js health checks | project-health |
+| **python-project-health** | Python health checks | project-health |
 
 ### Layer 8: TypeScript/Node.js Development (4 skills)
 
@@ -273,6 +274,15 @@ This collection follows a **layered architecture** where foundation skills provi
 | **ts-code-review** | TypeScript code review | code-review-principles |
 | **ts-security-audit** | TypeScript/Node.js OWASP security audit | security-audit-principles |
 | **npm-dependency-update** | npm/yarn/pnpm dependency management | dependency-management-principles |
+
+### Layer 9: Python Development (4 skills)
+
+| Skill | Purpose | Builds On |
+|-------|---------|-----------|
+| **python-dev** | Python development guidance | (standalone) |
+| **python-code-review** | Python code review | code-review-principles |
+| **python-security-audit** | Python OWASP security audit | security-audit-principles |
+| **pip-dependency-update** | pip/poetry/pipenv dependency management | dependency-management-principles |
 
 ---
 
@@ -741,6 +751,22 @@ npm-dependency-update
     → git-commit
 ```
 
+### Development → Review → Commit (Python repositories)
+```
+python-dev
+  → python-code-review (manual or before committing)
+    → python-security-audit (if auth/payment/PII code)
+      → git-commit
+        → update-claude-md (automatic)
+```
+
+### Dependency Update → Security Review (Python)
+```
+pip-dependency-update
+  → python-code-review (when adding new packages)
+    → git-commit
+```
+
 ### Development → Review → Commit (Java repositories)
 ```
 java-dev or quarkus-flow-dev
@@ -1143,6 +1169,12 @@ Claude: [Uses git-commit]
 | `ts-security-audit` | `git-commit` | manual | After security review complete |
 | `npm-dependency-update` | `adr` | manual | Major version jump or significant new package |
 | `npm-dependency-update` | `git-commit` | manual | After successful dependency updates |
+| `python-dev` | `python-code-review` | manual | User triggers review |
+| `python-code-review` | `python-security-audit` | conditional | Security-critical code detected (auth/payment/PII) |
+| `python-code-review` | `git-commit` | manual | User wants to commit after review |
+| `python-security-audit` | `git-commit` | manual | After security review complete |
+| `pip-dependency-update` | `adr` | manual | Major version jump or significant new package |
+| `pip-dependency-update` | `git-commit` | manual | After successful dependency updates |
 
 ---
 ## License
