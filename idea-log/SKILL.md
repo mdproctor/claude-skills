@@ -137,6 +137,7 @@ When the user decides an idea is ready to become a decision or task:
    - Change `**Status:**` to `promoted`
 
 3. **For task/issue promotion:**
+   - Invoke `issue-workflow` to create a tracked GitHub issue from the idea
    - Fill in `**Promoted to:**` with the issue reference (e.g., `#42`) once created
    - Change `**Status:**` to `promoted`
 
@@ -260,6 +261,6 @@ Idea promotion is complete when:
 
 **Invoked by:** [`java-code-review`], [`ts-code-review`], [`python-code-review`] — when a review surfaces a possibility worth parking; [`design-snapshot`] — when reviewing a snapshot surfaces ideas not yet decided; user directly ("log this idea", "park that thought")
 
-**Invokes:** [`adr`] — when promoting a high-priority idea to a formal architectural decision; [`git-commit`] — to commit IDEAS.md additions and status updates (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
+**Invokes:** [`adr`] — when promoting an idea to a formal architectural decision; [`issue-workflow`] — when promoting an idea to implementation work (creates a tracked GitHub issue); [`git-commit`] — to commit IDEAS.md additions and status updates (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
 
 **Does NOT invoke:** `design-snapshot` (snapshots freeze current state; idea log is forward-looking); `project-health` (idea log is a working document, not a quality gate)

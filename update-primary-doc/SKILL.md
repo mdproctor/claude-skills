@@ -424,6 +424,8 @@ Primary document sync proposal is complete when:
 
 **Invokes:** None (this is a leaf skill)
 
+**Complements:** `design-snapshot` — this skill keeps the primary doc *current* (mutable, always up to date); `design-snapshot` *freezes* a moment in time (immutable). Both coexist: update the living doc with one, record the milestone with the other.
+
 **Can be invoked independently:** No, expects to be called by `custom-git-commit` with specific context
 
 ---

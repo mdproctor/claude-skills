@@ -117,6 +117,17 @@ If significant decisions in the snapshot have no ADR yet, present the list:
 >
 > Want me to create ADRs for these? I'll invoke `adr` for each one after committing.
 
+### Step 6b — Offer to log undecided possibilities
+
+If the snapshot review surfaced interesting directions that aren't yet decided
+(not ready for an ADR), offer to park them:
+
+> These possibilities came up but aren't decided yet:
+> - [possibility A]
+> - [possibility B]
+>
+> Want me to log these in the idea log? I'll invoke `idea-log` for each one.
+
 ### Step 7 — Commit
 
 Invoke `git-commit` with the staged snapshot file (and updated superseded file
@@ -287,6 +298,6 @@ Snapshot is complete when:
 
 **Invoked by:** User directly: "create a design snapshot", "snapshot where we are", "document our progress"
 
-**Invokes:** [`adr`] — if significant decisions in the snapshot have no ADRs yet (offered, not automatic; user decides which decisions warrant an ADR); [`git-commit`] — to commit the snapshot file (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
+**Invokes:** [`adr`] — if significant decisions in the snapshot have no ADRs yet (offered, not automatic); [`idea-log`] — if undecided possibilities surfaced during snapshot review (offered, not automatic); [`git-commit`] — to commit the snapshot file (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
 
-**Does NOT invoke:** `writing-plans` (snapshots record state, not implementation intent); `java-update-design` or `update-primary-doc` (those update living docs; this creates an immutable record)
+**Does NOT invoke:** `java-update-design` or `update-primary-doc` — those update *living* docs that change over time; a snapshot is an *immutable* record. Both coexist: update the living doc with one, freeze the moment with the other.

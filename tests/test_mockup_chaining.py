@@ -37,18 +37,18 @@ ALL_SKILLS = {
 # Ground truth extracted from all SKILL.md files.
 # Update this when a skill's chaining is intentionally changed.
 CHAINING_TRUTH = {
-    'adr': {'chains_to': ['java-git-commit', 'java-update-design'], 'invoked_by': ['design-snapshot', 'idea-log', 'java-update-design', 'maven-dependency-update'], 'builds_on': [], 'extended_by': []},
+    'adr': {'chains_to': ['custom-git-commit', 'git-commit', 'java-git-commit', 'java-update-design'], 'invoked_by': ['design-snapshot', 'idea-log', 'java-update-design', 'maven-dependency-update'], 'builds_on': [], 'extended_by': []},
     'blog-git-commit': {'chains_to': ['update-claude-md'], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
     'blog-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'code-review-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'python-code-review', 'ts-code-review']},
-    'custom-git-commit': {'chains_to': ['update-claude-md', 'update-primary-doc'], 'invoked_by': ['design-snapshot', 'idea-log'], 'builds_on': ['git-commit'], 'extended_by': []},
+    'custom-git-commit': {'chains_to': ['update-claude-md', 'update-primary-doc'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log'], 'builds_on': ['git-commit'], 'extended_by': []},
     'custom-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
     'design-snapshot': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'idea-log', 'java-git-commit'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'git-commit': {'chains_to': ['blog-git-commit', 'issue-workflow', 'python-code-review', 'ts-code-review', 'update-claude-md'], 'invoked_by': ['design-snapshot', 'idea-log', 'python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
-    'idea-log': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'java-git-commit'], 'invoked_by': ['design-snapshot', 'java-code-review', 'python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': []},
+    'git-commit': {'chains_to': ['blog-git-commit', 'issue-workflow', 'python-code-review', 'ts-code-review', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
+    'idea-log': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'issue-workflow', 'java-git-commit'], 'invoked_by': ['design-snapshot', 'java-code-review', 'python-code-review', 'ts-code-review'], 'builds_on': [], 'extended_by': []},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'issue-workflow': {'chains_to': [], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
+    'issue-workflow': {'chains_to': [], 'invoked_by': ['git-commit', 'idea-log'], 'builds_on': [], 'extended_by': []},
     'java-code-review': {'chains_to': ['idea-log', 'java-git-commit', 'java-security-audit'], 'invoked_by': ['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'], 'builds_on': ['code-review-principles', 'java-dev'], 'extended_by': []},
     'java-dev': {'chains_to': ['java-code-review', 'quarkus-observability'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'java-security-audit', 'quarkus-flow-dev', 'quarkus-flow-testing']},
     'java-git-commit': {'chains_to': ['java-code-review', 'java-update-design', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'java-code-review', 'maven-dependency-update', 'quarkus-flow-dev', 'quarkus-flow-testing', 'quarkus-observability'], 'builds_on': ['git-commit'], 'extended_by': []},

@@ -364,6 +364,8 @@ DESIGN.md update is complete when:
 
 **Invokes:** None (terminal skill in the chain)
 
+**Complements:** `design-snapshot` — this skill keeps DESIGN.md *current* (mutable, always up to date); `design-snapshot` *freezes* a moment in time (immutable). After a significant architectural update, consider offering a snapshot to record where the design stands.
+
 **Can be invoked independently:** User can run `/update-design` directly to sync DESIGN.md without committing
 
 **Note:** This skill handles DESIGN.md only. For CLAUDE.md updates, see `update-claude-md` skill.
