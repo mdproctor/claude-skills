@@ -1,5 +1,5 @@
 ---
-name: knowledge-garden
+name: garden
 description: >
   Use when non-obvious technical knowledge surfaces — bugs whose symptoms
   mislead about root cause, tools that contradict their documentation, silent
@@ -14,8 +14,7 @@ description: >
 A cross-project, machine-wide library of hard-won technical gotchas — bugs
 that silently fail, behaviours that contradict documentation, and workarounds
 that took hours to find. Stored at `~/claude/knowledge-garden/` so any Claude
-instance on this machine can read and contribute to it, across projects and
-sessions.
+instance on this machine can read and contribute to it.
 
 **The bar:** Would a skilled developer, familiar with the technology, still
 have spent significant time on this? If yes, it belongs in the garden.
@@ -24,20 +23,24 @@ have spent significant time on this? If yes, it belongs in the garden.
 
 ## What This Is Not
 
-- **Not an idea log** — ideas that may be acted on later go in `idea-log`
+- **Not an idea log** — ideas go in `idea-log`
 - **Not an ADR** — architecture decisions go in `adr`
 - **Not how-to content** — tutorials and explanations don't belong here
-- **Not project-specific** — if the entry says "in ProjectX, the foo() method..." it doesn't belong; if it says "JavaParser's getByName() only searches top-level types..." any JavaParser user benefits and it does
+- **Not project-specific** — if it says "in ProjectX, the foo() method..." skip it;
+  if it says "JavaParser's getByName() only searches top-level types..." it does
 - **Not expected errors** — if it's in the docs with the fix, skip it
-- **Not transient issues** — network flakes, temporary rate limits, one-off environment states
+- **Not transient issues** — network flakes, temporary rate limits
 
 ---
 
-## Garden Location
+## Garden Structure
 
 ```
-~/claude/knowledge-garden/          ← cross-project git repo
-├── GARDEN.md                       ← dual index (loaded into context)
+~/claude/knowledge-garden/
+├── GARDEN.md                   ← dual index (loaded into context, never detail)
+├── submissions/                ← incoming entries from any Claude session
+│   ├── 2026-04-04-cccli-gcd-dispatch.md
+│   └── 2026-04-05-sparge-html-quirk.md
 ├── macos-native-appkit/
 │   └── appkit-panama-ffm.md
 ├── java-panama-ffm/
@@ -48,58 +51,50 @@ have spent significant time on this? If yes, it belongs in the garden.
     └── <topic>.md
 ```
 
-`GARDEN.md` is the index — one line per entry, enough to know if it's
-relevant. It is dual-indexed: by technology AND by symptom type, so
-entries can be found either by what you're working on or by what you're
-experiencing.
+**`submissions/`** is how all Claude sessions contribute. Submissions are
+written without reading the main garden files. A separate MERGE operation
+integrates them, handling deduplication with its full context budget.
 
 ---
 
-## GARDEN.md Format (maintain this structure)
+## The Submission Model
 
-```markdown
-# Knowledge Garden
-Cross-project library of non-obvious bugs, gotchas, and unexpected behaviours.
-Entries live in ~/claude/knowledge-garden/<category>/<file>.md
+**Why submissions instead of direct writes:**
 
-## By Technology
+Reading garden files to check for duplicates costs the submitting Claude's
+context window — the same window needed for the actual work that surfaced the
+knowledge. Worse, the garden grows over time; checking every existing file
+before each addition gets more expensive with every entry.
 
-### macOS / AppKit
-- [Title](macos-native-appkit/file.md#anchor) — one-line symptom
+The solution: **write first, deduplicate later.**
 
-### Java / Panama FFM
-- [Title](java-panama-ffm/file.md#anchor) — one-line symptom
+- **Submitting Claude** writes a self-contained submission file. Cheap.
+  No garden files read unless already in context for another reason.
+- **Merging Claude** is a dedicated session whose whole job is reading
+  submissions and integrating them. It has full budget for the merge.
 
-## By Symptom Type
+**The only exception:** If the submitting Claude already has a garden file in
+context (because it searched the garden earlier in the same session, or already
+submitted the same entry this session), it should use that existing awareness
+to avoid an obvious duplicate — but it must not read garden files *specifically*
+to perform the duplicate check.
 
-### Silent failures (no error, nothing happens)
-- [Title](path/file.md#anchor) — technology: one-line symptom
+---
 
-### Contradicts documentation
-- [Title](path/file.md#anchor) — technology: one-line symptom
+## Submission File Format
 
-### Works in one context, fails in another
-- [Title](path/file.md#anchor) — e.g. JVM vs native image
-
-### Symptom misleads about cause
-- [Title](path/file.md#anchor) — technology: what you see vs what's wrong
-
-### Multiple failed approaches before fix
-- [Title](path/file.md#anchor) — technology: one-line
-
-### Environment / configuration surprises
-- [Title](path/file.md#anchor) — technology: one-line
-
-## Tag Index
-`#silent-failure` `#contradicts-docs` `#context-specific` `#symptom-misleads`
-`#multi-attempt` `#version-specific` `#env-config`
+```
+~/claude/knowledge-garden/submissions/YYYY-MM-DD-<project>-<slug>.md
 ```
 
----
-
-## Entry Format
-
 ```markdown
+# Garden Submission
+
+**Date:** YYYY-MM-DD
+**Source project:** project-name (or "cross-project")
+**Session context:** One sentence on what was being worked on when this surfaced
+**Suggested target:** `<directory>/<file>.md` *(hint for merge Claude; not binding)*
+
 ---
 
 ## [Short imperative title — describes the weird thing, not the fix]
@@ -112,172 +107,217 @@ error messages. "No error" is important context.
 ### What was tried (didn't work)
 - tried X — result
 - tried Y — result
-(If only one thing was tried before the fix, reconsider whether this is
-garden-worthy — one attempt means it may not have been that non-obvious.)
 
 ### Root cause
 Why it happens. The underlying mechanism — WHY, not just WHAT.
 
 ### Fix
-Code block or config. Be complete. Include what NOT to do alongside
-what works. "Use X instead" with no code is insufficient.
+Code block or config. Be complete. Include what NOT to do alongside what works.
 
 ### Why this is non-obvious
-The insight. What makes this a gotcha rather than just a bug? Why would
-a skilled developer be misled?
+The insight. What makes this a gotcha? Why would a skilled developer be misled?
 ```
 
----
-
-## Quality Filter
-
-Before adding any entry, apply these tests:
-
-**The surprise test:** Would a skilled developer, familiar with this
-technology, still have spent significant time on this? If no → skip.
-
-**The project test:** Does the entry say "in [ProjectName], the foo()
-method..."? If yes → it's project-specific, skip.
-
-**The doc test:** Is this clearly documented with the fix in the official
-docs? If yes → skip. (Underdocumented workarounds are fine.)
-
-**Anti-patterns that disqualify an entry:**
-- Title describes the fix: "Use getCharContent() for source reading" ❌
-  vs "getCharContent(true) required — new File(URI) fails silently for
-  in-memory sources" ✅
-- Root cause says WHAT happened but not WHY it happens
-- Fix has no code — just "use X instead"
-- "What was tried" has only one item (reconsider the garden-worthiness)
-- Entry is really just documentation of expected behaviour
+The **Suggested target** is a hint to the merge Claude — which garden file this
+likely belongs in. The merge Claude decides final placement after checking for
+duplicates and related entries.
 
 ---
 
 ## Workflows
 
-### CAPTURE (adding an entry)
+### CAPTURE (write a submission — default operation)
 
-#### Step 1 — Apply the quality and project filter
-Is this non-obvious enough? Is it cross-project? See Quality Filter above.
-If uncertain: "Worth adding to the knowledge garden? Would go under [category]
+**Step 1 — Quality and project filter**
+
+Is this non-obvious enough? Is it cross-project? See the bar above.
+If uncertain, offer: "Worth adding to the garden? Would go under [category]
 as '[short title]'." — confirm before proceeding.
 
-#### Step 2 — Extract the 8 fields from conversation context
-Don't ask the user for each field one by one — extract from what's known.
-Only ask if genuinely unclear:
+**Step 2 — Duplicate awareness check (context only, no reads)**
+
+Ask: is any garden content already in context from this session?
+- Searched the garden earlier → you know what's there; skip obvious duplicates
+- Already submitted this entry this session → skip it
+- Neither → proceed without reading anything; let the merge handle it
+
+Do NOT run `grep -r` across the garden. Do NOT read garden files. The token
+cost is not justified here; the merge Claude handles deduplication.
+
+**Step 3 — Extract the 8 fields from conversation context**
+
+Work from what's already known. Ask only for what's genuinely unclear.
 
 | Field | Extract from |
 |-------|-------------|
 | Title | The surprising thing itself |
 | Stack | Tools, libraries, versions mentioned |
-| Symptom | What the user observed / error messages |
-| Context | When it occurs |
+| Symptom | What was observed / error messages |
+| Context | When it occurs, what setup triggers it |
 | What was tried | Failed approaches in the session |
 | Root cause | The diagnosis reached |
 | Fix | The working solution with code |
 | Why non-obvious | Why the obvious approach failed |
 
-#### Step 3 — Determine the file
+**Step 4 — Determine the suggested target (don't read, just reason)**
 
-Map the technology to the correct directory and file:
+Based on the technology stack, suggest the likely destination:
 
-| Technology | Directory | File |
-|-----------|-----------|------|
-| AppKit, WKWebView, NSTextField, NSWindow, GCD | `macos-native-appkit/` | `appkit-panama-ffm.md` or new file |
-| Panama FFM, jextract, upcalls, downcalls | `java-panama-ffm/` | `native-image-patterns.md` or new file |
-| GraalVM native image, reflect-config, reachability-metadata | `graalvm-native-image/` | new or existing |
-| Quarkus | `quarkus/` | `quarkus-native.md` or new file |
-| macOS PATH, SDKMAN, brew, version managers | `macos-native-appkit/` or new `macos/` | new file |
-| Git, tmux, Docker, CLI tools | `tools/` | `<tool>.md` |
-| Doesn't fit existing | Create `<descriptive-kebab-name>/` | new file |
+| Technology | Suggested target |
+|-----------|-----------------|
+| AppKit, WKWebView, NSTextField, GCD | `macos-native-appkit/appkit-panama-ffm.md` |
+| Panama FFM, jextract, upcalls | `java-panama-ffm/native-image-patterns.md` |
+| GraalVM native image | `graalvm-native-image/<topic>.md` |
+| Quarkus | `quarkus/<topic>.md` |
+| Git, tmux, Docker, CLI tools | `tools/<tool>.md` |
+| Doesn't fit existing | `<new-descriptive-dir>/<topic>.md` |
 
-If no existing file fits, create a new one with a descriptive kebab-case name.
+This is a hint only — the merge Claude decides final placement.
 
-#### Step 4 — Check for duplicates
-```bash
-grep -r "keywords from this issue" ~/claude/knowledge-garden/
-```
-If a related entry exists, offer to update it rather than duplicate.
+**Step 5 — Draft and confirm**
 
-#### Step 5 — Format and append
-
-Draft the entry using the format above. Show it to the user:
+Draft the submission. Show it to the user:
 > "Does this capture it accurately?"
 
-On approval, append to the target file. The `---` separator is required.
+Wait for confirmation before writing.
 
-#### Step 6 — Update GARDEN.md
-Add one-line entries in TWO places:
-1. Under the appropriate **By Technology** section
-2. Under the appropriate **By Symptom Type** section (choose the most accurate)
+**Step 6 — Write the submission file**
 
-New entries go at the top of each section (newest first).
-
-Also add any new tags to the Tag Index if they don't already appear.
-
-#### Step 7 — Commit
 ```bash
-cd ~/claude/knowledge-garden
-git add .
-git commit -m "feat(<directory>): add '<short title of the weird thing>'"
+mkdir -p ~/claude/knowledge-garden/submissions
+# write YYYY-MM-DD-<project>-<slug>.md
 ```
 
-Examples:
-- `feat(macos-native-appkit): add 'GCD main queue blocks silently never execute'`
-- `feat(java-panama-ffm): add 'Arena.ofAuto() throws on close()'`
+**Step 7 — Commit**
 
-#### Step 8 — Report back
-Tell the user:
-- File path where it was added
-- Which two GARDEN.md sections were updated
-- One-sentence summary of what was captured
+```bash
+cd ~/claude/knowledge-garden
+git add submissions/
+git commit -m "submit(<project>): '<short title>'"
+```
+
+**Step 8 — Report back**
+
+Tell the user the submission file path and that it will be merged into the
+garden in the next MERGE session.
+
+---
+
+### MERGE (integrate submissions into the garden)
+
+Run this as a dedicated operation — ideally a session whose primary purpose is
+merging, with full context budget available for reading.
+
+**When to run MERGE:**
+- User says "merge the garden", "process garden submissions"
+- There are several pending submissions (check: `ls ~/claude/knowledge-garden/submissions/`)
+- Before a session that will need to search the garden for existing knowledge
+
+**Step 1 — List pending submissions**
+
+```bash
+ls ~/claude/knowledge-garden/submissions/
+```
+
+**Step 2 — Read each submission** (small, targeted)
+
+Read all submission files. They're compact by design.
+
+**Step 3 — Load GARDEN.md index**
+
+```bash
+cat ~/claude/knowledge-garden/GARDEN.md
+```
+
+Scan both sections (By Technology, By Symptom Type) for entries similar to
+each submission.
+
+**Step 4 — For likely duplicates: surgical read of relevant section**
+
+If a submission looks similar to an existing entry, read only the relevant
+section of the relevant file:
+
+```bash
+grep -A 30 "## <existing title>" ~/claude/knowledge-garden/<file>.md
+```
+
+Don't load entire garden files — read only the sections that might overlap.
+
+**Step 5 — Classify each submission**
+
+For each submission:
+- **New** — no matching entry exists; place in garden
+- **Duplicate** — identical to an existing entry; discard submission
+- **Related** — overlaps with an existing entry; enrich or note the variant
+
+**Step 6 — Integrate new and related entries**
+
+For new entries: append to the appropriate garden file, update GARDEN.md in
+both index sections (By Technology + By Symptom Type).
+
+For related entries: add a note under the existing entry, or create a
+"Variant" sub-section.
+
+**Step 7 — Remove processed submissions**
+
+```bash
+git rm ~/claude/knowledge-garden/submissions/<processed-file>.md
+```
+
+**Step 8 — Commit**
+
+```bash
+git add .
+git commit -m "merge: integrate N submissions — <brief summary>"
+```
+
+**Step 9 — Report**
+
+Tell the user how many submissions were merged, how many were duplicates,
+how many were related entries, and which garden files were updated.
 
 ---
 
 ### SEARCH (retrieving entries)
 
 1. Read `GARDEN.md` — check both By Technology and By Symptom Type sections
-2. Follow the file link to the relevant entry for full detail
-3. If the topic doesn't appear in the index:
+2. Follow the file link for full detail
+3. If not in the index:
    ```bash
-   grep -r "keywords" ~/claude/knowledge-garden/
+   grep -r "keywords" ~/claude/knowledge-garden/ --include="*.md" \
+     --exclude-dir=submissions
    ```
 4. Return the full entry (Symptom + Root Cause + Fix + Why Non-obvious)
-5. If the user just fixed something related, offer to capture the new knowledge
+5. If the user just fixed something related, offer to submit the new knowledge
 
 ---
 
 ### IMPORT (from project-level docs)
 
-When importing from a `BUGS-AND-ODDITIES.md` or similar file:
+When importing from `BUGS-AND-ODDITIES.md` or similar:
 
 1. Read the source document
-2. For each entry, classify:
-   - **CROSS-PROJECT** — technology quirk; any user of that tool could hit it
-   - **PROJECT-LOCAL** — specific to this codebase's logic or configuration
-3. Show the classification list, ask for confirmation or overrides before importing
-4. For cross-project entries: capture each to the garden (Steps 1–8 above)
-5. For project-local entries: skip, note why
-6. Report: "Imported N entries, skipped M (project-specific)"
+2. For each entry, classify CROSS-PROJECT or PROJECT-LOCAL
+3. Show classifications, ask for confirmation
+4. For cross-project entries: write a submission file per entry (CAPTURE flow)
+5. Report: N submissions written, M skipped as project-specific
+6. Suggest running MERGE when convenient
 
 ---
 
 ## Proactive Trigger
 
-The reactive trigger ("add this to the garden") is easy. The proactive
-trigger is what makes this skill genuinely valuable.
-
 Fire **without being asked** when:
 - Multiple approaches were tried before the fix was found
 - The documented approach didn't work
-- Something works in one context (JVM) but silently fails in another (native)
-- The fix required knowledge that no reasonable developer would find in the docs
-- The user says: "that took way too long", "I would never have guessed that",
-  "weird behaviour", "this is completely undocumented", "we should remember this"
+- Something works in one context but silently fails in another
+- The fix required knowledge no reasonable developer would find in the docs
+- The user says: "that took way too long", "I'd never have guessed that",
+  "weird behaviour", "this should be documented somewhere"
 
-When proactively triggering, offer rather than assume:
-> "This was non-obvious — want me to add it to the knowledge garden? It would
-> go under [category] as '[short title]'."
+Offer, don't assume:
+> "This was non-obvious — want me to submit it to the garden? Would go under
+> [category] as '[short title]'."
 
 ---
 
@@ -287,35 +327,33 @@ When proactively triggering, offer rather than assume:
 flowchart TD
     Trigger((Knowledge surfaces))
     IsNonObvious{Skilled developer\nwould be surprised?}
-    IsCrossProject{Cross-project\nnot app-specific?}
-    Skip[Skip — not garden-worthy]
-    DupeCheck[Check GARDEN.md\nand grep for duplicates]
-    DupeFound{Similar entry\nalready exists?}
-    OfferUpdate[Offer to update\nexisting entry]
+    IsCrossProject{Cross-project?}
+    Skip[Skip]
+    ContextCheck{Already in context\nfrom this session?}
+    SkipDupe[Skip — obvious duplicate\nfrom existing context]
     Extract[Extract 8 fields\nfrom session context]
-    Draft[Draft entry,\nshow to user]
-    UserApproves{User confirms?}
-    Refine[Refine based\non feedback]
-    Write[Append to tech file\n+ update GARDEN.md\nin both sections]
-    Commit[git commit with\nfeat format]
-    Report[Report: file path,\nGARDEN.md sections,\none-line summary]
+    Draft[Draft submission,\nshow to user]
+    UserApproves{Confirmed?}
+    Refine[Refine]
+    WriteSubmission[Write to\nsubmissions/YYYY-MM-DD-slug.md]
+    Commit[git commit\nsubmit format]
+    Report[Report submission path,\nnote: merge when convenient]
     Done((Done))
 
     Trigger --> IsNonObvious
     IsNonObvious -->|no| Skip
     IsNonObvious -->|yes| IsCrossProject
-    IsCrossProject -->|no, app-specific| Skip
-    IsCrossProject -->|yes| DupeCheck
-    DupeCheck --> DupeFound
-    DupeFound -->|yes| OfferUpdate
-    DupeFound -->|no| Extract
-    OfferUpdate --> Extract
+    IsCrossProject -->|no| Skip
+    IsCrossProject -->|yes| ContextCheck
+    ContextCheck -->|duplicate already known| SkipDupe
+    ContextCheck -->|not a duplicate| Extract
+    SkipDupe --> Done
     Extract --> Draft
     Draft --> UserApproves
-    UserApproves -->|yes| Write
+    UserApproves -->|yes| WriteSubmission
     UserApproves -->|adjust| Refine
     Refine --> Draft
-    Write --> Commit
+    WriteSubmission --> Commit
     Commit --> Report
     Report --> Done
 ```
@@ -326,63 +364,53 @@ flowchart TD
 
 | Mistake | Why It's Wrong | Fix |
 |---------|----------------|-----|
-| Title describes the fix ("Use NSTimer instead of dispatch_async") | Can't find it by symptom | Title must describe the weird thing: "GCD main queue blocks silently never execute when NSApp run is inside dispatch_async" |
-| Only one item in "What was tried" | One attempt → probably not non-obvious | Reconsider garden-worthiness; or gather more context |
-| Root cause says WHAT happened not WHY | Doesn't prevent misdiagnosis | Explain the mechanism: WHY does GCD serialise this way? |
-| Fix has no code | Useless in 6 months | Include complete, runnable code or config |
-| Adding project-specific entries | Pollutes the garden | Apply the project test strictly |
-| Deleting entries when a fix is released | People on older versions still need it | Add "Resolved in: vX.Y" note; never delete |
-| Skipping the GARDEN.md update | Entry becomes unfindable | Always update BOTH sections (By Technology + By Symptom Type) |
-| Flat title ("NSTextField focus issue") | Too vague to be findable | Be specific: technology + exact behaviour + context |
-
----
-
-## Bootstrapping
-
-If `~/claude/knowledge-garden/` doesn't exist on first invocation:
-
-1. Create the directory and initialize as a git repo:
-   ```bash
-   mkdir -p ~/claude/knowledge-garden
-   cd ~/claude/knowledge-garden
-   git init
-   ```
-2. Create `GARDEN.md` with the header and empty sections (By Technology + By Symptom Type + Tag Index)
-3. Proceed with the capture — the first entry bootstraps the garden
-
-Don't ask the user to set up the garden separately. Create it on first use.
+| Reading garden files to check for duplicates during CAPTURE | Burns the submitting Claude's context budget; garden grows, cost grows | Write the submission; let MERGE handle deduplication |
+| Skipping the submission and writing directly to garden files | Reintroduces the read-for-dedup problem | Always use submissions/ for new entries |
+| Not including "Suggested target" in submission | Merge Claude has to infer from scratch | Include the likely destination as a hint |
+| Title describes the fix not the weird thing | Can't find it by symptom | Title = the surprising behaviour, not the solution |
+| Fix has no code | Useless in 6 months | Complete, runnable code or config required |
+| Root cause says WHAT not WHY | Doesn't prevent misdiagnosis | Explain the mechanism, not just the outcome |
+| Forgetting to run MERGE periodically | Submissions accumulate, garden stays stale | MERGE after 3–5 submissions, or before a search-heavy session |
+| Deleting entries when a fix is released | Older versions still need it | Add "Resolved in: vX.Y" note; never delete |
 
 ---
 
 ## Success Criteria
 
 CAPTURE is complete when:
-- ✅ Entry appended to the correct `~/claude/knowledge-garden/<path>.md`
-- ✅ `GARDEN.md` updated in **both** By Technology and By Symptom Type sections
-- ✅ User confirmed the draft before it was written
-- ✅ `git commit` with `feat(<dir>): add '<title>'` format executed
-- ✅ User told which file and sections were updated
+- ✅ Submission file written to `~/claude/knowledge-garden/submissions/`
+- ✅ No garden files were read specifically for duplicate detection
+- ✅ User confirmed the draft before writing
+- ✅ Committed with `submit(<project>): '<title>'` format
+
+MERGE is complete when:
+- ✅ All submissions classified (new / duplicate / related)
+- ✅ New entries appended to appropriate garden files
+- ✅ GARDEN.md updated in both index sections
+- ✅ Processed submissions removed
+- ✅ Committed with `merge:` format
 
 SEARCH is complete when:
-- ✅ Full entry returned (not just the index line) for any matching bugs
-- ✅ Grep run across all files if topic not found in index
+- ✅ Full entry returned for any matching bugs
+- ✅ grep run (excluding submissions/) if topic not in index
 
-IMPORT is complete when:
-- ✅ Every source entry classified as CROSS-PROJECT or PROJECT-LOCAL
-- ✅ User confirmed classifications before import
-- ✅ Report shows exactly which were imported and which were skipped with reasons
-
-**The garden is useful if:** Six months from now, Claude can find the relevant
-entry faster than searching the web or rereading conversation history.
+**The garden is useful if:** Six months from now, a Claude can find the
+relevant entry faster than searching the web or rereading conversation history.
 
 ---
 
 ## Skill Chaining
 
-**Invoked by:** `superpowers:systematic-debugging` — offered proactively at the end of a debugging session when the fix was non-obvious; user directly ("add this to the knowledge garden", "log this quirk", "future Claude should know this")
+**Invoked by:** `superpowers:systematic-debugging` — offered proactively when
+a debugging session reveals something non-obvious; user directly ("submit to
+the garden", "add this to the garden", "merge garden submissions")
 
-**Invokes:** Nothing — handles its own git commits directly to `~/claude/knowledge-garden/` (a separate repo from the current project); does NOT use `git-commit` skill
+**Invokes:** Nothing — handles its own git commits to `~/claude/knowledge-garden/`
 
-**Reads from:** `~/claude/knowledge-garden/GARDEN.md` (search and duplicate check); project-level `docs/BUGS-AND-ODDITIES.md` or similar (on import)
+**Reads from:**
+- `~/claude/knowledge-garden/GARDEN.md` — for SEARCH and MERGE only
+- `~/claude/knowledge-garden/submissions/` — for MERGE only
+- Garden detail files — MERGE only, surgical section reads
 
-**Complements:** `idea-log` (undecided possibilities), `adr` (formal decisions), `project-blog` (project diary) — the knowledge garden holds reusable cross-project technical gotchas that none of those skills capture
+**Complements:** `idea-log`, `adr`, `project-blog` — the garden holds
+reusable cross-project technical gotchas none of those capture
