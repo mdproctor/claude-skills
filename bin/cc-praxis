@@ -1,0 +1,7 @@
+#!/bin/bash
+# cc-praxis — launch the cc-praxis skill manager UI
+# Added to PATH automatically when the plugin is installed.
+# Works both from the plugin cache (${CLAUDE_PLUGIN_ROOT}) and from a local clone.
+
+PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 "$PLUGIN_ROOT/scripts/web_installer.py" "$@"

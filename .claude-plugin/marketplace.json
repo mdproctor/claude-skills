@@ -73,6 +73,12 @@
   ],
   "plugins": [
     {
+      "name": "cc-praxis-ui",
+      "source": "./cc-praxis-ui",
+      "description": "Launch the cc-praxis skill manager UI — browse, install, update, and uninstall skills",
+      "version": "1.0.0"
+    },
+    {
       "name": "install-skills",
       "source": "./install-skills",
       "description": "One-time marketplace bootstrap: configure hooks and install skills",
