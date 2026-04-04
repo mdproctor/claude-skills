@@ -44,7 +44,7 @@ ALL_SKILLS = {
     'custom-project-health', 'install-skills', 'uninstall-skills',
     'python-dev', 'python-code-review', 'python-security-audit',
     'pip-dependency-update', 'python-project-health', 'design-snapshot',
-    'idea-log',
+    'idea-log', 'project-blog',
 }
 
 KNOWN_NON_SKILL_TERMS = {

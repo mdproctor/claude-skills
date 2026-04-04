@@ -217,6 +217,12 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
+      "name": "project-blog",
+      "source": "./project-blog",
+      "description": "Living project diary — captures decisions, pivots, and discoveries in the moment with honest diary voice, not polished retrospectives",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "idea-log",
       "source": "./idea-log",
       "description": "Lightweight living log for undecided possibilities — capture, review, promote, and discard ideas",

@@ -259,7 +259,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **quarkus-flow-testing** | Workflow testing | java-dev, quarkus-flow-dev |
 | **quarkus-observability** | Quarkus observability config | observability-principles |
 
-### Layer 6: Utilities (4 skills)
+### Layer 6: Utilities (5 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
@@ -267,6 +267,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **adr** | Architecture Decision Records | (standalone) |
 | **design-snapshot** | Immutable dated design state record | (standalone) |
 | **idea-log** | Living log for undecided possibilities | (standalone) |
+| **project-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
 
 ### Layer 7: Health & Quality (7 skills)
 
@@ -659,6 +660,21 @@ Lightweight living log for undecided possibilities — a parking lot for "we sho
 
 **Triggers:** "log this idea", "park that thought", "add to idea log", "we should consider this someday", or when code review surfaces a possibility worth remembering.
 
+#### **project-blog**
+Living project diary — captures decisions, pivots, and discoveries written in the moment, not in hindsight:
+- Preserves what was believed at the time — including aspirations that later changed and approaches that were rejected
+- Captures pivot moments explicitly: what was considered, what was rejected, what constraint forced the change
+- Diary voice (first person, present tense, honest about uncertainty) — not a polished article written after everything is done
+- Four entry types: Day Zero (initial vision before any code), Phase Update (milestone), Pivot (direction change), Correction (earlier belief proved wrong — never edits the original)
+- Each entry ends with a "Next:" teaser setting up the following entry
+
+**Features:**
+- Correction entries reference originals rather than revising them — the historical record is preserved
+- Integrates with `adr` (significant decisions get formal records) and `design-snapshot` (milestones get state freezes)
+- Stored in `docs/project-blog/YYYY-MM-DD-<topic>.md`
+
+**Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions.
+
 #### **issue-workflow**
 GitHub issue tracking with cross-cutting task detection and commit split suggestions:
 - **Setup mode** — configures `## Work Tracking` in CLAUDE.md, creates standard GitHub labels, optionally reconstructs issues from git history
@@ -889,6 +905,14 @@ quarkus-observability
   → adr (documents observability strategy)
   → java-git-commit
     → java-update-design (documents monitoring architecture)
+```
+
+### R&D Diary → Formal Records → State Freeze
+```
+project-blog (diary entry at a pivot or milestone)
+  → adr (significant decisions get a formal record alongside the narrative)
+  → design-snapshot (milestone entries freeze the full design state)
+    → git-commit
 ```
 
 ---
