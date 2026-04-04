@@ -271,6 +271,7 @@ class TestPostInstall(unittest.TestCase):
         return self.server.post('/api/install', {'skills': skills}) + (None,)
 
     def test_2_3_1_valid_skill_calls_correct_command(self):
+        # Must use 'sync-local --skills <name> -y'
         import web_installer as wi
         with patch.object(wi, '_run', return_value=(True, 'ok')) as mock_run:
             self.server.post('/api/install', {'skills': ['git-commit']})
@@ -280,11 +281,14 @@ class TestPostInstall(unittest.TestCase):
         self.assertIn('git-commit', args)
         self.assertIn('-y', args)
 
-    def test_2_3_2_multiple_skills_all_in_command(self):
+    def test_2_3_2_multiple_skills_all_in_single_command(self):
+        # All skills go in one sync-local --skills call
         import web_installer as wi
         with patch.object(wi, '_run', return_value=(True, 'ok')) as mock_run:
             self.server.post('/api/install', {'skills': ['git-commit', 'ts-dev']})
         args = mock_run.call_args[0]
+        self.assertIn('sync-local', args)
+        self.assertIn('--skills', args)
         self.assertIn('git-commit', args)
         self.assertIn('ts-dev', args)
 
@@ -316,6 +320,13 @@ class TestPostInstall(unittest.TestCase):
         import web_installer as wi
         with patch.object(wi, '_run', return_value=(False, 'error: not found')):
             status, body, _ = self.server.post('/api/install', {'skills': ['git-commit']})
+        self.assertEqual(status, 500)
+
+    def test_2_3_11_subprocess_failure_with_multiple_skills_returns_500(self):
+        # sync-local --skills failure returns 500
+        import web_installer as wi
+        with patch.object(wi, '_run', return_value=(False, 'error: skill not found')):
+            status, body, _ = self.server.post('/api/install', {'skills': ['git-commit', 'ts-dev']})
         self.assertEqual(status, 500)
 
     def test_2_3_9_valid_name_pattern_passes(self):
@@ -356,19 +367,22 @@ class TestPostUninstall(unittest.TestCase):
 
     def test_2_4_1_valid_skill_calls_uninstall_command(self):
         import web_installer as wi
-        with patch.object(wi, '_run', return_value=(True, 'ok')) as mock_run:
+        calls = []
+        with patch.object(wi, '_run', side_effect=lambda *a: calls.append(a) or (True, 'ok')):
             self.server.post('/api/uninstall', {'skills': ['ts-dev']})
-        args = mock_run.call_args[0]
-        self.assertIn('uninstall', args)
-        self.assertIn('ts-dev', args)
+        self.assertEqual(len(calls), 1)
+        self.assertIn('uninstall', calls[0])
+        self.assertIn('ts-dev', calls[0])
 
-    def test_2_4_2_multiple_skills_each_included(self):
+    def test_2_4_2_multiple_skills_each_gets_own_uninstall_call(self):
         import web_installer as wi
-        with patch.object(wi, '_run', return_value=(True, 'ok')) as mock_run:
+        calls = []
+        with patch.object(wi, '_run', side_effect=lambda *a: calls.append(a) or (True, 'ok')):
             self.server.post('/api/uninstall', {'skills': ['ts-dev', 'ts-code-review']})
-        args = mock_run.call_args[0]
-        self.assertIn('ts-dev', args)
-        self.assertIn('ts-code-review', args)
+        self.assertEqual(len(calls), 2, 'Expected one _run call per skill')
+        removed = [c[1] for c in calls]
+        self.assertIn('ts-dev', removed)
+        self.assertIn('ts-code-review', removed)
 
     def test_2_4_3_empty_list_returns_400(self):
         status, body, _ = self.server.post('/api/uninstall', {'skills': []})

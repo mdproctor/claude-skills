@@ -2454,21 +2454,32 @@
     }
   }, { passive: true });
 
+  // Build correct CLI commands for manual copy-paste.
+  // install: one 'install <skill>' per skill (claude-skill takes one at a time)
+  // uninstall: one 'uninstall <skill>' per skill
+  // update/sync: sync-local --all
+  function makeInstallCmd(skills) {
+    return skills.map(s => `python3 scripts/claude-skill install ${s}`).join(' &&\n');
+  }
+  function makeUninstallCmd(skills) {
+    return skills.map(s => `python3 scripts/claude-skill uninstall ${s}`).join(' &&\n');
+  }
+
   const configs = {
-    'install-all':       { title:'Install All Skills', sub:'18 uninstalled skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --all', kind:'install', label:'Install All' },
-    'update-all':        { title:'Update All Skills', sub:'2 outdated skills will be updated to their latest versions', cmd:'python3 scripts/claude-skill sync-local --all', kind:'update', label:'Update All' },
-    'uninstall-all':     { title:'Uninstall All Skills', sub:'All 33 skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall --all', kind:'uninstall', label:'Uninstall All' },
-    'update-ts':         { title:'Update TypeScript Bundle', sub:'ts-dev will be updated from v1.0.0 to v1.1.0', cmd:'python3 scripts/claude-skill sync-local --skills ts-dev', kind:'update', label:'Update' },
-    'update-java':       { title:'Update Java / Quarkus Bundle', sub:'java-dev will be updated from v1.0.0 to v1.0.1', cmd:'python3 scripts/claude-skill sync-local --skills java-dev', kind:'update', label:'Update' },
-    'install-core':      { title:'Install Remaining Core Skills', sub:'project-health and project-refine will be added', cmd:'python3 scripts/claude-skill sync-local --skills project-health project-refine', kind:'install', label:'Install 2 skills' },
-    'uninstall-core':    { title:'Uninstall Installed Core Skills', sub:'git-commit, update-claude-md, and adr will be removed', cmd:'python3 scripts/claude-skill uninstall git-commit update-claude-md adr', kind:'uninstall', label:'Uninstall 3 skills' },
-    'install-principles':{ title:'Install Principles', sub:'4 foundation skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills code-review-principles security-audit-principles dependency-management-principles observability-principles', kind:'install', label:'Install 4 skills' },
-    'uninstall-ts':      { title:'Uninstall TypeScript', sub:'5 TypeScript skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall ts-dev ts-code-review ts-security-audit npm-dependency-update ts-project-health', kind:'uninstall', label:'Uninstall 5 skills' },
-    'install-java':      { title:'Install Remaining Java / Quarkus Skills', sub:'5 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills java-update-design quarkus-flow-dev quarkus-flow-testing quarkus-observability java-project-health', kind:'install', label:'Install 5 skills' },
-    'uninstall-java':    { title:'Uninstall Installed Java Skills', sub:'5 installed skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall java-dev java-code-review java-security-audit java-git-commit maven-dependency-update', kind:'uninstall', label:'Uninstall 5 skills' },
-    'install-python':    { title:'Install Python Bundle', sub:'5 Python skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills python-dev python-code-review python-security-audit pip-dependency-update python-project-health', kind:'install', label:'Install 5 skills' },
-    'install-individual':{ title:'Install Individual Skills', sub:'8 skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill sync-local --skills skills-project-health blog-project-health custom-project-health blog-git-commit custom-git-commit update-primary-doc install-skills uninstall-skills', kind:'install', label:'Install 8 skills' },
-    'uninstall-individual':{ title:'Uninstall issue-workflow', sub:'issue-workflow will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall issue-workflow', kind:'uninstall', label:'Uninstall 1 skill' },
+    'install-all':       { title:'Install All Skills', sub:'Uninstalled skills will be added to ~/.claude/skills/', cmd:'python3 scripts/claude-skill install-all', kind:'install', label:'Install All' },
+    'update-all':        { title:'Update All Skills', sub:'Outdated skills will be updated to their latest versions', cmd:'python3 scripts/claude-skill sync-local --all', kind:'update', label:'Update All' },
+    'uninstall-all':     { title:'Uninstall All Skills', sub:'All skills will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall-all', kind:'uninstall', label:'Uninstall All' },
+    'update-ts':         { title:'Update TypeScript Bundle', sub:'TypeScript skills will be updated to their latest versions', cmd:'python3 scripts/claude-skill sync-local --all', kind:'update', label:'Update' },
+    'update-java':       { title:'Update Java / Quarkus Bundle', sub:'Java skills will be updated to their latest versions', cmd:'python3 scripts/claude-skill sync-local --all', kind:'update', label:'Update' },
+    'install-core':      { title:'Install Remaining Core Skills', sub:'project-health and project-refine will be added', cmd:makeInstallCmd(['project-health','project-refine']), kind:'install', skills:['project-health','project-refine'], label:'Install 2 skills' },
+    'uninstall-core':    { title:'Uninstall Installed Core Skills', sub:'git-commit, update-claude-md, and adr will be removed', cmd:makeUninstallCmd(['git-commit','update-claude-md','adr']), kind:'uninstall', skills:['git-commit','update-claude-md','adr'], label:'Uninstall 3 skills' },
+    'install-principles':{ title:'Install Principles', sub:'4 foundation skills will be added to ~/.claude/skills/', cmd:makeInstallCmd(['code-review-principles','security-audit-principles','dependency-management-principles','observability-principles']), kind:'install', skills:['code-review-principles','security-audit-principles','dependency-management-principles','observability-principles'], label:'Install 4 skills' },
+    'uninstall-ts':      { title:'Uninstall TypeScript', sub:'5 TypeScript skills will be removed from ~/.claude/skills/', cmd:makeUninstallCmd(['ts-dev','ts-code-review','ts-security-audit','npm-dependency-update','ts-project-health']), kind:'uninstall', skills:['ts-dev','ts-code-review','ts-security-audit','npm-dependency-update','ts-project-health'], label:'Uninstall 5 skills' },
+    'install-java':      { title:'Install Remaining Java / Quarkus Skills', sub:'Skills will be added to ~/.claude/skills/', cmd:makeInstallCmd(['java-update-design','quarkus-flow-dev','quarkus-flow-testing','quarkus-observability','java-project-health']), kind:'install', skills:['java-update-design','quarkus-flow-dev','quarkus-flow-testing','quarkus-observability','java-project-health'], label:'Install 5 skills' },
+    'uninstall-java':    { title:'Uninstall Installed Java Skills', sub:'Installed Java skills will be removed from ~/.claude/skills/', cmd:makeUninstallCmd(['java-dev','java-code-review','java-security-audit','java-git-commit','maven-dependency-update']), kind:'uninstall', skills:['java-dev','java-code-review','java-security-audit','java-git-commit','maven-dependency-update'], label:'Uninstall 5 skills' },
+    'install-python':    { title:'Install Python Bundle', sub:'5 Python skills will be added to ~/.claude/skills/', cmd:makeInstallCmd(['python-dev','python-code-review','python-security-audit','pip-dependency-update','python-project-health']), kind:'install', skills:['python-dev','python-code-review','python-security-audit','pip-dependency-update','python-project-health'], label:'Install 5 skills' },
+    'install-individual':{ title:'Install Individual Skills', sub:'Skills will be added to ~/.claude/skills/', cmd:makeInstallCmd(['skills-project-health','blog-project-health','custom-project-health','blog-git-commit','custom-git-commit','update-primary-doc','install-skills','uninstall-skills']), kind:'install', skills:['skills-project-health','blog-project-health','custom-project-health','blog-git-commit','custom-git-commit','update-primary-doc','install-skills','uninstall-skills'], label:'Install 8 skills' },
+    'uninstall-individual':{ title:'Uninstall issue-workflow', sub:'issue-workflow will be removed from ~/.claude/skills/', cmd:'python3 scripts/claude-skill uninstall issue-workflow', kind:'uninstall', skills:['issue-workflow'], label:'Uninstall 1 skill' },
   };
 
   // ── Live state: load from web_installer.py API ───────────────────────────
@@ -2559,29 +2570,35 @@
     }
   }
 
-  // Map a displayed claude-skill command string to an API call.
-  async function executeCmd(cmdText) {
-    const cmd = cmdText.trim();
+  // Execute an install/uninstall/update operation via the web_installer API.
+  // Prefers cfg.skills (explicit list) over parsing the displayed cmd string.
+  async function executeCmd(cfg, skillName) {
     let endpoint, body;
+    const kind = cfg.kind;
 
-    if (cmd.includes('sync-local --all')) {
+    if (kind === 'update') {
       endpoint = '/api/update';
       body = {};
-    } else if (cmd.includes('sync-local --skills')) {
-      const m = cmd.match(/--skills\s+([a-z0-9 -]+?)(?:\s+-y)?\s*$/);
-      const skills = m ? m[1].trim().split(/\s+/) : [];
-      endpoint = '/api/install';
-      body = { skills };
-    } else if (cmd.includes('uninstall-all') || cmd.includes('uninstall --all')) {
-      endpoint = '/api/uninstall-all';
-      body = {};
-    } else if (cmd.includes('uninstall')) {
-      const m = cmd.match(/uninstall\s+([a-z0-9 -]+)\s*$/);
-      const skills = m ? m[1].trim().split(/\s+/) : [];
-      endpoint = '/api/uninstall';
-      body = { skills };
+    } else if (kind === 'install') {
+      const skills = cfg.skills || (skillName ? [skillName] : []);
+      if (cfg.cmd && cfg.cmd.includes('install-all')) {
+        endpoint = '/api/update';  // install-all maps to sync-local --all
+        body = {};
+      } else {
+        endpoint = '/api/install';
+        body = { skills };
+      }
+    } else if (kind === 'uninstall') {
+      const skills = cfg.skills || (skillName ? [skillName] : []);
+      if (cfg.cmd && cfg.cmd.includes('uninstall-all')) {
+        endpoint = '/api/uninstall-all';
+        body = {};
+      } else {
+        endpoint = '/api/uninstall';
+        body = { skills };
+      }
     } else {
-      throw new Error('Unrecognized command: ' + cmd);
+      throw new Error('Unknown kind: ' + kind);
     }
 
     const res = await fetch(endpoint, {
@@ -2671,7 +2688,7 @@
       btn.disabled = true;
       btn.textContent = 'Running…';
       try {
-        const result = await executeCmd(document.getElementById('m-cmd').textContent);
+        const result = await executeCmd(cfg, name);
         closeModal();
         if (result.ok) {
           const msg = cfg.kind === 'uninstall' ? '✓ Skills removed' : '✓ Skills installed — open a new Claude Code session to use them';

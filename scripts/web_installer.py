@@ -275,11 +275,13 @@ class InstallerHandler(BaseHTTPRequestHandler):
         if not ok:
             return self._send_error(400, err)
 
-        success, output = _run('uninstall', *body['skills'])
-        if success:
-            self._send_json({'ok': True, 'output': output})
-        else:
-            self._send_error(500, output)
+        outputs = []
+        for skill in body['skills']:
+            success, output = _run('uninstall', skill)
+            outputs.append(output)
+            if not success:
+                return self._send_error(500, output)
+        self._send_json({'ok': True, 'output': '\n'.join(outputs)})
 
     def _handle_uninstall_all(self) -> None:
         success, output = _run('uninstall-all', '-y')

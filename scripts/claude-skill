@@ -330,10 +330,22 @@ def cmd_sync_local(args: argparse.Namespace) -> None:
         print(f"No skills found in {repo_root}")
         return
 
-    to_update = [s for s in local_skills if (SKILLS_DIR / s.name).exists()]
-    to_install = [s for s in local_skills if not (SKILLS_DIR / s.name).exists() and args.all]
-    to_sync = to_update + to_install
-    to_skip = [s for s in local_skills if s not in to_sync]
+    if getattr(args, 'skills', None):
+        # Install/update only the specified skills, regardless of current state
+        requested = set(args.skills)
+        unknown = requested - {s.name for s in local_skills}
+        if unknown:
+            print(f"Error: unknown skills: {', '.join(sorted(unknown))}")
+            sys.exit(1)
+        to_sync = [s for s in local_skills if s.name in requested]
+        to_update = []
+        to_install = to_sync
+        to_skip = [s for s in local_skills if s.name not in requested]
+    else:
+        to_update = [s for s in local_skills if (SKILLS_DIR / s.name).exists()]
+        to_install = [s for s in local_skills if not (SKILLS_DIR / s.name).exists() and args.all]
+        to_sync = to_update + to_install
+        to_skip = [s for s in local_skills if s not in to_sync]
 
     if not to_sync:
         print("No installed skills to update.")
@@ -432,6 +444,10 @@ def main() -> int:
     sync_parser.add_argument(
         "--all", action="store_true",
         help="Also install skills not yet present (default: update only)"
+    )
+    sync_parser.add_argument(
+        "--skills", nargs="+", metavar="SKILL",
+        help="Sync only these specific skills (installs them even if not yet present)"
     )
     sync_parser.add_argument("-y", "--yes", action="store_true", help="Skip confirmation")
 
