@@ -529,5 +529,141 @@ class TestDependencyDisplay(UITestBase):
         expect(row_dep.locator('.btn-install')).to_be_visible()
 
 
+# ── 8. UX/design review fixes ────────────────────────────────────────────────
+
+class TestUXFixes(UITestBase):
+    """
+    Playwright tests for the JS-behaviour UX fixes from the design review.
+    Complements test_html_content.py (which tests static HTML only).
+    """
+
+    # ── Sync bar initial state ────────────────────────────────────────────────
+
+    def test_sync_bar_updates_from_checking_to_real_count(self):
+        """Sync bar starts 'Checking…' and updates to real count after loadState()."""
+        # After _open_install_tab(), loadState() has already run
+        sub = self.page.locator('#sync-bar-sub').inner_text()
+        # Should show a real count, not 'Checking…' or a stale number
+        self.assertRegex(sub, r'\d+ of \d+ installed',
+                         f'Sync bar should show "X of Y installed", got: {sub!r}')
+
+    def test_sync_bar_shows_zero_when_nothing_installed(self):
+        # Nothing installed in this test's clean state
+        sub = self.page.locator('#sync-bar-sub').inner_text()
+        self.assertIn('0 of', sub, f'Expected "0 of …", got: {sub!r}')
+
+    # ── Refresh button ────────────────────────────────────────────────────────
+
+    def test_refresh_button_updates_state(self):
+        """Clicking Refresh reloads state from the server."""
+        # Install a skill via API without telling the page
+        import urllib.request, json as _json
+        body = _json.dumps({'skills': ['python-dev']}).encode()
+        req = urllib.request.Request(
+            f'{self.base_url}/api/install', data=body,
+            headers={'Content-Type': 'application/json'}, method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=60):
+            pass
+        # Page doesn't know yet — click Refresh
+        self.page.locator('.btn-refresh').click()
+        self.page.wait_for_load_state('networkidle')
+        self.page.wait_for_timeout(200)
+        sub = self.page.locator('#sync-bar-sub').inner_text()
+        self.assertIn('1 of', sub, f'After Refresh, sync bar should show 1 installed, got: {sub!r}')
+
+    # ── Manual mode modal ─────────────────────────────────────────────────────
+
+    def test_manual_mode_confirm_button_text_is_done_refresh(self):
+        """In Manual mode, confirm button says 'Done — Refresh'."""
+        # Switch to manual mode
+        self.page.locator('#btn-manual').click()
+        # Open any bundle modal
+        b = self._bundle('python')
+        b['install_btn'].click()
+        self.page.wait_for_selector('#overlay.open', timeout=5000)
+        label = self.page.locator('#m-confirm').inner_text()
+        # Close
+        self.page.locator('#overlay .btn-cancel').click()
+        self.page.locator('#overlay').wait_for(state='hidden', timeout=3000)
+        self.assertIn('Done', label)
+        self.assertIn('Refresh', label)
+
+    def test_manual_mode_done_refresh_updates_state(self):
+        """Clicking 'Done — Refresh' in manual mode triggers a state reload."""
+        # Install a skill via API (simulates user running the command manually)
+        import urllib.request, json as _json
+        body = _json.dumps({'skills': ['python-dev']}).encode()
+        req = urllib.request.Request(
+            f'{self.base_url}/api/install', data=body,
+            headers={'Content-Type': 'application/json'}, method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=60):
+            pass
+        # Switch to manual mode, open modal, click Done — Refresh
+        self.page.locator('#btn-manual').click()
+        b = self._bundle('python')
+        b['install_btn'].click()
+        self.page.wait_for_selector('#overlay.open', timeout=5000)
+        self.page.locator('#m-confirm').click()
+        self.page.wait_for_load_state('networkidle')
+        self.page.wait_for_timeout(300)
+        # State should now reflect the install
+        sub = self.page.locator('#sync-bar-sub').inner_text()
+        self.assertIn('1 of', sub, f'After Done-Refresh, state should show 1 installed, got: {sub!r}')
+
+    # ── Chain button label ────────────────────────────────────────────────────
+
+    def test_chain_button_shows_chain_text(self):
+        """Each chain button must show 'Chain' text label, not just an icon."""
+        # Switch to Browse view to get chain buttons
+        self.page.click('#tab-browse')
+        self.page.wait_for_timeout(300)
+        # Check the first chain button visible
+        first_btn = self.page.locator('.chain-btn').first
+        expect(first_btn).to_be_visible()
+        text = first_btn.inner_text()
+        self.assertIn('Chain', text, f'Chain button text should include "Chain", got: {text!r}')
+
+    # ── CTA secondary button ──────────────────────────────────────────────────
+
+    def test_cta_install_now_visible_when_local(self):
+        """When served locally, CTA secondary button says 'Install Now →'."""
+        # Navigate to About tab
+        self.page.click('#tab-about')
+        self.page.wait_for_timeout(200)
+        btn = self.page.locator('#cta-secondary')
+        expect(btn).to_be_visible()
+        text = btn.inner_text()
+        self.assertEqual(text, 'Install Now →',
+                         f'Local CTA should say "Install Now →", got: {text!r}')
+
+    def test_cta_install_now_navigates_to_install_tab(self):
+        """Clicking 'Install Now →' when local switches to Install tab."""
+        self.page.click('#tab-about')
+        self.page.wait_for_timeout(200)
+        self.page.locator('#cta-secondary').click()
+        self.page.wait_for_timeout(300)
+        # Should now be on the Install tab
+        body_class = self.page.evaluate('document.body.className')
+        self.assertIn('view-install', body_class,
+                      f'"Install Now" should navigate to install tab, got body class: {body_class!r}')
+
+    # ── Bundle naming ─────────────────────────────────────────────────────────
+
+    def test_extras_bundle_visible_in_install_tab(self):
+        """The 'Extras' bundle must be visible in the Install tab."""
+        bundle = self.page.locator('#b-individual .bundle-name')
+        expect(bundle).to_be_visible()
+        text = bundle.inner_text()
+        self.assertEqual(text, 'Extras', f'Bundle should be named "Extras", got: {text!r}')
+
+    def test_extras_nav_pill_text(self):
+        """The nav pill for the extras bundle should say 'Extras'."""
+        pill = self.page.locator('a.nav-pill[href="#b-individual"]')
+        text = pill.inner_text().strip()
+        self.assertIn('Extras', text, f'Nav pill should contain "Extras", got: {text!r}')
+
+
 if __name__ == '__main__':
     unittest.main()

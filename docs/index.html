@@ -611,7 +611,7 @@
     <div class="sync-bar-right">
       <div class="update-group">
         <button class="btn-update" onclick="openModal('update-all')">Update</button>
-        <div class="outdated-label">⚠️ 2 outdated</div>
+        <div class="outdated-label" style="display:none"></div>
       </div>
       <button class="btn-install"   onclick="openModal('install-all')">Install</button>
       <button class="btn-uninstall" onclick="openModal('uninstall-all')">Uninstall</button>
@@ -2670,7 +2670,7 @@
   function openUpdateModal() {
     const note = document.getElementById('u-note');
     if (autoExecute) { note.className = 'modal-note'; note.textContent = '⚡ This command will run automatically when you confirm.'; }
-    else { note.className = 'modal-note manual'; note.textContent = '📋 Copy and run this command in your terminal. The page will auto-refresh once complete — or hit Refresh.'; }
+    else { note.className = 'modal-note manual'; note.textContent = '📋 Copy and run this command in your terminal, then click Done to refresh the install state.'; }
     const btn = document.getElementById('u-confirm');
     if (btn) { btn.disabled = false; btn.textContent = 'Update All'; }
     document.getElementById('update-overlay').classList.add('open');
