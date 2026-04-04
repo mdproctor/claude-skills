@@ -5,6 +5,39 @@ Promote to an ADR when ready to decide; discard when no longer relevant.
 
 ---
 
+## 2026-04-04 — Holistic project-memory architecture: indexed folders not flat files
+
+**Priority:** high
+**Status:** active
+
+The cc-praxis methodology family (design-snapshot, project-blog, knowledge-garden,
+idea-log, adr, session-handoff, CLAUDE.md) has grown organically but lacks a
+coherent cross-tool indexing strategy. Two specific improvements worth exploring:
+
+1. **design-snapshot as a categorised folder** — instead of flat dated files,
+   use subdirectories by topic (architecture/, decisions/, state/) with an
+   INDEX.md modelled on GARDEN.md's dual-index approach (by category AND by
+   date). This lets a future session find "what did we decide about the web
+   installer?" without reading all snapshots.
+
+2. **Cross-tool findability** — each tool currently indexes only its own
+   content. A light meta-index (or agreed naming conventions) would let
+   session-handoff point to the right snapshot, blog entry, or garden section
+   without loading any of them. The lazy-reference principle from
+   session-handoff should propagate to how all tools reference each other.
+
+**Context:** Surfaced while designing session-handoff — the skill needs to
+reference design-snapshot, project-blog, and knowledge-garden without loading
+them. The knowledge-garden's GARDEN.md dual-index (by technology + by symptom
+type) proved that this pattern works. design-snapshot has no equivalent index,
+making it harder to reference selectively. Discussed alongside the observation
+that DESIGN.md is current-state only, not historical, so snapshots carry the
+historical burden but aren't structured for retrieval.
+
+**Promoted to:** *(leave blank)*
+
+---
+
 ## 2026-04-04 — Dual-repo model for epic-scoped developer work
 
 **Priority:** medium

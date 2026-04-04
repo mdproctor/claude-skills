@@ -229,6 +229,12 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
+      "name": "session-handoff",
+      "source": "./session-handoff",
+      "description": "Generates a concise HANDOVER.md at session end — lazy references to design snapshots, project blog, and knowledge garden rather than loading them",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "idea-log",
       "source": "./idea-log",
       "description": "Lightweight living log for undecided possibilities — capture, review, promote, and discard ideas",
