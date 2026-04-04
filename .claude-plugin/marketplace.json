@@ -223,6 +223,12 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
+      "name": "knowledge-garden",
+      "source": "./knowledge-garden",
+      "description": "Cross-project library of hard-won technical gotchas — bugs, silent failures, and workarounds stored in ~/claude/knowledge-garden/ for any future session to reuse",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "idea-log",
       "source": "./idea-log",
       "description": "Lightweight living log for undecided possibilities — capture, review, promote, and discard ideas",

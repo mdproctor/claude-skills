@@ -259,7 +259,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **quarkus-flow-testing** | Workflow testing | java-dev, quarkus-flow-dev |
 | **quarkus-observability** | Quarkus observability config | observability-principles |
 
-### Layer 6: Utilities (5 skills)
+### Layer 6: Utilities (6 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
@@ -268,6 +268,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **design-snapshot** | Immutable dated design state record | (standalone) |
 | **idea-log** | Living log for undecided possibilities | (standalone) |
 | **project-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
+| **knowledge-garden** | Cross-project library of hard-won bugs, gotchas, and unexpected behaviours | (standalone, writes to ~/claude/knowledge-garden/) |
 
 ### Layer 7: Health & Quality (8 skills)
 
@@ -674,6 +675,22 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 - Stored in `docs/project-blog/YYYY-MM-DD-<topic>.md`
 
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions.
+
+#### **knowledge-garden**
+Cross-project library of hard-won technical gotchas — stored in `~/claude/knowledge-garden/` (a git repo shared across all projects on this machine):
+- Captures bugs whose symptoms mislead about root cause, tools that contradict documentation, silent failures, and workarounds found after multiple failed approaches
+- Dual-indexed by technology AND by symptom type — find entries by what you're working on OR by what you're experiencing
+- Three operations: **CAPTURE** (add a new gotcha), **SEARCH** (retrieve relevant entries), **IMPORT** (batch import from project BUGS-AND-ODDITIES.md files)
+- Proactive trigger fires without user asking, at end of debugging sessions where something genuinely non-obvious was discovered
+- Strict quality filter: "would a skilled developer familiar with this technology still have spent significant time on this?"
+
+**Features:**
+- Never deletes entries — adds "Resolved in: vX.Y" notes for fixed bugs
+- Commits every entry with `feat(<dir>): add '<title>'` to the knowledge-garden git repo
+- GARDEN.md index covers both technology and symptom-type dimensions with tag index
+- Distinct from `idea-log` (undecided possibilities), `adr` (formal decisions), `project-blog` (project narrative)
+
+**Triggers:** "add this to the knowledge garden", "log this bug", "future Claude should know this", "this took way too long", or proactively at end of non-obvious debugging sessions.
 
 #### **issue-workflow**
 GitHub issue tracking with cross-cutting task detection and commit split suggestions:
