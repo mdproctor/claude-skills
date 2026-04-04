@@ -217,8 +217,8 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
-      "name": "project-blog",
-      "source": "./project-blog",
+      "name": "write-blog",
+      "source": "./write-blog",
       "description": "Living project diary — captures decisions, pivots, and discoveries in the moment with honest diary voice, not polished retrospectives",
       "version": "1.0.0-SNAPSHOT"
     },

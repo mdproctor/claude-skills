@@ -5,7 +5,7 @@ description: >
   says "create a handoff", "end of session", "update the handover", or
   "write a handoff". Generates a concise HANDOVER.md with lazy references
   to deeper context, not the context itself. NOT for design records (use
-  design-snapshot) or project narrative (use project-blog).
+  design-snapshot) or project narrative (use write-blog).
 ---
 
 # Session Handoff
@@ -140,7 +140,7 @@ git status --short          # any uncommitted state
 
 ```bash
 ls docs/design-snapshots/ | sort | tail -1   # latest snapshot path
-ls docs/project-blog/ | sort | tail -1       # latest blog entry path
+ls docs/write-blog/ | sort | tail -1       # latest blog entry path
 ls docs/adr/ | sort | tail -3                # recent ADRs
 ```
 
@@ -200,7 +200,7 @@ Read only what the task requires. Use git show / grep for surgical reads.
 | Context | Where | Retrieve with |
 |---------|-------|---------------|
 | Design state | `docs/design-snapshots/<latest>.md` | `cat` that file |
-| Project narrative | `docs/project-blog/<latest>.md` | `cat` that file |
+| Project narrative | `docs/write-blog/<latest>.md` | `cat` that file |
 | Technical gotchas | `~/claude/knowledge-garden/GARDEN.md` | index only; detail on demand |
 | Open ideas | `docs/ideas/IDEAS.md` | `cat` that file |
 | Previous handover | git history | `git show HEAD~1:HANDOVER.md` |
@@ -254,7 +254,7 @@ first; load only when a specific task demands the missing context.
 |-------------|-----------------|
 | What changed this session | HANDOVER.md — write in full |
 | What didn't change this session | HANDOVER.md — reference previous via git |
-| Why a design decision was made | project-blog or adr |
+| Why a design decision was made | write-blog or adr |
 | Current architecture | design-snapshot (reference from handover) |
 | Cross-project technical gotcha | garden (reference from handover) |
 | Undecided possibilities | idea-log (reference from handover) |
@@ -353,7 +353,7 @@ context marked as "unchanged"? If yes — done.
 
 **Complements:**
 - `design-snapshot` — archival design state the handover points to
-- `project-blog` — narrative context the handover points to
+- `write-blog` — narrative context the handover points to
 - `garden` — technical gotcha index the handover references
 - `idea-log` — undecided possibilities the handover references
 

@@ -267,7 +267,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **adr** | Architecture Decision Records | (standalone) |
 | **design-snapshot** | Immutable dated design state record | (standalone) |
 | **idea-log** | Living log for undecided possibilities | (standalone) |
-| **project-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
+| **write-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
 | **knowledge-garden** | Cross-project library of hard-won bugs, gotchas, and unexpected behaviours | (standalone, writes to ~/claude/knowledge-garden/) |
 
 ### Layer 7: Health & Quality (8 skills)
@@ -661,7 +661,7 @@ Lightweight living log for undecided possibilities — a parking lot for "we sho
 
 **Triggers:** "log this idea", "park that thought", "add to idea log", "we should consider this someday", or when code review surfaces a possibility worth remembering.
 
-#### **project-blog**
+#### **write-blog**
 Living project diary — captures decisions, pivots, and discoveries written in the moment, not in hindsight:
 - Preserves what was believed at the time — including aspirations that later changed and approaches that were rejected
 - Captures pivot moments explicitly: what was considered, what was rejected, what constraint forced the change
@@ -672,7 +672,7 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 **Features:**
 - Correction entries reference originals rather than revising them — the historical record is preserved
 - Integrates with `adr` (significant decisions get formal records) and `design-snapshot` (milestones get state freezes)
-- Stored in `docs/project-blog/YYYY-MM-DD-<topic>.md`
+- Stored in `docs/blog/YYYY-MM-DD-<topic>.md`
 
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions.
 
@@ -688,7 +688,7 @@ Cross-project library of hard-won technical gotchas — stored in `~/claude/know
 - Never deletes entries — adds "Resolved in: vX.Y" notes for fixed bugs
 - Commits every entry with `feat(<dir>): add '<title>'` to the knowledge-garden git repo
 - GARDEN.md index covers both technology and symptom-type dimensions with tag index
-- Distinct from `idea-log` (undecided possibilities), `adr` (formal decisions), `project-blog` (project narrative)
+- Distinct from `idea-log` (undecided possibilities), `adr` (formal decisions), `write-blog` (project narrative)
 
 **Triggers:** "add this to the knowledge garden", "log this bug", "future Claude should know this", "this took way too long", or proactively at end of non-obvious debugging sessions.
 
@@ -926,7 +926,7 @@ quarkus-observability
 
 ### R&D Diary → Formal Records → State Freeze
 ```
-project-blog (diary entry at a pivot or milestone)
+write-blog (diary entry at a pivot or milestone)
   → adr (significant decisions get a formal record alongside the narrative)
   → design-snapshot (milestone entries freeze the full design state)
     → git-commit

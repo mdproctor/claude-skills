@@ -51,7 +51,7 @@ KNOWN_NON_SKILLS = {
     # Superpowers skills — external, not in this repository
     'writing-plans', 'brainstorming', 'executing-plans',
     # Personal skills — external, installed separately by the user
-    'write-blog-post',
+    'publish-blog',
     # Future planned extension skills — mentioned as examples in principles skills
     # but not yet implemented. Add here when referenced, remove when created.
     'python-observability',

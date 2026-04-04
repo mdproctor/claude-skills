@@ -479,5 +479,5 @@ the garden", "add this to the garden", "merge garden submissions")
 - `~/claude/knowledge-garden/submissions/` — for MERGE only
 - Garden detail files — MERGE only, surgical section reads
 
-**Complements:** `idea-log`, `adr`, `project-blog` — the garden holds
+**Complements:** `idea-log`, `adr`, `write-blog` — the garden holds
 reusable cross-project technical gotchas none of those capture

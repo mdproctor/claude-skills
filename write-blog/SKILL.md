@@ -1,5 +1,5 @@
 ---
-name: project-blog
+name: write-blog
 description: >
   Use when the user wants to capture a project's evolving story in the moment —
   says "write a blog entry", "update the project blog", "log what we built
@@ -22,7 +22,7 @@ intended to be published — individually or as a series — once a phase or
 project reaches a natural point. The raw honesty is the value: readers see
 how decisions actually get made, not a sanitised retrospective.
 
-The `write-blog-post` skill handles restructuring for publication when
+The `publish-blog` skill handles restructuring for publication when
 entries are ready — front matter, platform formatting, final polish. But the
 voice is consistent from diary to published article: personal, direct, and
 yours from the start.
@@ -40,7 +40,7 @@ yours from the start.
 - **Not a retrospective** — Never written after the fact. If a belief was
   wrong, a new entry corrects it — the old entry is never revised.
 - **Not a technical spec** — Diary voice only.
-- **Not a finished article** — `write-blog-post` restructures entries for
+- **Not a finished article** — `publish-blog` restructures entries for
   a specific publication platform (Jekyll front matter, section structure,
   final polish). The voice and style are the same; the formatting and
   structure differ.
@@ -114,7 +114,7 @@ Different phases have different natural tones. Match the writing to the moment.
 ## File Location
 
 ```
-docs/project-blog/YYYY-MM-DD-phase-title.md
+docs/blog/YYYY-MM-DD-phase-title.md
 ```
 
 One file per entry. Dated, kebab-case title, ≤30 chars, no articles.
@@ -231,7 +231,7 @@ sentence.
 ### Step 2 — Check existing entries
 
 ```bash
-ls docs/project-blog/ 2>/dev/null | sort
+ls docs/blog/ 2>/dev/null | sort
 ```
 
 For all types except Day Zero: read the most recent entry to understand
@@ -285,7 +285,7 @@ Wait for explicit YES or feedback. Iterate on feedback before writing.
 ### Step 6 — Write to disk
 
 ```bash
-mkdir -p docs/project-blog
+mkdir -p docs/blog
 # write entry file
 ```
 
@@ -308,7 +308,7 @@ After writing:
 
 ```mermaid
 flowchart TD
-    Trigger((User triggers project-blog))
+    Trigger((User triggers write-blog))
     EntryType{What type\nof entry?}
     DetermineVoice[Determine voice:\nI for solo,\nwe for collaborative]
     DayZero[Day Zero:\ngather initial vision\nand first approach]
@@ -320,7 +320,7 @@ flowchart TD
     FixVoice[Fix: change to I or we]
     UserConfirms{User confirms?}
     Refine[Refine based\non feedback]
-    Write[Write to\ndocs/project-blog/]
+    Write[Write to\ndocs/blog/]
     OfferADR{Significant\ndecision made?}
     OfferSnapshot{Major design\nmilestone?}
     Commit[Commit via git-commit]
@@ -374,7 +374,7 @@ flowchart TD
 
 Entry is complete when:
 
-- ✅ File exists at `docs/project-blog/YYYY-MM-DD-<title>.md`
+- ✅ File exists at `docs/blog/YYYY-MM-DD-<title>.md`
 - ✅ Voice is correct: "I" for developer perspective, "we" for collaboration, no third-person protagonist
 - ✅ All five sections filled — no TBDs (except "What Changed" which is optional if nothing changed)
 - ✅ Specific details: error messages, file paths, failed attempts documented
@@ -397,7 +397,7 @@ For Correction entries additionally:
 
 **Invokes:** [`adr`] — when a significant decision in the blog entry warrants a formal record; [`design-snapshot`] — when the entry marks a major milestone worth freezing as a formal state record; [`git-commit`] — to commit the entry (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
 
-**Feeds into:** `write-blog-post` (personal skill, not in cc-praxis) — handles the publishing mechanics when entries are ready to go out. `project-blog` is the writing step; `write-blog-post` is the delivery step (currently Jekyll, but the platform may change — only `write-blog-post` needs to change, not the entries)
+**Feeds into:** `publish-blog` (personal skill, not in cc-praxis) — handles the publishing mechanics when entries are ready to go out. `write-blog` is the writing step; `publish-blog` is the delivery step (currently Jekyll, but the platform may change — only `publish-blog` needs to change, not the entries)
 
 **Complements:** `adr` (formal decision record vs narrative story), `design-snapshot` (formal state freeze vs diary account of the journey), `idea-log` (undecided possibilities vs what actually happened and why)
 
