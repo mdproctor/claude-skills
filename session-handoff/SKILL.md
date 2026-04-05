@@ -131,36 +131,46 @@ Do NOT read any project files to answer these. Work from conversation memory.
 
 ### Step 2b — Garden sweep (while context is still full)
 
-This is the optimal moment to capture garden entries — the session is
-fully in context and hasn't been discarded yet. Sweep all three categories:
+**The sweep is done by the handoff itself from conversation memory** —
+not by invoking the garden skill and asking it to find things. The garden
+skill is only called once specific entries have been identified.
 
-**Gotchas** — anything that went wrong in a non-obvious way?
-- Bugs whose symptom misled about root cause
-- Silent failures with no error
-- Things that required multiple failed attempts before the fix
-- Workarounds for things that "should" work
+Review the session across all three categories. For each one, think
+through what actually happened in the conversation:
 
-**Techniques** — any non-obvious approaches that worked well?
-- Solutions a skilled developer wouldn't naturally reach for
-- Combinations of tools or APIs used in undocumented ways
-- Patterns that solved a problem more elegantly than expected
+**Gotchas** — did anything go wrong in a non-obvious way?
+> Scan for: bugs whose symptom misled about root cause; silent failures
+> with no error; things that required multiple failed approaches; workarounds
+> for things that "should" work but don't.
 
-**Undocumented** — anything discovered that isn't in the official docs?
-- Flags, options, or behaviours only findable via source code
-- Features that work but have no documentation
-- Things only discoverable through trial and error or commit history
+**Techniques** — did any non-obvious approach work well?
+> Scan for: solutions a skilled developer wouldn't naturally reach for;
+> tool or API combinations used in undocumented ways; patterns that solved
+> a problem more elegantly than expected.
 
-For each category, ask: *"Is there anything from this session worth
-submitting to the garden?"* If yes — invoke the `garden` skill to write
-a submission before continuing. If nothing surfaces, proceed.
+**Undocumented** — was anything discovered that isn't in the official docs?
+> Scan for: flags, options, or behaviours only findable via source code;
+> features that work but have no documentation; things discovered through
+> trial and error or commit history.
+
+For each finding, **propose it explicitly** before proceeding:
+
+> "During this session we hit X — [brief description]. Worth submitting
+> to the garden as a [gotcha / technique / undocumented]?"
+
+If confirmed → invoke `garden` CAPTURE with the specific content already
+known from context. Do NOT invoke garden and ask it to find things.
+
+If nothing surfaces in any category → proceed to Step 3.
 
 > **Why here:** The context window is full. After the handover is written
-> and the session ends, this knowledge is lost. A 2-minute sweep now
-> preserves knowledge that would otherwise require rediscovery.
+> and the session ends, this knowledge is lost. The sweep costs near-zero
+> from context; the cost of missing an entry is rediscovery time later.
 
-The garden sweep is **always done** (even if it finds nothing) — the
-cost of checking is near-zero from context; the cost of missing an entry
-is rediscovery time in a future session.
+The sweep is **always done** (even if it finds nothing). Completeness
+matters — checking all three categories explicitly prevents the common
+failure of only catching the most obvious kind (usually gotchas) and
+missing techniques and undocumented items.
 
 ### Step 3 — Gather cheap orientation
 
