@@ -127,6 +127,11 @@ to perform the duplicate check.
 ~/claude/knowledge-garden/submissions/YYYY-MM-DD-<project>-<slug>.md
 ```
 
+**Version policy for the Stack field:**
+- **Third-party libraries:** Always include version or range — `Quarkus 3.9.x`, `tmux 3.2+`, `GraalVM 25`. The gotcha may be fixed in a later version; future readers need to know if it applies to them.
+- **"all versions"** — only use when you've verified the behaviour holds across versions, or when it's a fundamental language/protocol issue: `Java (all versions with lambda)`, `JEXL3 (all versions)`.
+- **Own pre-1.0 projects** — omit version entirely; it isn't meaningful until the first public release. Revisit when 1.0 ships.
+
 **Gotcha entry** (bug, silent failure, workaround):
 
 ```markdown
@@ -142,7 +147,7 @@ to perform the duplicate check.
 
 ## [Short imperative title — describes the weird thing, not the fix]
 
-**Stack:** Technology, Library, Version (be specific)
+**Stack:** Technology, Library, Version — e.g. `Quarkus 3.9.x`, `tmux 3.2+`, `GraalVM 25`
 **Symptom:** What you observe — especially the misleading part. Quote exact
 error messages. "No error" is important context.
 **Context:** When/where this applies. What setup triggers it.
@@ -177,7 +182,7 @@ The insight. What makes this a gotcha? Why would a skilled developer be misled?
 
 ## [Short active title — what you can do, not that it's clever]
 
-**Stack:** Technology, Library, Version (be specific)
+**Stack:** Technology, Library, Version — e.g. `Claude Code CLI`, `JUnit 5`, `Maven 3.x`; omit version for own pre-1.0 projects
 **What it achieves:** One sentence — the outcome this technique produces.
 **Context:** When/where this applies. What problem it solves.
 
@@ -209,7 +214,7 @@ Conditions where this applies. Any limitations or caveats.
 
 ## [Short title — describes what exists, not that it's undocumented]
 
-**Stack:** Technology, Library, Version (be specific)
+**Stack:** Technology, Library, Version — e.g. `tmux 3.6`, `GraalVM 25`; version matters here as undocumented behaviour may appear/disappear across releases
 **What it is:** One sentence — the feature, behaviour, or option that exists.
 **How discovered:** Source code reading / trial and error / someone told me / commit history
 
@@ -625,6 +630,8 @@ flowchart TD
 | Technology heading named after problem domain | Inconsistent; hard to find by tool name | Use tool/library name: `LLM / Claude CLI` not `AI Testing Patterns` |
 | MERGE: By Label section not updated for new technique | Technique unfindable by cross-cutting concern | For every technique, add to By Label under each of its labels |
 | MERGE: By Symptom / Type updated for a technique (not a gotcha) | Wrong section for techniques | By Symptom / Type is for gotchas; techniques go in By Label |
+| Missing version for a 3rd party library | Future readers can't tell if the gotcha applies to them | Include version or range: `Quarkus 3.9.x`, `tmux 3.2+`; "all versions" only when verified |
+| Version included for own pre-1.0 project | Version is meaningless before first release | Omit until 1.0; add a "Version: 1.0+" note at that point |
 
 ---
 
