@@ -112,6 +112,47 @@ file/class dumps.
 
 ---
 
+## Images
+
+Images do for a post what code snippets do — they make abstract things concrete and give a post texture that pure prose can't. Apply the same judgment: include when genuinely useful, not to pad.
+
+**Three reasons to include an image:**
+
+1. **UI work → always screenshot** — when the entry is about building or changing a UI, generate a mock screenshot or capture a PNG of the actual interface and include it. Seeing the thing being discussed is worth more than any description of it.
+
+2. **Generated images** — consider whether a diagram, mockup, or generated visual would illustrate something better than prose or code. Architecture decisions, data flows, before/after states — these often benefit from a visual.
+
+3. **Web search** — consider searching for images that make the content more interesting or easier to understand: explanatory diagrams, illustrations, or images that add character. Use judgment on tone — a well-chosen image can do work that words can't.
+
+**Formatting:**
+- Resize to content width in the post
+- Link the image to its full-size version so readers can click for detail
+- Add descriptive alt text
+
+**Image index — when web searching:**
+
+Any image found by web search that is used or considered worth keeping goes into the project's image index at `docs/images/IMAGE-INDEX.md`. This preserves the find for future entries without re-searching.
+
+Each entry:
+
+```markdown
+## slug-or-descriptive-title
+**Source:** URL
+**Description:** What the image shows
+**Intent:** What it communicates or why it was found
+**Possible uses:** Contexts or topics where it could work
+**Used in:** YYYY-MM-DD-NN-entry-slug.md (or "not yet used")
+```
+
+Create `docs/images/IMAGE-INDEX.md` on first use with a simple header:
+```markdown
+# Image Index
+
+Images found for use in blog entries — descriptions, intent, and possible uses.
+```
+
+---
+
 ## Headings
 
 Thematic headings are primary. Structural labels are scaffolding.
