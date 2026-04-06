@@ -478,8 +478,10 @@ Review the session for:
 - Things that required multiple failed approaches before the fix
 - Workarounds for things that "should" work but don't
 
-For each candidate: *"During this session we hit [X] — the symptom was
-[Y] but the actual cause was [Z]. Worth submitting as a gotcha?"*
+For each candidate, compute the Garden Score before proposing, then present:
+*"During this session we hit [X] — the symptom was [Y] but the actual cause was [Z]. Scored [N]/15 — worth submitting as a gotcha?"*
+
+Include the score and a one-line case for/against so the user can make an informed decision without asking.
 
 **Step 2 — Scan for Techniques** (non-obvious approaches that worked)
 
@@ -489,9 +491,8 @@ Review the session for:
 - Patterns that solved a problem more elegantly than expected
 - Things where the obvious approach would have been worse
 
-For each candidate: *"We used [approach] to [achieve outcome] — most
-developers would have [done it the hard way]. Worth submitting as a
-technique?"*
+For each candidate, compute the Garden Score before proposing, then present:
+*"We used [approach] to [achieve outcome] — most developers would have [done it the hard way]. Scored [N]/15 — worth submitting as a technique?"*
 
 **Step 3 — Scan for Undocumented** (exists but isn't in any docs)
 
@@ -501,8 +502,10 @@ Review the session for:
 - Things discovered through trial and error or commit history
 - Behaviours that only appear in GitHub issues or internal comments
 
-For each candidate: *"We discovered [X] — it exists and works but
-there's no documentation for it. Worth submitting as undocumented?"*
+For each candidate, compute the Garden Score before proposing, then present:
+*"We discovered [X] — it exists and works but there's no documentation for it. Scored [N]/15 — worth submitting as undocumented?"*
+
+**Score threshold during SWEEP:** Only propose candidates scoring ≥8. Below that, note briefly ("I considered [X] but it scored [N]/15 — below the bar") so the user knows it was evaluated.
 
 **Step 4 — Submit confirmed entries**
 
