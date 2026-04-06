@@ -144,6 +144,9 @@ Pattern:
 skill-name/
   SKILL.md              # Main workflow (required)
   reference-name.md     # Heavy API/reference docs
+  defaults/             # Bundled defaults (optional) — mandatory rules,
+                        #   common voice, or other files the skill always loads
+                        #   regardless of user configuration
 ```
 
 ### Skills-Repository-Specific Documentation
@@ -329,6 +332,7 @@ When working on this repository, use these commands:
 ```bash
 # Sync all skills to ~/.claude/skills/ (do this after any skill change)
 python3 scripts/claude-skill sync-local --all -y
+# Or use the slash command: /sync-local
 
 # Launch the web skill manager UI
 python3 scripts/web_installer.py          # opens http://localhost:8765
