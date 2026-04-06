@@ -201,25 +201,46 @@ retrospective dressed up as one:
 
 ## Workflow
 
-### Step 0 — Load personal writing style guide
+### Step 0 — Load writing rules (four layers, always in this order)
 
-Entries are written in the author's personal voice from the first draft —
-not generic AI prose cleaned up later. Load the style guide before drafting.
+**Layer 1 — Mandatory rules (always, no exceptions)**
+
+Read `write-blog/defaults/mandatory-rules.md` in full. These rules apply to
+every entry regardless of author or project. They cannot be overridden.
+
+**Layer 2 — Scan CLAUDE.md for context**
+
+```bash
+cat CLAUDE.md 2>/dev/null | head -80
+```
+
+Extract:
+- **Audience** — project type (`type: java` → JVM practitioners), frameworks and
+  tools mentioned (assume the audience knows them), domain (AI/LLM tools → AI-literate)
+- **Topics** — what the project is building, what problems it's solving
+
+Note both. They calibrate what to explain vs. what to assume throughout the entry.
+
+**Layer 3 — Load voice (one of two, never both)**
 
 ```bash
 echo "$PERSONAL_WRITING_STYLES_PATH"
 ```
 
-If empty → try the default: `~/claude-workspace/writing-styles/`
+If set → load the personal style guide from that path (typically `blog-technical.md`
+or equivalent). Read it in full — it overrides and extends the common voice.
 
-Select the guide for a development diary / blog post (typically
-`blog-technical.md` or equivalent). If none exists, proceed without it but
-note that entries will follow the voice rules below without a style
-constraint. The user can create a style guide at any time and it will be
-picked up on the next entry.
+If not set → load `write-blog/defaults/common-voice.md`. This is the fallback voice:
+peer-to-peer tone, ~17 word sentences, direct, no AI filler. Functional but not
+personal — the author can create a personal guide at any time.
 
-Read the selected guide in full. Everything in it constrains the output —
-vocabulary, sentence patterns, what to avoid, how to open and close.
+**Layer 4 — Parse invocation-time overrides (highest priority)**
+
+If the user's invocation includes explicit audience, tone, or scope instructions —
+`/write-blog the auth system — writing for non-technical stakeholders` — those
+override the CLAUDE.md inference and the voice layer for this entry only.
+
+Note what was overridden so the framing is transparent.
 
 ### Step 0b — Determine mode from invocation
 
