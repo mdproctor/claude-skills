@@ -172,12 +172,34 @@ commits.
 
 ## Step 6 — Validate epics
 
-For each candidate epic:
-- Children ≥ 2 → keep as epic
+An epic is only meaningful when it has a coherent scope that could have a real
+Definition of Done. Three gates must all pass:
+
+**Gate 1 — Minimum children:**
+- Children ≥ 2 → pass
 - Children = 1 → dissolve; child becomes standalone
 - Children = 0 → discard (only trivials in window)
 
-**Never create a single-child epic.**
+**Gate 2 — Maximum children:**
+- Children ≤ 8 → pass
+- Children > 8 → dissolve all children to standalone; this is a time bucket,
+  not a feature. No Definition of Done could meaningfully cover 9+ independent
+  deliverables.
+
+**Gate 3 — Scope coherence:**
+- Children span ≤ 3 distinct scopes → pass (coherent feature area)
+- Children span ≥ 4 distinct unrelated scopes → dissolve all to standalone;
+  this is a collection bucket formed by a temporal boundary, not a feature.
+
+All three gates must pass. If any fails, dissolve the epic — promote all its
+children to standalone issues.
+
+**Practical consequence:** repos built in a short sprint with one or two weak
+time boundaries (a tag, a single gap) will produce no epics at all. That is
+correct — standalone issues grouped by scope are more honest than artificial
+collection-bucket epics.
+
+**Never create a single-child epic. Never create a time-bucket epic.**
 
 ---
 

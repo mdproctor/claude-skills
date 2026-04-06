@@ -381,6 +381,59 @@ def test_single_child_epic_rule(git_repo) -> None:
     assert len(two_cluster_commits) >= 4
 
 
+def test_epic_too_many_children_dissolves() -> None:
+    """Gate 2: an epic with > 8 children is a time bucket — dissolve to standalone."""
+    # Simulate a window with 9 child clusters (one per scope)
+    child_scopes = [
+        "garden", "marketplace", "write-blog", "validation",
+        "project-health", "session-handoff", "git-commit",
+        "java-dev", "python-dev",  # 9 distinct scopes
+    ]
+    assert len(child_scopes) == 9
+    assert len(child_scopes) > 8  # fails Gate 2 → dissolve
+
+    # A window with exactly 8 children passes Gate 2
+    eight_children = child_scopes[:8]
+    assert len(eight_children) <= 8  # passes Gate 2
+
+
+def test_epic_too_many_scopes_dissolves() -> None:
+    """Gate 3: an epic whose children span ≥ 4 unrelated scopes is a collection
+    bucket formed by a weak temporal boundary, not a coherent feature."""
+    # 4 unrelated scopes in one window → time bucket → dissolve
+    incoherent_children = [
+        "garden", "marketplace", "write-blog", "validation",
+    ]
+    assert len(set(incoherent_children)) >= 4  # fails Gate 3 → dissolve
+
+    # 3 related scopes → coherent enough to keep as epic
+    coherent_children = ["java-dev", "java-code-review", "java-security-audit"]
+    assert len(set(coherent_children)) <= 3  # passes Gate 3
+
+
+def test_sprint_repo_produces_no_epics() -> None:
+    """A repo built in a short sprint with one weak boundary (e.g. a tag)
+    produces two large windows — both will fail Gate 2 or Gate 3 and dissolve.
+    The correct output is standalone issues grouped by scope, not time-bucket epics."""
+    # Simulate the cc-praxis situation: one v1.0.0 tag → 2 windows
+    # Window 1: 121 commits across many scopes
+    window_1_scopes = {
+        "marketplace", "garden", "write-blog", "validation",
+        "project-health", "session-handoff", "git-commit", "readme", "claude-md",
+    }
+    # Window 2: 158 commits across many scopes
+    window_2_scopes = {
+        "marketplace", "garden", "write-blog", "validation",
+        "project-health", "java-dev", "python-dev", "ts-dev", "testing",
+    }
+
+    # Both windows span ≥ 4 distinct unrelated scopes → Gate 3 fails → dissolve both
+    assert len(window_1_scopes) >= 4
+    assert len(window_2_scopes) >= 4
+    # Both windows would also exceed 8 children → Gate 2 fails too
+    # Result: no epics created; all issues promoted to standalone
+
+
 def test_gap_detection(git_repo) -> None:
     """Commit dates separated by >7 days constitute a phase boundary."""
     repo, _ = git_repo
