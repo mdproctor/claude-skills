@@ -258,6 +258,28 @@ Confirm the framing, then continue with Step 1.
 
 **Invoked via direct conversation** → determine from context whether this is a single entry or a retrospective request ("blog all the work to date", "catch the blog up").
 
+### Step 0c — Ensure CLAUDE.md has the style guide pointer
+
+This runs before drafting anything — not after. It is a gate, not an offer.
+
+```bash
+# Check if docs/blog/ already exists
+ls docs/blog/ 2>/dev/null
+
+# Check if CLAUDE.md already has the pointer
+grep -l "blog-technical\|writing style guide" CLAUDE.md 2>/dev/null
+```
+
+**If `docs/blog/` exists but the pointer is missing** (or this is the very first entry and `docs/blog/` is about to be created):
+1. Propose adding the Writing Style Guide section to CLAUDE.md
+2. Get user confirmation
+3. Apply the change via `update-claude-md`
+4. Only then proceed to Step 1
+
+**If the pointer is already in CLAUDE.md** → proceed silently. No prompt, no mention.
+
+---
+
 ### Step 1 — Confirm entry type and voice
 
 If invoked via `/write-blog <context>`, the type was already proposed in Step 0b — confirm or adjust here, don't ask again from scratch.
@@ -347,12 +369,9 @@ The sequence number is always present. Count existing entries for today's date, 
 
 After writing:
 
-1. **First entry ever in this project?** — check if `docs/blog/` had no entries before this one. If yes, offer to run `update-claude-md` to add the Writing Style Guide section to CLAUDE.md so future Claude sessions load it automatically:
-   > "First blog entry in this project. CLAUDE.md doesn't yet know about the mandatory writing style guide — run update-claude-md to add that pointer?"
-   This is a one-time setup action. Once the section is in CLAUDE.md, this check passes silently on all future entries.
-2. **Significant decision in the entry?** — offer to create a formal `adr`
-3. **Major milestone?** — offer a `design-snapshot` to freeze the full state
-4. **Commit** — invoke `git-commit` with message:
+1. **Significant decision in the entry?** — offer to create a formal `adr`
+2. **Major milestone?** — offer a `design-snapshot` to freeze the full state
+3. **Commit** — invoke `git-commit` with message:
    ```
    docs: add project blog entry YYYY-MM-DD-<title>
    ```
