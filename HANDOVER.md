@@ -1,42 +1,42 @@
 # Handover — 2026-04-06
 
-**Head commit:** `b1c929a` — docs: add project blog entry 2026-04-06-03-garden-remembers-itself
-**Previous handover:** (none — first handover)
+**Head commit:** `0a512d9` — fix(retro-issues): fix classifier bugs and add scope-based clustering
+**Previous handover:** `git show HEAD~1:HANDOVER.md` | diff: `git diff HEAD~1 HEAD -- HANDOVER.md`
 
 ## What Changed This Session
 
-- **write-blog**: four-layer writing architecture (mandatory-rules.md, common-voice.md, personal guide, invocation overrides); pre-draft gate enforced; Step 0c gates on CLAUDE.md style guide pointer before drafting; same-day YYYY-MM-DD-NN filename convention; systematic review fixed 9 issues
-- **garden**: GE-IDs at submission time; three-tier duplicate detection (light/medium/DEDUPE); CHECKED.md sparse pair log; DISCARDED.md for reconciliation; drift-based DEDUPE trigger (threshold 10); validate_garden.py integrity checker; TEST-SCENARIOS.md; 33 existing submissions retroactively assigned GE-0001–GE-0033; 2 new submissions GE-0034–GE-0035
-- **session-handoff**: wrap checklist (garden→claude-md→snapshot→blog) with all/toggle support
-- **sync-local**: new dev-only skill with `/sync-local` slash command; developer-only pattern documented in CLAUDE.md
-- **CLAUDE.md**: Writing Style Guide mandatory requirement added; developer-only skills pattern; defaults/ directory pattern; /sync-local noted
-- **All 6 blog entries** renamed to YYYY-MM-DD-NN-title.md convention
-- **First design snapshot**: `docs/design-snapshots/2026-04-06-writing-infrastructure-and-garden.md`
-- **3 blog entries today**: 01-writing-about-itself, 02-writing-rules-get-teeth, 03-garden-remembers-itself
+- **issue-workflow** completely rewritten — merged the draft epic-workflow concept in. Now 4 phases: Phase 0 Setup, Phase 1 Pre-Implementation (epic + child issues with active epic/issue state), Phase 2 Task Intake (proactive issue creation before coding + ad-hoc placement flowchart + planned-vs-adhoc distinction), Phase 3 Pre-Commit safety net. Explicit user override required to skip issue refs.
+- **retro-issues** new standalone skill — `/retro-issues` command for mapping git history to GitHub epics/issues. Three-stage: gather inputs → write `docs/retro-issues.md` for review → create on YES. Bundled scripts (`retro-parse-mapping.py`, `retro-amend-commits.py`). Optional commit amendment uses branch-swap safety pattern.
+- **Tests** — 90 passing: 7 parser unit tests, 11-repo fixture integration tests, synthetic edge-case tests. Fixtures extracted from all ~/claude repos and committed (self-contained — no runtime dependency on ~/claude).
+- **Two classifier bugs fixed** — `format(?:s)?` matched "formats" (noun); `update .+ to` matched "update description to". Scope-based clustering added as primary signal over file paths.
+- **Garden** — 3 submissions: GE-0042 (regex plural false positive), GE-0043 (commit scope clustering), GE-0044 (MADR Date: field never auto-populated).
 
 ## State Right Now
 
-- **Garden**: 35 submissions ready to merge (GE-0001–GE-0035); validator passes clean; CHECKED.md empty; drift counter at 0; merge session needed (full context budget)
-- **Stale install**: `~/.claude/skills/knowledge-garden/` — old pre-rename directory, safe to delete
-- **cc-praxis**: 45 skills; all synced; working tree clean
+- `main` clean, pushed to GitHub, 46/46 skills synced
+- `retro-issues` live and validated (pre-GitHub-creation analysis run on this repo)
+- Garden: 38 submissions pending merge (GE-0001–GE-0044, some already merged)
 
 ## Immediate Next Step
 
-Run a dedicated garden MERGE session: `cd ~/claude/knowledge-garden && garden merge` — assigns GE-IDs to existing entries, runs light duplicate checks, populates CHECKED.md, integrates all 35 submissions.
+Open a **new session** in this repo and run `/retro-issues`. Review the generated `docs/retro-issues.md` — stop before Step 8 (no GitHub issues until YES). Key things to validate:
+- Scope clustering produces sensible groupings (marketplace/garden/write-blog etc.)
+- Trivials correctly excluded (only 2 expected)
+- Only 1 phase boundary found (v1.0.0 tag) — no epics expected, just issues
 
 ## Open Questions / Blockers
 
-- Image index (`docs/images/IMAGE-INDEX.md`) — currently project-level by decision; revisit if images turn out to be reusable across projects
-- `publish-blog` skill — series navigation deferred to it; not yet built
-- v1.0.1 tag — significant additions since v1.0.0; consider after garden merge
+*Unchanged — `git show HEAD~1:HANDOVER.md`* (image index, publish-blog, v1.0.1 tag)
+
+- ADR Date: fields are empty across all 10 ADRs — if boundary detection from ADRs matters, the `adr` skill should auto-populate Date: on creation. Git log proxy: `git log --follow --diff-filter=A --format="%ad" --date=short -- docs/adr/FILE.md`
 
 ## References
 
 | Context | Where | Retrieve with |
 |---------|-------|---------------|
-| Design state | `docs/design-snapshots/2026-04-06-writing-infrastructure-and-garden.md` | `cat` that file |
-| Project narrative | `docs/blog/2026-04-06-03-garden-remembers-itself.md` | `cat` that file |
-| Technical gotchas | `~/claude/knowledge-garden/GARDEN.md` | index only; detail on demand |
-| Garden validator | `~/claude/knowledge-garden/scripts/validate_garden.py` | `python3 ... --verbose` |
-| Garden submissions | `~/claude/knowledge-garden/submissions/` | `ls` to list |
-| Open ideas | `docs/ideas/IDEAS.md` | `cat` that file |
+| retro-issues skill | `retro-issues/SKILL.md` | `cat` |
+| retro-issues plan | `docs/superpowers/plans/2026-04-06-retrospective-issue-mapping.md` | `cat` |
+| issue-workflow skill | `issue-workflow/SKILL.md` | `cat` |
+| Latest design snapshot | `docs/design-snapshots/2026-04-06-writing-infrastructure-and-garden.md` | `cat` |
+| Garden submissions | `~/claude/knowledge-garden/submissions/` | `ls` then `cat` |
+| Previous handover | git history | `git show HEAD~1:HANDOVER.md` |
