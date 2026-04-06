@@ -422,9 +422,9 @@ After all selected entries are written:
 
 ```
 Blog series complete:
-  ✅ 2026-03-29-day-zero.md
-  ✅ 2026-03-31-building-the-infrastructure.md
-  ✅ 2026-04-02-health-typescript-python.md
+  ✅ 2026-03-29-01-day-zero.md
+  ✅ 2026-03-31-01-building-the-infrastructure.md
+  ✅ 2026-04-02-01-health-typescript-python.md
 
 All committed. Ready to publish via publish-blog when you're ready.
 ```
