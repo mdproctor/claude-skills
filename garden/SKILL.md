@@ -169,6 +169,7 @@ error messages. "No error" is important context.
 **Context:** When/where this applies. What setup triggers it.
 
 ### What was tried (didn't work)
+*(mandatory heading — do not inline or omit)*
 - tried X — result
 - tried Y — result
 
