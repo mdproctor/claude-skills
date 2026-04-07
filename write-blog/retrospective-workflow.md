@@ -62,7 +62,7 @@ For each confirmed entry, follow the full standard write-blog workflow (Steps 0�
 - Gather the story from git history and commit messages for that phase
 - Draft with correct voice, style, and tone
 - Show the draft and confirm before writing to disk
-- Write to `docs/blog/YYYY-MM-DD-NN-<slug>.md` — sequence number determined at write time
+- Write to `docs/blog/YYYY-MM-DD-<initials>NN-<slug>.md` — initials from `~/.claude/settings.json`, per-author sequence number determined at write time
 - Offer to commit each entry, or batch-commit at the end
 
 After each entry is confirmed, move to the next. Do not draft the next entry

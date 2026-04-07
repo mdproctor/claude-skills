@@ -118,12 +118,13 @@ Different phases have different natural tones. Match the writing to the moment.
 ## File Location
 
 ```
-docs/blog/YYYY-MM-DD-NN-phase-title.md
+docs/blog/YYYY-MM-DD-<initials>NN-phase-title.md
 ```
 
-One file per entry. `NN` is a two-digit sequence number starting at `01` — always present, even for the first entry of the day. Kebab-case title, ≤30 chars (no "the", "a", "an" — drop articles to keep slugs short and scannable).
+One file per entry. `<initials>` is the author's 2–4 letter identifier (e.g. `mdp`), read from `~/.claude/settings.json` § `initials`. `NN` is a two-digit per-author sequence number starting at `01`. Kebab-case title, ≤30 chars (no "the", "a", "an").
 
-Always numbered so same-day entries sort correctly without renaming.
+The initials prefix prevents same-day filename collisions when multiple authors contribute to the same blog. Per-author sequencing means each author's entries sort independently.
+
 Previous entries are never edited — new entries reference them if needed.
 
 ---
@@ -241,6 +242,23 @@ override the CLAUDE.md inference and the voice layer for this entry only.
 
 Note what was overridden so the framing is transparent.
 
+**Layer 4 — Resolve author initials**
+
+```bash
+python3 -c "import json; d=json.load(open('$HOME/.claude/settings.json')); print(d.get('initials',''))" 2>/dev/null
+```
+
+If initials are set → use them throughout as the filename prefix (e.g. `mdp`).
+
+If not set → prompt once:
+> "Blog filenames include author initials to prevent merge conflicts when multiple contributors write on the same day. What are your initials? (e.g. 'mdp')"
+>
+> Then save to `~/.claude/settings.json`:
+> ```python
+> d['initials'] = '<answer>'
+> ```
+> and proceed.
+
 ### Step 0b — Determine mode from invocation
 
 **Invoked via `/write-blog` with no argument** → load [retrospective-workflow.md](retrospective-workflow.md) and follow that workflow. Skip Steps 1–7 below.
@@ -354,15 +372,15 @@ Wait for explicit YES or feedback. Iterate on feedback before writing.
 
 ```bash
 mkdir -p docs/blog
-# determine sequence number
-ls docs/blog/YYYY-MM-DD-*.md 2>/dev/null | wc -l  # count existing same-day entries
+# determine per-author sequence number (initials resolved in Step 0 Layer 4)
+ls docs/blog/YYYY-MM-DD-<initials>*.md 2>/dev/null | wc -l  # count this author's same-day entries
 # NN = count + 1, zero-padded to 2 digits (01, 02, ...)
 # write entry file
 ```
 
-File name: `YYYY-MM-DD-NN-<kebab-case-title>.md` — today's date, two-digit sequence number, topic slug ≤30 chars.
+File name: `YYYY-MM-DD-<initials>NN-<kebab-case-title>.md` — today's date, author initials, two-digit per-author sequence number, topic slug ≤30 chars.
 
-The sequence number is always present. Count existing entries for today's date, add one, zero-pad to two digits: first entry is `01`, second is `02`, etc.
+Count only this author's same-day entries (filter by initials) — other authors' entries don't affect the sequence. First entry of the day is `<initials>01`, second `<initials>02`.
 
 ### Step 7 — Offer related actions
 
@@ -476,7 +494,7 @@ After writing or editing headings, run these five checks. Each one catches a spe
 
 Entry is complete when:
 
-- ✅ File exists at `docs/blog/YYYY-MM-DD-NN-<title>.md` with correct two-digit sequence number
+- ✅ File exists at `docs/blog/YYYY-MM-DD-<initials>NN-<title>.md` with correct initials and per-author sequence number
 - ✅ Voice is correct: "I" for developer perspective, "we" for collaboration, no third-person protagonist
 - ✅ Headings: thematic headings were kept or enhanced — none were replaced with bare structural slots
 - ✅ All required sections filled — no TBDs; "What Changed" may be omitted only if nothing pivoted

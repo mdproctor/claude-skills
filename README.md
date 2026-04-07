@@ -672,7 +672,7 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 - Correction entries reference originals rather than revising them — the historical record is preserved
 - Mandatory writing rules loaded at draft time (not upfront) — retrospective workflow demand-loaded
 - Integrates with `adr` (significant decisions get formal records) and `design-snapshot` (milestones get state freezes)
-- Stored in `docs/blog/YYYY-MM-DD-NN-<topic>.md` (two-digit sequence number for same-day ordering)
+- Stored in `docs/blog/YYYY-MM-DD-<initials>NN-<topic>.md` (author initials from `~/.claude/settings.json` + per-author sequence number, prevents merge conflicts)
 
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions. `/write-blog` alone triggers the full retrospective sweep.
 
