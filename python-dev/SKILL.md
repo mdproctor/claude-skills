@@ -346,6 +346,22 @@ def test_writes_config(tmp_path: Path) -> None:
 
 **Type-check tests too — don't exempt test files from mypy.** Test code calls the same public API as production code. Exempt test files miss type errors on public API changes.
 
+### ⛔ Bug Fix Workflow — Mandatory
+
+When investigating a bug:
+
+1. **Write a failing test first.** Before touching the fix, write a test that
+   reproduces the problem. Run it and confirm it fails for the right reason.
+2. **Apply the fix.** Only after seeing the test fail.
+3. **Verify the test passes.** Run the test again. It must go green.
+4. **Verify no regressions.** Run the full test suite.
+5. **Report back to the user only after step 4 passes.** Never claim a fix is
+   complete until the tests confirm it.
+
+A test written after the fix can pass for the wrong reasons. The failing test
+is the evidence that the fix addresses the actual bug, not a coincidental
+symptom.
+
 ## Code Quality
 
 **Use `typing.Final` for constants — communicates intent, mypy rejects reassignment:**

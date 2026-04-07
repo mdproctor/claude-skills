@@ -139,6 +139,12 @@ Work through each category systematically to catch critical issues:
 
 ### 🟡 Testing (WARNING)
 
+**🔴 Bug fix submitted without a failing test committed before the fix** — CRITICAL.
+The fix may be correct but there is no evidence the test actually detected the
+bug. A test written after the fix can pass for the wrong reasons and provides
+no regression protection for this specific failure mode. Flag this regardless
+of language or framework.
+
 **Mocks hiding real issues** - mocked dependencies masking integration problems:
 - Database operations mocked instead of using real/in-memory DB
 - External APIs mocked without contract tests
