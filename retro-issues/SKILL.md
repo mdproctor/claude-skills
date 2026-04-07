@@ -360,6 +360,17 @@ Epic summary:
 Run `gh issue list --state closed --label epic` to review.
 ```
 
+Then commit `docs/retro-issues.md` as a permanent audit trail:
+
+```bash
+git add docs/retro-issues.md
+git commit -m "docs(retro-issues): retrospective issue mapping"
+```
+
+**Why keep it:** GitHub issues record outcomes; `docs/retro-issues.md` records the *reasoning* — how commits were grouped, what was excluded and why. Useful when re-running retro-issues later (avoids re-analysis) and when investigating why a commit isn't linked to a specific issue.
+
+**Never delete it** and **never add it to `.gitignore`** — it is a permanent project artifact.
+
 Then offer the optional commit-amendment step (Step 10).
 
 ---
@@ -402,6 +413,7 @@ Requires team coordination and a force push. Load [step10-amend.md](step10-amend
 
 Retrospective mapping is complete when:
 - ✅ `docs/retro-issues.md` written and user confirmed with YES
+- ✅ `docs/retro-issues.md` committed as a permanent audit trail after issues are created
 - ✅ All epics created with 2+ children (none with fewer)
 - ✅ All child issues created, closed, and linked in epic Scope checklists
 - ✅ All standalones created and closed
