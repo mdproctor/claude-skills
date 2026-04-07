@@ -231,6 +231,38 @@ For each section: has it changed since last handover?
 
 Overwrite the previous HANDOVER.md completely.
 
+### Step 5b — Suggest and offer to rename the session
+
+Claude Code has a built-in `/rename` command that renames the current session.
+Call it without arguments to auto-generate a name from context, or with an
+argument to set a specific name.
+
+**Before writing the handover**, generate a concise descriptive session name
+from the session's content — 2–4 words, suitable as a display title, e.g.
+"Hortora Design and Naming" or "Garden v2 Retrieval Redesign."
+
+Then check whether the session already has a meaningful name. The auto-generated
+names follow a random three-word pattern (e.g. `gleaming-stargazing-newell`,
+`mellow-hopping-simon`). If the session appears to still be using one of these:
+
+Present to the user:
+
+> **Rename this session?**
+>
+> Suggested name: **`<Suggested Name>`**
+>
+> Type `/rename <Suggested Name>` to apply it — or just `/rename` and Claude Code
+> will generate a name automatically from the conversation.
+
+Wait for the user to type `/rename` (or decline). Do not proceed with the
+handover commit until the naming step is resolved.
+
+**If the session already has a meaningful custom name** → skip this step silently.
+
+**Note:** `/rename` is a Claude Code built-in slash command, not a skill command.
+Claude cannot invoke it directly — the user must type it. The skill's job is to
+suggest the name and prompt at the right moment.
+
 ### Step 6 — Commit (required)
 
 ```bash
@@ -328,6 +360,7 @@ Handover is complete when:
 - ✅ write-blog invoked (if checked) — session diary entry written
 - ✅ design-snapshot invoked (if checked) — design state frozen
 - ✅ update-claude-md invoked (if checked) — CLAUDE.md synced
+- ✅ Session name offered — user was prompted to `/rename` or acknowledged the session already has a meaningful name
 - ✅ HANDOVER.md exists at project root
 - ✅ Readable in under 500 tokens
 - ✅ Unchanged sections reference git history, not repeated content
