@@ -46,7 +46,7 @@ extract context from those proposals automatically.
 
 ### Step 3 — Draft the ADR
 
-Use this MADR template:
+Use this MADR template. **Always replace `YYYY-MM-DD` with today's date (available in session context) — never show the placeholder to the user.**
 
 ```markdown
 # NNNN — <Short noun phrase title>
