@@ -23,7 +23,7 @@
 
 ## Immediate Next Step
 
-Start #36 — design project memory architecture: (1) design-snapshot as indexed folder with `INDEX.md` modelled on GARDEN.md dual-index, (2) cross-tool meta-index for lazy referencing across garden/blog/snapshot. Create an ADR or design doc before touching any files.
+Implement #36 — project memory architecture per ADR-0011. Start with design-snapshot: add `docs/design-snapshots/INDEX.md` modelled on GARDEN.md's dual-index (by date + by topic). Then define the cross-tool meta-index format so session-handoff can reference garden/blog/snapshot by path rather than content. Design doc first, no file changes until design is confirmed.
 
 ## Open Questions / Blockers
 
@@ -34,6 +34,7 @@ Start #36 — design project memory architecture: (1) design-snapshot as indexed
 
 | Context | Where | Retrieve with |
 |---------|-------|---------------|
+| ADR-0011 | `docs/adr/0011-index-and-lazy-reference-pattern.md` | `cat` |
 | Design snapshot | `docs/design-snapshots/2026-04-07-issue-tracking-and-v1.0.1.md` | `cat` |
 | Blog entry | `docs/blog/2026-04-07-mdp02-issue-tracking-live.md` | `cat` |
 | retro-issues audit trail | `docs/retro-issues.md` | `cat` |
