@@ -229,14 +229,41 @@ EOF
 it the `epic` label and create grandchild issues referencing it. The same title
 and body rules apply at every level.
 
+**Architectural distinctness → promote to sibling sub-epic.** When a concern is
+architecturally distinct from the sub-epic it would otherwise fall under, promote
+it to its own sub-epic at the parent level rather than burying it as a child issue.
+Example: "Rule Base & Registry" is an architectural lifecycle concern and should be
+a sibling sub-epic to "DSL arity permutations", not a child issue buried inside it.
+
+### Organise by capability area, not by timing
+
+**The primary axis for splitting work into epics and child issues is what is being
+done and which system area it touches — not when it will be done or in what order.**
+
+A well-named issue ("Data Store layer — PropagatingDataStore, subscription pattern")
+remains meaningful long after the work ships. A phase-named issue ("Phase 2 —
+foundation work") becomes meaningless immediately.
+
+Phases are acceptable as a *secondary* form of categorisation within an issue or
+epic — as acceptance-criteria checkboxes or an ordered task list — when a single
+issue has natural internal sequencing that genuinely helps project management. But
+phases must never be the primary organising principle of the issue hierarchy itself.
+
+| ✅ Organised by capability | ❌ Organised by timing |
+|---|---|
+| "Data Store layer — subscription pattern" | "Phase 2 — foundation work" |
+| "Rule Base & Registry — lifecycle hooks" | "Step 3 — registry" |
+| "DSL arity permutations — varargs capture" | "Phase 1b — DSL work" |
+
 ### Step 4 — Create child issues
 
 One issue per independent task. A task is independent if it can be reviewed,
 merged, and reverted on its own.
 
-**Title rules:** Same as epics — verb-first, outcome-focused.
+**Title rules:** Same as epics — verb-first, outcome-focused, capability-named.
 - ✅ "Implement myui_evaluate_javascript() to drive xterm.js from Java"
-- ❌ "JavaScript stuff" / "Task 3"
+- ✅ "Data Store layer — PropagatingDataStore and subscription pattern"
+- ❌ "JavaScript stuff" / "Task 3" / "Phase 2 work"
 
 ```bash
 gh issue create \
