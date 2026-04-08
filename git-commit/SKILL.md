@@ -205,6 +205,37 @@ Analyze the staged changes and draft one conventional commit message (see **[com
 
 Hold it — don't show it yet.
 
+### Step 3b — Squash check (unpushed commits only)
+
+Check recent unpushed commits:
+```bash
+git log @{u}..HEAD --oneline 2>/dev/null || git log origin/HEAD..HEAD --oneline 2>/dev/null
+```
+
+**If there are unpushed commits**, compare the most recent one(s) to the commit being drafted. Suggest squashing when:
+- Same conventional commit type (both `fix:`, both `feat:`, both `chore:`, etc.)
+- Related or overlapping scope — the two commits address the same concern
+- No meaningful history boundary between them (not two distinct logical steps)
+
+**Do NOT suggest squash when:**
+- Commits are logically separate steps worth preserving independently
+- Previous commit marks a milestone or completes a discrete unit of work
+- The branch has already been pushed — never squash pushed history
+
+**If squash is worth considering**, include in the Step 6 proposal:
+> **Squash option:** The previous commit `<hash> <message>` is also a `<type>` — squashing would produce a cleaner history. Reply **SQUASH** to combine, or **YES** to commit separately.
+
+If user replies **SQUASH**:
+```bash
+git reset --soft HEAD~1
+# Re-stage all (previous + new changes are now combined in working tree)
+# Commit with a single message covering the combined change
+```
+
+If no unpushed commits, or no squash benefit, continue silently.
+
+---
+
 ### Step 4 — Sync CLAUDE.md (if exists)
 
 Check if CLAUDE.md exists:
@@ -328,6 +359,8 @@ git log --oneline -1
 | Committing merge conflict markers | Broken code in history | Check diff for `<<<<<<<` markers first |
 | Forgetting BREAKING CHANGE footer | Hidden breaking changes | Add footer with `!` in type/scope |
 | Running commit without staged changes | Wastes time | Check `git status` first |
+| Leaving redundant same-type commits on an unpushed branch | Clutters history with no added value | Check Step 3b — squash consecutive same-type commits before they pile up |
+| Squashing pushed commits | Rewrites shared history; breaks others' branches | Only squash unpushed commits |
 
 ## Success Criteria
 
