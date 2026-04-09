@@ -51,55 +51,19 @@ yours from the start.
 
 ## Voice and Perspective Rules
 
-These are a brief orientation. The **complete and authoritative register rules**
-are in `write-blog/defaults/mandatory-rules.md` — loaded as Layer 1 of Step 0.
-Read this section as context; follow mandatory-rules.md as the binding specification.
+The **complete and authoritative register rules** are in
+`write-blog/defaults/mandatory-rules.md` — loaded as Layer 1 of Step 0.
+Follow mandatory-rules.md as the binding specification.
 
-**The developer's voice is "I"** — solo thinking, decisions made, what I
-believed. Not "Mark Proctor thought X." Not "the developer found." Just "I."
-
-> ✅ "I wanted something visual. A web app that showed all the skills."
-> ❌ "Mark Proctor decided to build a web installer."
-> ❌ "The developer believed X would work."
-
-**The collaborative voice is "we"** — when Claude is a material participant.
-Use "we" for work done together: things we built, bugs we found, decisions we
-worked through. The reader understands "we" means the developer and Claude
-collaborating.
-
-> ✅ "We built the entire UI as one index.html file."
-> ✅ "We discovered this the hard way after thinking everything was working."
-> ✅ "We fixed it by making git-commit a BIDIRECTIONAL_EXEMPT skill."
-
-**The rule:** "I" for what I thought, believed, wanted, or decided. "we" for
-what we actually built, tried, found, or fixed. If in doubt: was Claude a
-participant in doing this, or just hearing about it? "We" = Claude doing
-things under the developer's direction. "I" = the developer's perspective
-alone.
-
-**Never use third-person for the developer.** If the blog says "Mark Proctor
-built X" or "the user discovered Y," it's wrong. Fix it to "I built X" or
-"we discovered Y."
+**The rule in brief:** "I" for what I thought, believed, wanted, or decided.
+"we" for what we actually built, tried, found, or fixed together with Claude.
+Never third-person for the developer ("Mark Proctor", "the developer", "the user").
 
 ---
 
 ## Tone Calibration by Phase
 
-Different phases have different natural tones. Match the writing to the moment.
-
-| Phase | Natural tone | Model after |
-|-------|-------------|-------------|
-| **Day Zero** | Exploratory, honest about assumptions, energetic | "I thought this would be..." |
-| **Phase Update** | Problem-solution oriented, showing iteration | "We tried X — it failed because..." |
-| **Phase Update (architecture focus)** | Introspective, constraint-focused, thinking out loud | Short punchy sentences, then longer technical explanations |
-| **Pivot** | Honest about what was abandoned, clear about why | "We were wrong about X. Here's what actually happened." |
-| **Phase Update (milestone)** | Forward-looking, pragmatic, naming what was validated | "This phase proved that..." |
-
-**Signs the tone is wrong:**
-- Past tense throughout — sounds like a report, not a diary
-- "X was chosen because" — passive voice hides who decided
-- "Future work will determine" — distance from uncertainty, not honest engagement
-- Smooth narrative with no failed attempts — sanitised, not real
+Match tone to the phase — see **[entry-template.md](entry-template.md)** for the full table and signs the tone is wrong.
 
 ---
 
@@ -131,53 +95,7 @@ Previous entries are never edited — new entries reference them if needed.
 
 ## Entry Template
 
-```markdown
-# <Project Name> — <Phase Title>
-
-**Date:** YYYY-MM-DD
-**Type:** day-zero | phase-update | pivot | correction
-**Corrects:** [YYYY-MM-DD-entry](YYYY-MM-DD-entry.md) *(only for correction entries)*
-
----
-
-## What I was trying to achieve: <specific goal for this phase>
-*(or "What we were trying to achieve: ..." for collaborative phases)*
-
-<Context at this point. Where are we? What's the goal right now?
-Write for a reader who hasn't followed the project — 2–4 sentences.>
-
-## What we believed going in: <the assumption that turned out to matter>
-
-<Assumptions, expectations, what I thought would happen. Include things that
-turned out to be wrong — that's the point. Write what you actually believed,
-not what you wish you'd believed.>
-
-## <Thematic heading for the bulk of the work — name what actually happened>
-*(e.g. "Three install attempts and a taxonomy", "The --skills flag that didn't exist",
-"Six pivots, zero architecture changes". If this section has distinct sub-stories,
-use thematic H3s beneath it rather than one undifferentiated block.)*
-
-<The actual work done. For planning sessions: decisions made and why.
-For implementation: what was built, bugs found, unexpected constraints,
-real vs expected behaviour. Be specific — include exact error messages,
-command output, file paths. "No error" is important context.>
-
-## What changed and why: <the pivot or constraint that forced it>
-
-<If anything pivoted, was rejected, or turned out differently than expected —
-explain what changed and what caused it. Include what was tried before.
-Omit this section if nothing changed.>
-
-## What it is now
-*(or another thematic close — "The discipline is the work", "Where this leaves us")*
-
-<Current state and thinking, knowing it may change again. Honest about remaining
-uncertainty. Don't pretend to certainty you don't have. End naturally — no
-summary of what was just said, no "Thanks for reading". If there's a
-forward-looking note, integrate it as a sentence here, not as a footer.>
-```
-
-**These headings are starting points, not rigid slots.** If a heading already has thematic character — `## The Pivots (There Were Several)`, `## Six Pivots, Zero Architecture Changes` — keep it. The structural label (`What we tried:`) is additive scaffolding, not a replacement. If a section heading is already specific and interesting, adding a structural prefix is optional. If it's a bare slot with no content, pair it with a thematic description. Never trade a heading that has personality for one that doesn't.
+Full template and heading guidance: **[entry-template.md](entry-template.md)**
 
 ---
 
@@ -208,31 +126,9 @@ retrospective dressed up as one:
 
 ## Visual Elements
 
-Visual content makes posts readable and credible. Three kinds:
+Three kinds: code blocks (show the real snippet), illustrations (web-sourced or AI-generated), screenshots (mandatory for UI work — clip to the relevant area).
 
-**Code blocks** — show the actual code that matters. Not a summary, not a reference
-to a file — the real snippet. If the logic is interesting, show it. Short is better;
-extract the 5–10 lines that tell the story.
-
-**Illustrations** — small images that give the post visual rhythm. Sources:
-- Web search for a relevant diagram, photo, or graphic (`WebSearch` + `WebFetch`)
-- AI-generated illustration for the specific concept (note source in alt text)
-
-Save to `blog/images/<YYYY-MM-DD-slug-description>.png` and reference as:
-```markdown
-![alt text describing the image](images/YYYY-MM-DD-slug-description.png)
-```
-
-One illustration per major section is enough. Don't illustrate for its own sake —
-only when a visual genuinely adds something the prose doesn't.
-
-**Screenshots** — mandatory for any UI work. Rules:
-- Clip to the relevant component or area — full-page screenshots create scroll and lose focus
-- If multiple states matter (before/after, hover, error), include both clipped side by side or sequentially
-- The user provides the screenshot file; save to `blog/images/` alongside the entry
-- Reference with descriptive alt text: `![The skill chain graph showing bidirectional links](images/...)` not `![screenshot]`
-
-**If a section covers UI work and has no screenshot, the entry is incomplete.**
+Full rules and image path conventions: **[visual-elements.md](visual-elements.md)**
 
 ---
 
@@ -510,19 +406,7 @@ flowchart TD
 
 ## Before you commit: heading smell check
 
-After writing or editing headings, run these five checks. Each one catches a specific failure mode.
-
-**1. The character drain check.** Read just the H2 headings in order, like a table of contents. Could any of them appear unchanged in a completely different blog post about a completely different project? If yes, they've lost their specificity. `## What we tried` could be in any post ever written. `## The Pivots (There Were Several)` belongs to this one.
-
-**2. The before/after check.** For every heading you changed, ask: did the new version gain something, lose something, or both? If the new version is shorter and more generic — stop. You replaced thematic content with structural scaffolding. Changes should add, never only subtract.
-
-**3. The dropped heading check.** For every heading that existed before your edit and doesn't exist after — where did its content go? If the answer is "I merged it into another section," check that the merged section still has a heading that signals what the content is. Merging two sections into headingless prose quietly buries the structure the reader was using.
-
-**4. The H2 container check.** If you have an H2 with H3 subsections beneath it, read the H2 alone. Does it say anything interesting? `## What we tried` says nothing — the H3s do all the work. But H3s are invisible to a scanner. The H2 needs to carry meaning too.
-
-**5. The substitution test.** For any heading you replaced, ask: if the original author saw this new heading, would they recognise it as an improvement or feel like something was lost? A thematic heading that someone wrote with care — `## Six Pivots, Zero Architecture Changes`, `## The GCD Block That Never Ran` — signals intent. Replacing it with a structural slot signals you didn't read it carefully.
-
-**The underlying principle:** thematic headings are primary, structural labels are additive. Before changing any heading, ask: am I adding value or extracting it?
+Run the five checks in **[heading-checks.md](heading-checks.md)** before committing any entry.
 
 ---
 
