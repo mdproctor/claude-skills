@@ -2,9 +2,15 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Move all methodology artifacts (handovers, snapshots, ADRs, idea-log, blog) out of project repos and into dedicated workspace directories at `~/claude/private/<project>/` or `~/claude/public/<project>/`.
+**Goal:** Move all methodology artifacts out of project repos into dedicated workspace directories. Claude opens in the workspace (CWD). Skills write to CWD-relative paths. A CLAUDE.md symlink in the project gives full config when someone opens there by mistake.
 
-**Architecture:** Claude opens in the workspace (CWD), adds the project repo via `add-dir`. Skills write to CWD-relative paths (no `docs/` prefix). A new `workspace-init` skill bootstraps the workspace structure for any project. Existing skills get path-only updates — no workflow changes.
+**Architecture:**
+- CWD = workspace (`~/claude/private/<project>/` or `~/claude/public/<project>/`)
+- Project accessible via `add-dir` — instructed automatically by workspace CLAUDE.md session-start
+- CLAUDE.md in project = gitignored symlink → workspace CLAUDE.md (one source of truth)
+- `.git/info/exclude` hides the symlink (never touches tracked `.gitignore`)
+- `workspace-init` creates everything: dirs, routing CLAUDE.md, symlink, exclude entry, git init
+- All skills (cc-praxis + superpowers + any third-party) write to CWD = workspace universally
 
 **Tech Stack:** Markdown skills, bash, Python validators, pytest
 
@@ -16,12 +22,16 @@
 - `workspace-init/SKILL.md`
 - `workspace-init/commands/workspace-init.md`
 
-**Modify (path updates only):**
+**Modify (path updates — remove `docs/` prefix):**
 - `idea-log/SKILL.md` — `docs/ideas/IDEAS.md` → `IDEAS.md`
 - `adr/SKILL.md` — `docs/adr/` → `adr/`
 - `design-snapshot/SKILL.md` — `docs/design-snapshots/` → `snapshots/`, `docs/adr/` → `adr/`
-- `write-blog/SKILL.md` — `docs/blog/` → `blog/`
-- `handover/SKILL.md` — `docs/design-snapshots/` → `snapshots/`, `docs/write-blog/` → `blog/`, `docs/adr/` → `adr/`
+- `write-blog/SKILL.md` — `docs/blog/` → `blog/` *(already updated for images — verify paths only)*
+- `handover/SKILL.md` — `snapshots/`, `blog/`, `adr/` *(already updated — verify)*
+- `handover/handover-reference.md` — `snapshots/`, `blog/`, `IDEAS.md` *(already updated — verify)*
+
+**Modify (hook):**
+- `~/.claude/hooks/check_project_setup.sh` — add HANDOVER.md prompt + workspace check
 
 **Update (metadata):**
 - `.claude-plugin/marketplace.json` — add `workspace-init`
@@ -47,17 +57,18 @@ name: workspace-init
 description: >
   Use when setting up a workspace for a project for the first time — user says
   "init workspace", "set up workspace", "create workspace for <project>", or
-  invokes /workspace-init. Creates the workspace directory structure, CLAUDE.md,
-  git repo, and GitHub remote. NOT for day-to-day workspace use — one-time setup only.
+  invokes /workspace-init. Creates the workspace directory structure, routing
+  CLAUDE.md, gitignored CLAUDE.md symlink in the project, and git repo.
+  NOT for day-to-day workspace use — one-time setup per project per machine.
 ---
 
 # Workspace Init
 
-Creates a companion workspace for a project at `~/claude/private/<project>/`
-or `~/claude/public/<project>/`. Run once per project, per machine.
+Creates a companion workspace at `~/claude/private/<project>/` or
+`~/claude/public/<project>/`. Run once per project, per machine.
 
-After running, open Claude in the workspace directory and add the project via
-`add-dir /path/to/project`.
+After running, open Claude in the workspace — CLAUDE.md instructs Claude to
+`add-dir` the project automatically at session start.
 
 ---
 
@@ -66,12 +77,12 @@ After running, open Claude in the workspace directory and add the project via
 ### Step 1 — Gather inputs
 
 Ask the user for:
-1. **Project name** — used as the workspace directory name (e.g. `cc-praxis`)
+1. **Project name** — workspace directory name (e.g. `cc-praxis`)
 2. **Privacy** — `private` or `public`
-3. **Absolute path to project** — where the project lives or will live (e.g. `/Users/you/projects/cc-praxis`)
-4. **GitHub remote URL** for the workspace repo — optional; skip if not ready yet
+3. **Absolute path to project** — where it lives or will live
+4. **GitHub remote URL** for the workspace repo — optional; can add later
 
-Then check the project path:
+Check the project path state:
 
 ```bash
 if [ -d "<project-path>" ]; then
@@ -79,25 +90,24 @@ if [ -d "<project-path>" ]; then
   if [ -d "<project-path>/.git" ]; then
     echo "Git repo: yes"
   else
-    echo "Git repo: no (that's fine — workspace-init doesn't require one)"
+    echo "Git repo: no (fine — workspace-init does not require one)"
   fi
 else
-  echo "Project directory does not exist yet — recording intended path"
+  echo "Project directory does not exist yet — recording intended path only"
 fi
 ```
 
-Tell the user what was found and confirm before proceeding. The workspace can
-be created regardless of whether the project directory or git repo exists yet —
-the path in workspace CLAUDE.md is just a pointer.
+Confirm with the user before proceeding. The workspace can be created
+regardless of whether the project directory or git repo exists.
 
 ### Step 2 — Create directory structure
 
 ```bash
 BASE=~/claude/<privacy>/<project>
-mkdir -p "$BASE/snapshots" "$BASE/adr" "$BASE/blog"
+mkdir -p "$BASE/snapshots" "$BASE/adr" "$BASE/blog" "$BASE/specs" "$BASE/plans"
 ```
 
-### Step 3 — Create INDEX.md in each subfolder
+### Step 3 — Create INDEX.md in multi-file folders
 
 ```bash
 cat > "$BASE/snapshots/INDEX.md" << 'EOF'
@@ -122,6 +132,8 @@ cat > "$BASE/blog/INDEX.md" << 'EOF'
 EOF
 ```
 
+(`specs/` and `plans/` need no INDEX.md — superpowers manages them directly.)
+
 ### Step 4 — Create HANDOVER.md and IDEAS.md stubs
 
 ```bash
@@ -139,7 +151,7 @@ Promote to an ADR when ready to decide; discard when no longer relevant.
 EOF
 ```
 
-### Step 5 — Create workspace CLAUDE.md
+### Step 5 — Create workspace CLAUDE.md (routing hub)
 
 ```bash
 cat > "$BASE/CLAUDE.md" << EOF
@@ -148,24 +160,56 @@ cat > "$BASE/CLAUDE.md" << EOF
 **Project repo:** <absolute-path-to-project>
 **Workspace type:** <private|public>
 
+## Session Start
+
+Run \`add-dir <absolute-path-to-project>\` before any other work.
+
+## Artifact Locations
+
+| Skill | Writes to |
+|-------|-----------|
+| brainstorming (specs) | \`specs/\` |
+| writing-plans (plans) | \`plans/\` |
+| handover | \`HANDOVER.md\` |
+| idea-log | \`IDEAS.md\` |
+| design-snapshot | \`snapshots/\` |
+| adr | \`adr/\` |
+| write-blog | \`blog/\` |
+
 ## Structure
 
 - \`HANDOVER.md\` — session handover (single file, overwritten each session)
 - \`IDEAS.md\` — idea log (single file)
+- \`specs/\` — brainstorming / design specs (superpowers output)
+- \`plans/\` — implementation plans (superpowers output)
 - \`snapshots/\` — design snapshots with INDEX.md (auto-pruned, max 10)
 - \`adr/\` — architecture decision records with INDEX.md
 - \`blog/\` — project diary entries with INDEX.md
 
 ## Rules
 
-- Always read HANDOVER.md at the start of each session
 - All methodology artifacts go here, not in the project repo
-- Promotion to project repo (e.g. ADRs at epic close) is always explicit — never automatic
-- When committing workspace content, keep it separate from project commits
+- Promotion to project repo is always explicit — never automatic
+- Workspace branches mirror project branches — switch both together
 EOF
 ```
 
-### Step 6 — Create .gitignore
+### Step 6 — Create gitignored CLAUDE.md symlink in project
+
+```bash
+# Create the symlink
+ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
+
+# Hide it from git — ALWAYS use .git/info/exclude, never .gitignore
+# Works for any project regardless of ownership (Drools, upstream repos, etc.)
+echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
+```
+
+If the project directory does not exist yet, skip this step and tell the user:
+> "Symlink skipped — project directory doesn't exist yet. Re-run
+> `/workspace-init` after creating the project to add the symlink."
+
+### Step 7 — Create .gitignore for workspace
 
 ```bash
 cat > "$BASE/.gitignore" << 'EOF'
@@ -173,9 +217,7 @@ cat > "$BASE/.gitignore" << 'EOF'
 EOF
 ```
 
-### Step 7 — Initialise git and push
-
-Always init git (the workspace is always a git repo):
+### Step 8 — Initialise git and push
 
 ```bash
 cd "$BASE"
@@ -191,42 +233,45 @@ git remote add origin <github-remote-url>
 git push -u origin main
 ```
 
-If no remote URL was provided, tell the user:
-
-> Remote not configured. When ready, run:
+If no remote URL provided, tell the user:
+> Remote not configured. When ready:
 > ```bash
 > git remote add origin <your-github-url>
 > git push -u origin main
 > ```
 
-### Step 8 — Confirm
-
-Tell the user:
+### Step 9 — Confirm
 
 > ✅ Workspace created at `~/claude/<privacy>/<project>/`
 >
-> **Next steps:**
+> **To start working:**
 > 1. Open Claude in `~/claude/<privacy>/<project>/`
-> 2. Run `add-dir <absolute-path-to-project>` to make the project accessible
-> 3. Claude will read `CLAUDE.md` automatically and know where to write artifacts
+> 2. CLAUDE.md will instruct Claude to run `add-dir` on the project automatically
+>
+> **Symlink status:** CLAUDE.md in the project points to this workspace CLAUDE.md.
+> Opening Claude in the project by mistake will still load full config.
 
 ---
 
 ## Success Criteria
 
-- [ ] Directory exists at `~/claude/private/<project>/` or `~/claude/public/<project>/`
-- [ ] `CLAUDE.md` contains correct project path and workspace type
+- [ ] Directory exists at correct path with all subdirs
+- [ ] `CLAUDE.md` contains session-start `add-dir` instruction and artifact locations table
 - [ ] `HANDOVER.md` and `IDEAS.md` exist as stubs
 - [ ] `snapshots/INDEX.md`, `adr/INDEX.md`, `blog/INDEX.md` exist
+- [ ] `specs/` and `plans/` directories exist
 - [ ] `.gitignore` exists
+- [ ] CLAUDE.md symlink exists in project (if project dir existed)
+- [ ] `CLAUDE.md` in `.git/info/exclude` of project (if project dir existed)
 - [ ] Git repo initialised with initial commit
-- [ ] Remote set and pushed
+- [ ] Remote set and pushed (if URL provided)
 
 ---
 
 ## Skill Chaining
 
-**Invoked by:** User directly at project setup time
+**Invoked by:** User directly at project setup time; session-start hook when
+no workspace is detected
 
 **Does not chain to anything** — one-time setup skill
 ```
@@ -235,10 +280,10 @@ Tell the user:
 
 ```markdown
 ---
-description: Set up a workspace directory for a project — run once per project to create ~/claude/private/<project>/ or ~/claude/public/<project>/
+description: One-time workspace setup for a project — creates ~/claude/private/<project>/ with full structure, routing CLAUDE.md, and gitignored project symlink
 ---
 
-Invoke the `workspace-init` skill to create a new project workspace.
+Invoke the `workspace-init` skill to set up a new project workspace.
 ```
 
 - [ ] **Step 3: Run validators**
@@ -247,7 +292,7 @@ Invoke the `workspace-init` skill to create a new project workspace.
 python3 scripts/validate_all.py --tier commit
 ```
 
-Expected: PASS (or only warnings unrelated to new skill)
+Expected: PASS
 
 - [ ] **Step 4: Commit**
 
@@ -263,25 +308,16 @@ git commit -m "feat(workspace-init): add workspace setup skill"
 **Files:**
 - Modify: `idea-log/SKILL.md`
 
-The skill currently writes to `docs/ideas/IDEAS.md`. In workspace model, CWD is
-the workspace, so the path becomes simply `IDEAS.md`.
+- [ ] **Step 1: Replace all `docs/ideas/IDEAS.md` occurrences with `IDEAS.md`**
 
-- [ ] **Step 1: Replace all `docs/ideas/IDEAS.md` with `IDEAS.md`**
+```bash
+grep -n "docs/ideas" idea-log/SKILL.md
+```
 
-In `idea-log/SKILL.md`, replace every occurrence of `docs/ideas/IDEAS.md` with `IDEAS.md`:
+Change every occurrence. Also remove any `mkdir -p docs/ideas` lines —
+workspace-init creates IDEAS.md at setup.
 
-Lines to change:
-- Line ~40: `docs/ideas/IDEAS.md` → `IDEAS.md`
-- Line ~87: `grep -i "<keyword>" docs/ideas/IDEAS.md 2>/dev/null` → `grep -i "<keyword>" IDEAS.md 2>/dev/null`
-- Line ~94: `create docs/ideas/ if needed` — remove this parenthetical entirely (workspace-init creates IDEAS.md at setup)
-- Line ~211: `docs/ideas/IDEAS.md` → `IDEAS.md`
-- Line ~244: `docs/ideas/IDEAS.md` → `IDEAS.md`
-
-- [ ] **Step 2: Remove `docs/ideas/` directory creation references**
-
-Find and remove any `mkdir -p docs/ideas` lines — workspace-init handles setup.
-
-- [ ] **Step 3: Verify with grep**
+- [ ] **Step 2: Verify**
 
 ```bash
 grep "docs/ideas" idea-log/SKILL.md
@@ -289,13 +325,13 @@ grep "docs/ideas" idea-log/SKILL.md
 
 Expected: no output
 
-- [ ] **Step 4: Run validators**
+- [ ] **Step 3: Run validators**
 
 ```bash
 python3 scripts/validate_all.py --tier commit
 ```
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add idea-log/SKILL.md
@@ -309,21 +345,15 @@ git commit -m "feat(idea-log): write to workspace IDEAS.md instead of docs/ideas
 **Files:**
 - Modify: `adr/SKILL.md`
 
-The skill currently writes to `docs/adr/`. In workspace model: `adr/`.
-
-- [ ] **Step 1: Replace all `docs/adr/` with `adr/`**
+- [ ] **Step 1: Replace all `docs/adr/` occurrences with `adr/`**
 
 ```bash
 grep -n "docs/adr" adr/SKILL.md
 ```
 
-Use that output to find every occurrence. Change:
-- `docs/adr/` → `adr/`
-- `ls docs/adr/` → `ls adr/`
-- `mkdir -p docs/adr` — remove (workspace-init creates `adr/`)
-- References to `../adr/` in cross-reference links within snapshot files → `../adr/` stays (relative links within workspace are fine)
+Change every occurrence. Remove `mkdir -p docs/adr` — workspace-init creates `adr/`.
 
-- [ ] **Step 2: Add INDEX.md maintenance to the write step**
+- [ ] **Step 2: Add INDEX.md maintenance after write step**
 
 After the step that writes the ADR file, add:
 
@@ -346,7 +376,7 @@ Expected: no output
 python3 scripts/validate_all.py --tier commit
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add adr/SKILL.md
@@ -360,20 +390,14 @@ git commit -m "feat(adr): write to workspace adr/ with INDEX.md maintenance"
 **Files:**
 - Modify: `design-snapshot/SKILL.md`
 
-The skill currently writes to `docs/design-snapshots/` and cross-references `docs/adr/`.
-In workspace model: `snapshots/` and `adr/`.
-
 - [ ] **Step 1: Replace `docs/design-snapshots/` with `snapshots/`**
 
 ```bash
 grep -n "docs/design-snapshots" design-snapshot/SKILL.md
 ```
 
-Change every occurrence:
-- `docs/design-snapshots/` → `snapshots/`
-- `ls docs/design-snapshots/` → `ls snapshots/`
-- `mkdir -p docs/design-snapshots` → remove (workspace-init creates `snapshots/`)
-- Filename pattern: `docs/design-snapshots/YYYY-MM-DD-<topic>.md` → `snapshots/YYYY-MM-DD-<topic>.md`
+Change every occurrence. Remove `mkdir -p docs/design-snapshots`.
+Filename pattern: `snapshots/YYYY-MM-DD-<topic>.md`
 
 - [ ] **Step 2: Replace `docs/adr/` cross-references with `adr/`**
 
@@ -381,26 +405,23 @@ Change every occurrence:
 grep -n "docs/adr" design-snapshot/SKILL.md
 ```
 
-Change `docs/adr/` → `adr/`
+- [ ] **Step 3: Add snapshot auto-pruning to write step**
 
-- [ ] **Step 3: Update snapshot auto-pruning reference**
-
-Ensure the skill mentions the auto-prune behaviour (max 10, oldest removed,
-each references predecessor). Add to the write step if not present:
+After writing the snapshot file:
 
 ```markdown
-**Auto-pruning:** After writing, count files in `snapshots/` (excluding INDEX.md).
-If count exceeds 10 (or the limit in workspace CLAUDE.md), delete the oldest file.
-Update INDEX.md to remove the deleted entry.
+**Auto-pruning:** Count files in `snapshots/` (excluding INDEX.md).
+If count exceeds 10 (or the limit declared in workspace CLAUDE.md):
+- Delete the oldest file
+- Update INDEX.md to remove the deleted entry
+Each snapshot should reference its predecessor for git chain navigation.
 ```
 
-- [ ] **Step 4: Update INDEX.md maintenance**
-
-The skill should update `snapshots/INDEX.md` after writing each snapshot:
+- [ ] **Step 4: Add INDEX.md maintenance to write step**
 
 ```markdown
-After writing the snapshot file, append a row to `snapshots/INDEX.md`:
-| [YYYY-MM-DD-topic.md](YYYY-MM-DD-topic.md) | YYYY-MM-DD | <one-line topic summary> |
+After writing the snapshot, append a row to `snapshots/INDEX.md`:
+| [YYYY-MM-DD-topic.md](YYYY-MM-DD-topic.md) | YYYY-MM-DD | <one-line summary> |
 ```
 
 - [ ] **Step 5: Verify**
@@ -411,135 +432,63 @@ grep "docs/design-snapshots\|docs/adr" design-snapshot/SKILL.md
 
 Expected: no output
 
-- [ ] **Step 6: Run validators**
+- [ ] **Step 6: Run validators and commit**
 
 ```bash
 python3 scripts/validate_all.py --tier commit
-```
-
-- [ ] **Step 7: Commit**
-
-```bash
 git add design-snapshot/SKILL.md
 git commit -m "feat(design-snapshot): write to workspace snapshots/ with auto-pruning and INDEX.md"
 ```
 
 ---
 
-## Task 5: Update `write-blog` paths
+## Task 5: Verify `write-blog` paths
 
 **Files:**
-- Modify: `write-blog/SKILL.md`
+- Verify: `write-blog/SKILL.md` *(updated this session for images — confirm all paths)*
 
-The skill currently writes to `docs/blog/`. In workspace model: `blog/`.
-The CLAUDE.md style-guide pointer check should target workspace CLAUDE.md (already CWD).
-
-- [ ] **Step 1: Replace `docs/blog/` with `blog/`**
+- [ ] **Step 1: Verify no remaining `docs/blog` references**
 
 ```bash
-grep -n "docs/blog" write-blog/SKILL.md
+grep "docs/blog" write-blog/SKILL.md
 ```
 
-Change every occurrence:
-- `docs/blog/` → `blog/`
-- `ls docs/blog/` → `ls blog/`
-- `mkdir -p docs/blog` → remove (workspace-init creates `blog/`)
-- Filename pattern: `docs/blog/YYYY-MM-DD-<initials>NN-<title>.md` → `blog/YYYY-MM-DD-<initials>NN-<title>.md`
-- Success criteria: `docs/blog/YYYY-MM-DD-...` → `blog/YYYY-MM-DD-...`
-- Flowchart node: `Write to\ndocs/blog/` → `Write to\nblog/`
+Expected: no output (these were already updated)
 
-- [ ] **Step 2: Update the CLAUDE.md style guide check**
-
-The check at Step 0c looks for the style guide pointer in CLAUDE.md. In the
-workspace model, this is the workspace CLAUDE.md (already CWD). No path change
-needed — `CLAUDE.md` without a prefix already resolves to CWD. Verify the
-check uses no `docs/` prefix:
+- [ ] **Step 2: Verify image path is `blog/images/`**
 
 ```bash
-grep "CLAUDE.md" write-blog/SKILL.md | head -5
+grep "images" write-blog/SKILL.md | head -5
 ```
 
-Expected: references to `CLAUDE.md` only (no `docs/CLAUDE.md`)
+Expected: references to `blog/images/` not `docs/blog/images/`
 
-- [ ] **Step 3: Update blog INDEX.md maintenance**
+- [ ] **Step 3: Add INDEX.md maintenance if missing**
 
-After writing a blog entry, the skill should append to `blog/INDEX.md`:
+After the write step, ensure INDEX.md is updated:
 
 ```markdown
 After writing the entry, append a row to `blog/INDEX.md`:
 | [YYYY-MM-DD-initials-title.md](YYYY-MM-DD-initials-title.md) | YYYY-MM-DD | <one-line summary> |
 ```
 
-- [ ] **Step 4: Verify**
-
-```bash
-grep "docs/blog" write-blog/SKILL.md
-```
-
-Expected: no output
-
-- [ ] **Step 5: Run validators**
+- [ ] **Step 4: Run validators and commit if changed**
 
 ```bash
 python3 scripts/validate_all.py --tier commit
-```
-
-- [ ] **Step 6: Commit**
-
-```bash
 git add write-blog/SKILL.md
-git commit -m "feat(write-blog): write to workspace blog/ with INDEX.md maintenance"
+git commit -m "feat(write-blog): verify workspace paths and add INDEX.md maintenance"
 ```
 
 ---
 
-## Task 6: Update `handover` reference-building paths
+## Task 6: Verify `handover` paths
 
 **Files:**
-- Modify: `handover/SKILL.md`
+- Verify: `handover/SKILL.md`
+- Verify: `handover/handover-reference.md` *(updated this session)*
 
-The skill's Step 4 builds a references table by listing `docs/design-snapshots/`,
-`docs/write-blog/`, and `docs/adr/`. These become `snapshots/`, `blog/`, `adr/`.
-The `HANDOFF.md` filename itself is already CWD-relative — no change needed there.
-
-- [ ] **Step 1: Update Step 4 reference-building commands**
-
-Find lines ~218-220 in `handover/SKILL.md`:
-
-```bash
-# Current (to remove):
-ls docs/design-snapshots/ | sort | tail -1   # latest snapshot path
-ls docs/write-blog/ | sort | tail -1       # latest blog entry path
-ls docs/adr/ | sort | tail -3                # recent ADRs
-```
-
-Replace with:
-
-```bash
-ls snapshots/ | grep -v INDEX.md | sort | tail -1   # latest snapshot path
-ls blog/ | grep -v INDEX.md | sort | tail -1         # latest blog entry path
-ls adr/ | grep -v INDEX.md | sort | tail -3          # recent ADRs
-```
-
-- [ ] **Step 2: Update `handover/handover-reference.md` paths**
-
-In `handover/handover-reference.md`, lines ~41-44 contain the routing table. Change:
-
-```markdown
-| Design state | `docs/design-snapshots/<latest>.md` | `cat` that file |
-| Project narrative | `docs/write-blog/<latest>.md` | `cat` that file |
-| Open ideas | `docs/ideas/IDEAS.md` | `cat` that file |
-```
-
-To:
-
-```markdown
-| Design state | `snapshots/<latest>.md` | `cat` that file |
-| Project narrative | `blog/<latest>.md` | `cat` that file |
-| Open ideas | `IDEAS.md` | `cat` that file |
-```
-
-- [ ] **Step 3: Verify no remaining `docs/` references**
+- [ ] **Step 1: Verify no `docs/` references remain in either file**
 
 ```bash
 grep "docs/" handover/SKILL.md handover/handover-reference.md
@@ -547,22 +496,89 @@ grep "docs/" handover/SKILL.md handover/handover-reference.md
 
 Expected: no output
 
-- [ ] **Step 4: Run validators**
-
-```bash
-python3 scripts/validate_all.py --tier commit
-```
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 2: If any found, fix and commit**
 
 ```bash
 git add handover/SKILL.md handover/handover-reference.md
-git commit -m "feat(handover): update reference-building paths to workspace layout"
+git commit -m "feat(handover): verify workspace paths complete"
 ```
 
 ---
 
-## Task 7: Update metadata and tooling
+## Task 7: Update session-start hook
+
+**Files:**
+- Modify: `~/.claude/hooks/check_project_setup.sh`
+
+- [ ] **Step 1: Read current hook**
+
+```bash
+cat ~/.claude/hooks/check_project_setup.sh
+```
+
+- [ ] **Step 2: Add HANDOVER.md prompt after project type check**
+
+Insert after the project-type block, before the Work Tracking check:
+
+```bash
+# Check for HANDOVER.md and prompt to read it
+if [ -f "HANDOVER.md" ]; then
+  LAST_UPDATED=$(git log -1 --format="%ar" -- HANDOVER.md 2>/dev/null || echo "unknown age")
+  echo "📋 HANDOVER.md found (last updated: $LAST_UPDATED)."
+  echo "Before starting: ask the user 'Read your session handover? (y/n)' — if yes, read and briefly summarise HANDOVER.md."
+  # Check staleness
+  DAYS=$(git log -1 --format="%ct" -- HANDOVER.md 2>/dev/null | awk -v now="$(date +%s)" '{print int((now-$1)/86400)}')
+  if [ -n "$DAYS" ] && [ "$DAYS" -gt 7 ]; then
+    echo "⚠️ Handover is $DAYS days old — flag as potentially stale before summarising."
+  fi
+fi
+```
+
+- [ ] **Step 3: Add workspace check**
+
+Insert after the HANDOVER.md block:
+
+```bash
+# Check for workspace CLAUDE.md session-start instruction
+if grep -q "## Session Start" CLAUDE.md 2>/dev/null; then
+  : # Workspace configured — session-start add-dir will handle project access
+elif grep -q "Project Type" CLAUDE.md 2>/dev/null; then
+  echo "ℹ️  No workspace configured for this project."
+  echo "Run /workspace-init to create ~/claude/private/<project>/ and set up the companion workspace."
+  echo "(Keeps methodology artifacts out of the project repo)"
+fi
+```
+
+- [ ] **Step 4: Test the hook**
+
+```bash
+bash ~/.claude/hooks/check_project_setup.sh
+```
+
+Expected: runs without errors; output reflects current project state
+
+- [ ] **Step 5: Sync hook to repo**
+
+The hook lives at `~/.claude/hooks/` and is managed by `install-skills`. Check
+whether `install-skills/SKILL.md` needs updating to reflect the new hook content.
+
+```bash
+grep -n "check_project_setup" install-skills/SKILL.md | head -10
+```
+
+If the hook script is embedded in `install-skills/SKILL.md`, update it there too
+and run sync-local.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add install-skills/SKILL.md  # if updated
+git commit -m "feat(hook): add HANDOVER.md read prompt and workspace check to session-start"
+```
+
+---
+
+## Task 8: Update metadata and tooling
 
 **Files:**
 - Modify: `.claude-plugin/marketplace.json`
@@ -572,50 +588,47 @@ git commit -m "feat(handover): update reference-building paths to workspace layo
 
 - [ ] **Step 1: Add `workspace-init` to marketplace.json**
 
-Find the plugins array in `.claude-plugin/marketplace.json` and add:
-
 ```json
 {
   "name": "workspace-init",
   "source": "./workspace-init",
-  "description": "One-time workspace setup for a project — creates ~/claude/private/<project>/ or ~/claude/public/<project>/ with the full directory structure, CLAUDE.md, and git remote",
+  "description": "One-time workspace setup — creates ~/claude/private/<project>/ with routing CLAUDE.md, gitignored project symlink, and full directory structure",
   "version": "1.0.0-SNAPSHOT"
 }
 ```
 
-- [ ] **Step 2: Add `workspace-init` to ALL_SKILLS in test file**
+- [ ] **Step 2: Add `workspace-init` to ALL_SKILLS and CHAINING_TRUTH in test file**
 
-In `tests/test_mockup_chaining.py`, find the `ALL_SKILLS` set and add `'workspace-init'`.
-
-- [ ] **Step 3: Add `workspace-init` to CHAINING_TRUTH in test file**
-
-In `tests/test_mockup_chaining.py`, find `CHAINING_TRUTH` and add:
+In `tests/test_mockup_chaining.py`:
 
 ```python
+# In ALL_SKILLS set:
+'workspace-init',
+
+# In CHAINING_TRUTH dict:
 'workspace-init': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
 ```
 
-- [ ] **Step 4: Add `workspace-init` to generate_web_app_data.py and validate_web_app.py**
+- [ ] **Step 3: Add `workspace-init` to both scripts**
 
-In both scripts, find the `ALL_SKILLS` set and add `'workspace-init'`.
+In `scripts/generate_web_app_data.py` and `scripts/validation/validate_web_app.py`,
+find the `ALL_SKILLS` set and add `'workspace-init'`.
 
-- [ ] **Step 5: Generate slash command file**
+- [ ] **Step 4: Generate slash command file**
 
 ```bash
 python3 scripts/generate_commands.py
 ```
 
-Verify `workspace-init/commands/workspace-init.md` exists (already created in Task 1).
-
-- [ ] **Step 6: Run full test suite**
+- [ ] **Step 5: Run full test suite**
 
 ```bash
 python3 -m pytest tests/ -v
 ```
 
-Expected: all tests pass
+Expected: all pass
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add .claude-plugin/marketplace.json tests/test_mockup_chaining.py \
@@ -625,67 +638,59 @@ git commit -m "chore: register workspace-init in marketplace and test fixtures"
 
 ---
 
-## Task 8: Update CLAUDE.md and README.md
+## Task 9: Update CLAUDE.md and README.md
 
-**Files:**
-- Modify: `CLAUDE.md`
-- Modify: `README.md`
+- [ ] **Step 1: Add `workspace-init` to Key Skills in CLAUDE.md**
 
-- [ ] **Step 1: Add `workspace-init` to Key Skills section in CLAUDE.md**
-
-Find the `## Key Skills` section. Under "Skill manager:", add after `cc-praxis-ui`:
+Under `## Key Skills`, add a new **Workspace** group:
 
 ```markdown
 **Workspace:**
-- `workspace-init` — one-time setup skill; creates `~/claude/private/<project>/` or `~/claude/public/<project>/` with full directory structure, CLAUDE.md, and git remote
+- `workspace-init` — one-time setup; creates `~/claude/private/<project>/` or
+  `~/claude/public/<project>/` with routing CLAUDE.md, gitignored project symlink
+  via `.git/info/exclude`, and all subdirectories
 ```
 
-- [ ] **Step 2: Add workspace model overview to CLAUDE.md**
+- [ ] **Step 2: Add workspace model note to CLAUDE.md**
 
-Find the `## Developer Workflow` section and add a note about the workspace model:
+Add a brief `## Workspace Model` section pointing to the spec:
 
 ```markdown
 ## Workspace Model
 
 Skills write methodology artifacts to a companion workspace, not the project repo.
-See `docs/superpowers/specs/2026-04-09-workspace-model-design.md` for full design.
+Full design: `docs/superpowers/specs/2026-04-09-workspace-model-design.md`
 
-- Claude opens in the workspace (`~/claude/private/<project>/` or `~/claude/public/<project>/`)
-- Project repo is added via `add-dir`
+- Claude opens in the workspace (`~/claude/private/<project>/`)
+- Project added automatically via `add-dir` (instructed by workspace CLAUDE.md)
 - Run `/workspace-init` once per project to create the workspace
 ```
 
-- [ ] **Step 3: Add `workspace-init` to README.md skill listing**
+- [ ] **Step 3: Add `workspace-init` to README.md**
 
-Find the skills table in README.md. Add `workspace-init` in the appropriate section
-(alongside other setup/lifecycle skills like `install-skills`, `cc-praxis-ui`).
+Find the skills listing table. Add `workspace-init` alongside setup/lifecycle skills.
 
-- [ ] **Step 4: Run validators**
+- [ ] **Step 4: Run validators and commit**
 
 ```bash
 python3 scripts/validate_all.py --tier commit
-```
-
-- [ ] **Step 5: Commit**
-
-```bash
 git add CLAUDE.md README.md
 git commit -m "docs: document workspace model and workspace-init skill"
 ```
 
 ---
 
-## Task 9: Sync and verify end-to-end
+## Task 10: Sync and verify end-to-end
 
-- [ ] **Step 1: Sync all skills to ~/.claude/skills/**
+- [ ] **Step 1: Sync all skills**
 
 ```bash
 python3 scripts/claude-skill sync-local --all -y
 ```
 
-Expected: all skills synced including `workspace-init`
+Expected: 47 skills synced (46 existing + workspace-init)
 
-- [ ] **Step 2: Run full validation suite**
+- [ ] **Step 2: Run full validation**
 
 ```bash
 python3 scripts/validate_all.py --tier commit
@@ -694,29 +699,22 @@ python3 -m pytest tests/ -v
 
 Expected: all pass
 
-- [ ] **Step 3: Smoke test workspace-init**
+- [ ] **Step 3: Smoke test workspace-init manually**
 
-In a new Claude session, open in a temp directory and invoke the `workspace-init`
-skill. Verify:
-- Directory created at `~/claude/private/<test-project>/`
-- All subdirectories present: `snapshots/`, `adr/`, `blog/`
-- All INDEX.md files present
-- CLAUDE.md contains correct project path
+In a new Claude session, invoke `/workspace-init` with a test project name.
+Verify:
+- All directories created
+- CLAUDE.md contains session-start `add-dir` instruction and artifact table
+- CLAUDE.md symlink created in project (if project exists)
+- `CLAUDE.md` line in `.git/info/exclude`
 - Git repo initialised
-
-- [ ] **Step 4: Final commit if any fixups needed**
-
-```bash
-git add -A
-git commit -m "chore: post-sync fixups"
-```
 
 ---
 
 ## Out of Scope (This Plan)
 
-- Migration of existing cc-praxis artifacts from `docs/` to workspace — separate task
+- Migration of existing cc-praxis artifacts from `docs/` to workspace
 - `design/` folder — blocked on issue-scoping question
-- Garden path changes — deferred to later iteration
+- Garden path changes — deferred
 - Parent `~/claude/` workspace git repo setup — deferred
 - Epic-close workflow skill — deferred
