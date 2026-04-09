@@ -259,7 +259,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **quarkus-flow-testing** | Workflow testing | java-dev, quarkus-flow-dev |
 | **quarkus-observability** | Quarkus observability config | observability-principles |
 
-### Layer 6: Utilities (6 skills)
+### Layer 6: Utilities (9 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
@@ -309,7 +309,7 @@ This collection follows a **layered architecture** where foundation skills provi
 
 #### **cc-praxis-ui**
 Visual skill manager — a local web app for browsing, installing, updating, and uninstalling skills:
-- Browse all 40+ skills by bundle with descriptions and chaining relationships
+- Browse all 46 skills by bundle with descriptions and chaining relationships
 - Live install state: see what's installed, what's outdated, and what's available
 - Install or uninstall individual skills or whole bundles with accurate counts
 - Auto Execute mode runs commands directly; Manual mode shows commands to copy-paste
@@ -672,6 +672,7 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 - Correction entries reference originals rather than revising them — the historical record is preserved
 - Mandatory writing rules loaded at draft time (not upfront) — retrospective workflow demand-loaded
 - Integrates with `adr` (significant decisions get formal records) and `design-snapshot` (milestones get state freezes)
+- Visual elements: illustrations (web-sourced or AI-generated), code blocks for interesting implementation detail, mandatory screenshots for any UI work (clipped to relevant area)
 - Stored in `docs/blog/YYYY-MM-DD-<initials>NN-<topic>.md` (author initials from `~/.claude/settings.json` + per-author sequence number, prevents merge conflicts)
 
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions. `/write-blog` alone triggers the full retrospective sweep.
@@ -715,6 +716,18 @@ One-off retrospective mapping of git history to GitHub epics and issues:
 - Optional: amends historical commit messages with `Refs #N` / `Closes #N` via branch-swap pattern — work on `retro-amended`, verify with `git diff`, swap labels, keep original as backup
 
 **Triggers:** `/retro-issues` only. Never auto-triggered.
+
+#### **handover**
+End-of-session HANDOFF.md generator — gives the next Claude session enough context to resume immediately:
+- Delta-first: only changed sections written in full; unchanged sections reference git history
+- Wrap checklist: offers write-blog, design-snapshot, update-claude-md, garden sweep before writing
+- Garden sweep built in: scans session for gotchas, techniques, and undocumented items across all three categories before context is lost
+- Session rename prompt: suggests a meaningful name and prompts `/rename` at the right moment
+- Token budget: HANDOFF.md stays under 500 tokens — if it grows fat, routing is failing mid-epic
+
+**Terminology:** *handover* = the act (what you do at session end); *handoff* = the artifact (`HANDOFF.md` passed to the next session)
+
+**Triggers:** "create a handover", "end of session", "update the handover", "write a handover".
 
 ---
 

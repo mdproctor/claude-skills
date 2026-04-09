@@ -142,6 +142,11 @@ def files_to_scan(root: Path) -> list[Path]:
     canonical = (root / CANONICAL_FILE).resolve()
     files = []
 
+    # Directories with historically frozen content — type lists reflect the era
+    # they were written and must not be updated (blog = immutable by policy;
+    # design-snapshots = immutable archival records).
+    frozen_dirs = {'docs/blog', 'docs/design-snapshots'}
+
     for ext in SCAN_EXTENSIONS:
         for f in root.rglob(f'*{ext}'):
             if any(part.startswith('.') for part in f.parts):
@@ -149,6 +154,9 @@ def files_to_scan(root: Path) -> list[Path]:
             if any(skip in f.parts for skip in ('venv', 'node_modules', '__pycache__')):
                 continue
             if f.resolve() == canonical:
+                continue
+            rel = f.relative_to(root)
+            if any(str(rel).startswith(d) for d in frozen_dirs):
                 continue
             files.append(f)
 
