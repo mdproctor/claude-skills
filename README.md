@@ -292,7 +292,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **ts-security-audit** | TypeScript/Node.js OWASP security audit | security-audit-principles |
 | **npm-dependency-update** | npm/yarn/pnpm dependency management | dependency-management-principles |
 
-### Layer 9: Python Development (4 skills)
+### Layer 9: Python Development (5 skills)
 
 | Skill | Purpose | Builds On |
 |-------|---------|-----------|
@@ -300,6 +300,53 @@ This collection follows a **layered architecture** where foundation skills provi
 | **python-code-review** | Python code review | code-review-principles |
 | **python-security-audit** | Python OWASP security audit | security-audit-principles |
 | **pip-dependency-update** | pip/poetry/pipenv dependency management | dependency-management-principles |
+| **python-project-health** | Python project health checks | project-health |
+
+#### **python-dev**
+Expert Python development — type hints, async patterns, safety, and testing:
+- Strict type annotation enforcement (no bare `Any`, use `Optional`/`Union` explicitly)
+- Async/await correctness (unawaited coroutines, proper error propagation)
+- Safety patterns (input validation, safe file operations, injection prevention)
+- pytest best practices — fixtures, parametrize, no mocks where real objects work
+
+**Features:** Quick Reference table · Rule Priority flowchart · Common Pitfalls table · ❌/✅ code examples
+
+**Triggers:** Writing Python, fixing bugs, refactoring, `.py` files, `pyproject.toml`, `requirements.txt`.
+
+#### **python-code-review**
+Pre-commit code review for Python projects, extending code-review-principles:
+- Type safety (bare `Any`, missing annotations, unsafe casts)
+- Async correctness (unawaited coroutines, missing error handling)
+- Test quality (mocks vs real, behavioural testing)
+
+**Triggers:** "review the code", "check these changes", `/python-code-review`.
+
+#### **python-security-audit**
+OWASP Top 10 security audit for Python projects, triggered by python-code-review when security-critical code is detected:
+- Injection vulnerabilities (SQL, command, template)
+- Auth and session handling
+- Sensitive data exposure (logging, serialisation)
+- Dependency vulnerabilities (`pip audit`)
+
+**Triggers:** Explicit security review request, or when python-code-review detects auth/payment/PII handling.
+
+#### **pip-dependency-update**
+Dependency management for pip, poetry, and pipenv projects:
+- `pip audit` for known vulnerabilities
+- Version constraint review (pinned vs ranges)
+- Compatible upgrade proposals with `pip-compile` or `poetry update`
+- Major version jump assessment — ADR offered when warranted
+
+**Triggers:** "update dependencies", "bump version", "add dependency", `requirements.txt` or `pyproject.toml` changes.
+
+#### **python-project-health**
+Python-specific health checks extending the universal project-health skill:
+- Type coverage (mypy strictness, annotation gaps)
+- Test infrastructure (pytest config, coverage thresholds)
+- Packaging correctness (`pyproject.toml`, entry points, classifiers)
+- Python version compatibility claims vs actual syntax used
+
+**Triggers:** `/python-project-health`, or auto-chained by `project-health` when `type: python` detected.
 
 ---
 
