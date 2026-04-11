@@ -82,8 +82,10 @@ Match tone to the phase — see **[entry-template.md](entry-template.md)** for t
 ## File Location
 
 ```
-blog/YYYY-MM-DD-<initials>NN-phase-title.md
+<BLOG_DIR>/YYYY-MM-DD-<initials>NN-phase-title.md
 ```
+
+`<BLOG_DIR>` is resolved in Step 0 Layer 0. Default: `docs/blog/`.
 
 One file per entry. `<initials>` is the author's 2–4 letter identifier (e.g. `mdp`), read from `~/.claude/settings.json` § `initials`. `NN` is a two-digit per-author sequence number starting at `01`. Kebab-case title, ≤30 chars (no "the", "a", "an").
 
@@ -134,7 +136,17 @@ Full rules and image path conventions: **[visual-elements.md](visual-elements.md
 
 ## Workflow
 
-### Step 0 — Orientation (three layers, always in this order)
+### Step 0 — Orientation (layers in this order)
+
+**Layer 0 — Resolve blog directory**
+
+```bash
+grep -i "blog directory:" CLAUDE.md 2>/dev/null
+```
+
+If a line matching `Blog directory:` is found (e.g. `Blog directory: site/_posts/`), extract that path and use it as `<BLOG_DIR>` throughout all subsequent steps.
+
+If not found, default to `docs/blog/`.
 
 **Layer 1 — Scan CLAUDE.md for context**
 
@@ -205,14 +217,14 @@ Confirm the framing, then continue with Step 1.
 This runs before drafting anything — not after. It is a gate, not an offer.
 
 ```bash
-# Check if blog/ already exists
-ls blog/ 2>/dev/null
+# Check if <BLOG_DIR> already exists
+ls <BLOG_DIR>/ 2>/dev/null
 
 # Check if CLAUDE.md already has the pointer
 grep -l "blog-technical\|writing style guide" CLAUDE.md 2>/dev/null
 ```
 
-**If `blog/` exists but the pointer is missing** (or this is the very first entry and `blog/` is about to be created):
+**If `<BLOG_DIR>` exists but the pointer is missing** (or this is the very first entry and `<BLOG_DIR>` is about to be created):
 1. Propose adding the Writing Style Guide section to CLAUDE.md
 2. Get user confirmation
 3. Apply the change via `update-claude-md`
@@ -239,7 +251,7 @@ sentence.
 ### Step 2 — Check existing entries
 
 ```bash
-ls blog/ 2>/dev/null | sort
+ls <BLOG_DIR>/ 2>/dev/null | sort
 ```
 
 For all types except Day Zero: read the most recent entry to understand
@@ -301,7 +313,7 @@ Wait for explicit YES or feedback. Iterate on feedback before writing.
 
 ```bash
 # determine per-author sequence number (initials resolved in Step 0 Layer 4)
-ls blog/YYYY-MM-DD-<initials>*.md 2>/dev/null | wc -l  # count this author's same-day entries
+ls <BLOG_DIR>/YYYY-MM-DD-<initials>*.md 2>/dev/null | wc -l  # count this author's same-day entries
 # NN = count + 1, zero-padded to 2 digits (01, 02, ...)
 # write entry file
 ```
@@ -310,7 +322,7 @@ File name: `YYYY-MM-DD-<initials>NN-<kebab-case-title>.md` — today's date, aut
 
 Count only this author's same-day entries (filter by initials) — other authors' entries don't affect the sequence. First entry of the day is `<initials>01`, second `<initials>02`.
 
-After writing the entry file, append a row to `blog/INDEX.md`:
+After writing the entry file, append a row to `<BLOG_DIR>/INDEX.md`:
 ```
 | [YYYY-MM-DD-initials-title.md](YYYY-MM-DD-initials-title.md) | YYYY-MM-DD | <one-line summary> |
 ```
@@ -351,7 +363,7 @@ flowchart TD
     FixVoice[Fix: change to I or we]
     UserConfirms{User confirms?}
     Refine[Refine based\non feedback]
-    Write[Write to\nblog/]
+    Write[Write to\n<BLOG_DIR>]
     OfferADR{Significant\ndecision made?}
     OfferSnapshot{Major design\nmilestone?}
     Commit[Commit via git-commit]
@@ -418,7 +430,7 @@ Run the five checks in **[heading-checks.md](heading-checks.md)** before committ
 
 Entry is complete when:
 
-- ✅ File exists at `blog/YYYY-MM-DD-<initials>NN-<title>.md` with correct initials and per-author sequence number
+- ✅ File exists at `<BLOG_DIR>/YYYY-MM-DD-<initials>NN-<title>.md` with correct initials and per-author sequence number
 - ✅ Voice is correct: "I" for developer perspective, "we" for collaboration, no third-person protagonist
 - ✅ Headings: thematic headings were kept or enhanced — none were replaced with bare structural slots
 - ✅ All required sections filled — no TBDs; "What Changed" may be omitted only if nothing pivoted
