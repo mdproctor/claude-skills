@@ -117,7 +117,7 @@ Session wrap — create before writing the handover?
 [x] 1  write-blog       capture this session's work as a diary entry
 [x] 2  design-snapshot  freeze the current design state
 [x] 3  update-claude-md sync any new workflow conventions
-[x] 4  garden sweep     check for gotchas, techniques, undocumented
+[x] 4  forage sweep     check for gotchas, techniques, undocumented
 
 Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or Enter to proceed:
 ```
@@ -128,10 +128,10 @@ Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or Enter to pro
 - **Enter (no input):** proceed with current selections
 
 Run checked items **in this order** before continuing:
-1. Garden sweep — done while context is full (findings may feed the blog and illuminate design changes)
+1. Forage sweep — done while context is full (findings may feed the blog and illuminate design changes)
 2. update-claude-md — sync new conventions first, so the snapshot reflects current CLAUDE.md
 3. design-snapshot — freeze state after CLAUDE.md is current; snapshot now accurately reflects design and conventions
-4. write-blog — written last so it can reference the fresh snapshot path, mention garden submissions, and synthesise the complete session narrative including any new conventions
+4. write-blog — written last so it can reference the fresh snapshot path, mention forage submissions, and synthesise the complete session narrative including any new conventions
 
 After all checked items complete, continue to Step 1.
 
@@ -162,11 +162,11 @@ From the current session, recall:
 
 Do NOT read any project files to answer these. Work from conversation memory.
 
-### Step 2b — Garden sweep (while context is still full)
+### Step 2b — Forage sweep (while context is still full)
 
 **The sweep is done by the handover itself from conversation memory** —
-not by invoking the garden skill and asking it to find things. The garden
-skill is only called once specific entries have been identified.
+not by invoking forage and asking it to find things. Forage
+is only called once specific entries have been identified.
 
 Review the session across all three categories. For each one, think
 through what actually happened in the conversation:
@@ -191,8 +191,8 @@ For each finding, **propose it explicitly** before proceeding:
 > "During this session we hit X — [brief description]. Worth submitting
 > to the garden as a [gotcha / technique / undocumented]?"
 
-If confirmed → invoke `garden` CAPTURE with the specific content already
-known from context. Do NOT invoke garden and ask it to find things.
+If confirmed → invoke `forage` CAPTURE with the specific content already
+known from context. Do NOT invoke forage and ask it to find things.
 
 If nothing surfaces in any category → proceed to Step 3.
 
@@ -286,11 +286,11 @@ Committing is mandatory. It's what makes git history the archive.
 ```mermaid
 flowchart TD
     Trigger((Session ending))
-    WrapChecklist[Show wrap checklist:\nwrite-blog / design-snapshot /\nupdate-claude-md / garden sweep\nall on by default]
+    WrapChecklist[Show wrap checklist:\nwrite-blog / design-snapshot /\nupdate-claude-md / forage sweep\nall on by default]
     UserToggles[User toggles items\nor types 'all' / Enter]
-    GardenSweep[Garden sweep if checked:\ncheck gotchas / techniques /\nundocumented — all 3 categories]
+    GardenSweep[Forage sweep if checked:\ncheck gotchas / techniques /\nundocumented — all 3 categories]
     GardenFound{Anything\nworth submitting?}
-    SubmitGarden[Invoke garden skill\nto write submission]
+    SubmitGarden[Invoke forage CAPTURE\nto write submission]
     WriteBlog[Invoke write-blog\nsingle-entry for this session]
     DesignSnap[Invoke design-snapshot\nfreeze current state]
     UpdateClaude[Invoke update-claude-md\nsync new conventions]
@@ -360,8 +360,8 @@ flowchart TD
 Handover is complete when:
 
 - ✅ Wrap checklist shown and user selections confirmed
-- ✅ Garden sweep performed — all three categories checked (gotchas, techniques, undocumented)
-- ✅ Any garden-worthy entries submitted before writing the handover
+- ✅ Forage sweep performed — all three categories checked (gotchas, techniques, undocumented)
+- ✅ Any garden-worthy entries submitted via forage CAPTURE before writing the handover
 - ✅ write-blog invoked (if checked) — session diary entry written
 - ✅ design-snapshot invoked (if checked) — design state frozen
 - ✅ update-claude-md invoked (if checked) — CLAUDE.md synced
@@ -386,18 +386,18 @@ context marked as "unchanged"? If yes — done.
 **Invoked by:** User directly at end of a session ("create a handover",
 "end of session", "write a handover")
 
-**Invokes:** [`garden`] — garden sweep (Step 2b) to submit any gotchas, techniques, or undocumented items before context is lost; [`write-blog`] — single-entry mode for this session's narrative (if checked); [`design-snapshot`] — to freeze current design state (if checked); [`update-claude-md`] — to sync any new conventions (if checked); `git commit` directly for the handover itself
+**Invokes:** [`forage`] — forage sweep (Step 2b) to submit any gotchas, techniques, or undocumented items before context is lost; [`write-blog`] — single-entry mode for this session's narrative (if checked); [`design-snapshot`] — to freeze current design state (if checked); [`update-claude-md`] — to sync any new conventions (if checked); `git commit` directly for the handover itself
 
 **Reads from (surgical, not upfront):**
 - `git diff HEAD -- HANDOFF.md` — what changed from last handover
 - `git log --oneline -6` — recent commits for orientation
 - `ls` on workspace directories — locate paths without reading files
-- `~/claude/knowledge-garden/GARDEN.md` — only when including garden reference
+- `~/.hortora/garden/GARDEN.md` — only when including garden reference
 
 **Complements:**
 - `design-snapshot` — archival design state the handover points to
 - `write-blog` — narrative context the handover points to
-- `garden` — technical gotcha index the handover references
+- `forage` — technical gotcha index the handover references
 - `idea-log` — undecided possibilities the handover references
 
 **Does NOT replace:** CLAUDE.md (auto-loaded), `--resume`/`--continue` flags
