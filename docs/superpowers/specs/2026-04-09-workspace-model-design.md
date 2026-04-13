@@ -41,14 +41,14 @@ a project. Project repos only receive finished, deliberate output.**
     cc-praxis/                   ← WORKSPACE (methodology artifacts)
       CLAUDE.md                  ← source of truth; routing hub for all skills
       HANDOVER.md                ← session handover (single file)
-      IDEAS.md                   ← idea log (single file, for now)
-      specs/                     ← brainstorming/design specs (superpowers output)
-      plans/                     ← implementation plans (superpowers output)
+      IDEAS.md                   ← idea log (persists across epics on main)
+      specs/                     ← brainstorming/design specs (ephemeral — epic branch only)
+      plans/                     ← implementation plans (ephemeral — epic branch only)
       snapshots/                 ← design snapshots + INDEX.md (auto-pruned, max 10)
-      adr/                       ← ADRs + INDEX.md
-      blog/                      ← blog entries + INDEX.md
+      adr/                       ← ADRs + INDEX.md (promoted to project at epic close)
+      blog/                      ← blog entries + INDEX.md (promoted to project at epic close)
       design/
-        DESIGN.md                ← single living design doc; git is the delta history
+        DESIGN.md                ← single living design doc; merged to project at epic close
     drools/
   public/
     cc-praxis/                   ← PUBLIC WORKSPACE (if project is public)
@@ -56,6 +56,17 @@ a project. Project repos only receive finished, deliberate output.**
 ```
 
 A project workspace lives in either `private/` or `public/` — not both.
+
+**The workspace is a git repo with branches mirroring the project:**
+
+```
+project/main          ↔  workspace/main        (IDEAS.md, CLAUDE.md — permanent)
+project/epic-payments ↔  workspace/epic-payments  (spec, plan, ADRs, blog, handover — ephemeral)
+project/fix-auth      ↔  workspace/fix-auth        (spec, plan, ADRs, blog, handover — ephemeral)
+```
+
+Workspace branches are created with epics and deleted when they close.
+`main` is permanent; epic branches are scratch space.
 
 ---
 
@@ -178,6 +189,63 @@ See migration task in the implementation plan.
 
 ---
 
+## Epic Lifecycle
+
+Workspace branches are the unit of epic work. Each epic gets a branch in both the
+project and the workspace. When the epic closes, artifacts are promoted or posted,
+and both branches are deleted.
+
+### epic-start
+
+1. Create project branch: `git -C <project> checkout -b <epic-name>`
+2. Create matching workspace branch: `git -C <workspace> checkout -b <epic-name>`
+3. Stub out `specs/<date>-<epic-name>.md` from brainstorming (or invoke brainstorming)
+4. If issue tracking enabled: create GitHub epic issue
+
+### epic-close
+
+1. **Post spec to GitHub epic issue** (visible summary + full spec in `<details>`):
+
+   ```markdown
+   ## Design Spec
+
+   <one-paragraph summary of what was built and the key decision made>
+
+   <details>
+   <summary>Full spec (click to expand)</summary>
+
+   [full spec content]
+
+   </details>
+
+   **Related:** ADR-NNNN | [blog entry](link)
+   ```
+
+2. **Post plan approach** (one paragraph only — not the task list):
+   Summarise the implementation strategy chosen, in the same issue comment or a follow-up.
+
+3. **Promote ADRs** — copy from `workspace/adr/` to `project/docs/adr/`, commit to project
+4. **Promote blog entries** — copy from `workspace/blog/` to `project/docs/_posts/` (or equivalent), commit to project
+5. **Merge DESIGN.md** — Claude reads both `workspace/design/DESIGN.md` and `project/DESIGN.md`, produces a coherent current-state document, user confirms, commit to project
+6. **Close epic issue** on GitHub (or mark resolved)
+7. **Merge workspace branch** into workspace `main` (or delete if nothing permanent remains)
+8. **Delete workspace branch** and switch back to `main`
+9. **Clean workspace** — `specs/` and `plans/` content is ephemeral; once posted to the issue, it is not preserved elsewhere
+
+### What goes where at epic close
+
+| Artifact | Destination |
+|----------|-------------|
+| Spec | Posted to GitHub epic issue — then ephemeral |
+| Plan (approach summary) | Posted to GitHub epic issue — then ephemeral |
+| ADRs | Promoted to project repo |
+| Blog entries | Promoted to project repo |
+| DESIGN.md changes | Merged into project DESIGN.md |
+| Handover | Discarded — session-scoped, no value after epic |
+| Snapshots | Left in workspace git history — not promoted |
+
+---
+
 ## Parent Workspace (`~/claude/`)
 
 A git repo for cross-workspace operations:
@@ -250,7 +318,9 @@ Epic close should be cleanup, not archaeology.
 | `adr` | `docs/adr/` → `adr/` in CWD |
 | `write-blog` | `docs/blog/` → `blog/` in CWD |
 | `garden` | **Unchanged** (first iteration) |
-| `workspace-init` | **New skill** — creates full workspace, generates routing CLAUDE.md, creates project symlink, writes .git/info/exclude |
+| `workspace-init` | **New skill** — creates workspace, routing CLAUDE.md, handles committed CLAUDE.md migration, detects and migrates active artifacts |
+| `epic-start` | **New skill** — creates project + workspace branches, stubs spec |
+| `epic-close` | **New skill** — posts spec to GitHub issue, promotes ADRs/blog to project, merges DESIGN.md, cleans workspace branch |
 
 **Superpowers skills** (brainstorming, writing-plans): write to CWD by default,
 which is the workspace. Existing path override support in their CLAUDE.md
@@ -272,6 +342,8 @@ When snapshot count exceeds configurable limit (default: 10):
 | Topic | Status |
 |-------|--------|
 | `design/` folder format | ✅ Resolved — single `DESIGN.md`, git is the delta |
+| Epic lifecycle (start/close skills) | ✅ Resolved — see Epic Lifecycle section above |
+| Specs/plans long-term home | ✅ Resolved — posted to GitHub issue at epic close; ephemeral otherwise |
 | Git worktrees | Deferred — document convention (branch workspace with project), enforcement via hook is future work |
 | `GARDEN.md` → `INDEX.md` rename | Deferred |
 | Garden merge trigger | Deferred |
@@ -282,23 +354,28 @@ When snapshot count exceeds configurable limit (default: 10):
 ## Out of Scope (This Iteration)
 
 - Agent Teams integration for parent Claude
-- Epic-close workflow skill (though the design lifecycle section describes the merge)
 
-## Migration (Separate Task)
+## Migration (workspace-init only)
 
-Existing projects have design artifacts in `docs/` within the project repo.
-These need systematic migration to workspace directories:
+**Existing historical artifacts (ADRs, blog entries) stay in the project repo.**
+They are already in the right long-term home. Only active in-progress work
+and routing configuration need to move.
 
-| Artifact | Current location | Workspace location |
-|----------|-----------------|-------------------|
-| Design snapshots | `docs/design-snapshots/` | `snapshots/` |
-| ADRs | `docs/adr/` | `adr/` |
-| Blog entries | `docs/blog/` | `blog/` |
-| Ideas | `docs/ideas/IDEAS.md` | `IDEAS.md` |
-| Specs | `docs/superpowers/specs/` | `specs/` |
-| Plans | `docs/superpowers/plans/` | `plans/` |
-| DESIGN.md | project root | `design/DESIGN.md` (working copy) |
+`workspace-init` detects and offers to migrate:
 
-Migration is per-project, run once when `workspace-init` is first run on an
-existing project. `workspace-init` should detect existing `docs/` artifacts
-and offer to migrate them.
+| Artifact | Action |
+|----------|--------|
+| `CLAUDE.md` (committed) | Copy to workspace, `git rm`, commit deletion, create symlink |
+| `HANDOFF.md` / `HANDOVER.md` at root | Copy most recent to workspace `HANDOVER.md`, `git rm`, commit |
+| Active in-progress specs/plans | Move to workspace `specs/` or `plans/`, `git rm`, commit |
+| `docs/design-snapshots/` | Move to workspace `snapshots/`, `git rm`, commit |
+| `.superpowers/brainstorm/` | Move to workspace `specs/`, `git rm`, commit |
+
+**Not migrated — stays in project repo:**
+- `docs/adr/` — historical decisions, permanent project record
+- `docs/blog/` / `docs/_posts/` — published diary, permanent project record
+- `docs/ideas/IDEAS.md` — if ideas belong to the project rather than a session
+
+All migrations are offered individually with YES/no per item. Each accepted item
+is copied to the workspace, removed from the project with `git rm`, and committed
+in a single batch commit.

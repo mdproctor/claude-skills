@@ -158,20 +158,48 @@ Run \`add-dir <absolute-path-to-project>\` before any other work.
 EOF
 ```
 
-### Step 6 — Create gitignored CLAUDE.md symlink in project
-
-```bash
-# Create the symlink
-ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
-
-# Hide it from git — ALWAYS use .git/info/exclude, never .gitignore
-# Works for any project regardless of ownership (Drools, upstream repos, etc.)
-echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
-```
+### Step 6 — Handle CLAUDE.md in project
 
 If the project directory does not exist yet, skip this step and tell the user:
 > "Symlink skipped — project directory doesn't exist yet. Re-run
 > `/workspace-init` after creating the project to add the symlink."
+
+Otherwise, check whether CLAUDE.md is committed to git:
+
+```bash
+git -C "<project-path>" ls-files --error-unmatch CLAUDE.md 2>/dev/null && echo "committed" || echo "not committed"
+```
+
+**If CLAUDE.md is committed**, present:
+> "CLAUDE.md is committed to git (`<size>` bytes). Migrate it to the workspace?
+> This will append its content to `workspace/CLAUDE.md`, remove it from the
+> project repo with `git rm`, commit the deletion, then create a symlink back.
+> (YES / no)"
+
+If YES:
+```bash
+# Append project CLAUDE.md content to workspace CLAUDE.md (below routing header)
+echo -e "\n---\n" >> "$BASE/CLAUDE.md"
+cat "<project-path>/CLAUDE.md" >> "$BASE/CLAUDE.md"
+
+# Remove from project and commit
+git -C "<project-path>" rm CLAUDE.md
+git -C "<project-path>" commit -m "chore: migrate CLAUDE.md to workspace"
+
+# Create symlink so opening Claude in the project still loads full config
+ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
+echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
+```
+
+If no: skip the symlink. Tell the user:
+> "CLAUDE.md stays in the project repo. Open Claude in the workspace dir —
+> `add-dir` will load the project including its CLAUDE.md."
+
+**If CLAUDE.md is not committed**, create the symlink as normal:
+```bash
+ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
+echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
+```
 
 ### Step 7 — Create .gitignore for workspace
 
@@ -204,28 +232,86 @@ If no remote URL provided, tell the user:
 > git push -u origin main
 > ```
 
+### Step 9b — Migrate Claude session history and memory
+
+Claude Code stores per-project conversation history and auto-memory keyed to
+the working directory path. Without migration, opening Claude in the workspace
+loses all previous sessions.
+
+Derive the old and new project data paths from the directory paths:
+
+```bash
+OLD_KEY=$(echo "$PROJECT_PATH" | sed 's|^/||' | tr '/' '-')
+NEW_KEY=$(echo "$BASE" | sed 's|^/||' | tr '/' '-')
+OLD_DIR="$HOME/.claude/projects/$OLD_KEY"
+NEW_DIR="$HOME/.claude/projects/$NEW_KEY"
+```
+
+If old data exists and new location is empty, migrate it:
+
+```bash
+if [ -d "$OLD_DIR" ] && [ ! -d "$NEW_DIR" ]; then
+  mv "$OLD_DIR" "$NEW_DIR"
+  echo "Migrated Claude session history and memory to workspace path."
+elif [ ! -d "$OLD_DIR" ]; then
+  echo "No existing Claude project data found — nothing to migrate."
+elif [ -d "$NEW_DIR" ]; then
+  echo "Workspace project data already exists at $NEW_DIR — skipping migration."
+fi
+```
+
+This step runs unconditionally — session continuity is not optional.
+
 ### Step 9 — Detect and offer to migrate existing artifacts
 
-Check if the project has existing methodology artifacts in `docs/`:
+Scan for existing methodology artifacts across the project:
 
 ```bash
 FOUND=()
-[ -d "<project-path>/docs/design-snapshots" ] && FOUND+=("design-snapshots → snapshots/")
-[ -d "<project-path>/docs/adr" ]              && FOUND+=("adr/ → adr/")
-[ -d "<project-path>/docs/blog" ]             && FOUND+=("blog/ → blog/")
-[ -f "<project-path>/docs/ideas/IDEAS.md" ]   && FOUND+=("IDEAS.md → IDEAS.md")
-[ -d "<project-path>/docs/superpowers/specs" ] && FOUND+=("specs/ → specs/")
-[ -d "<project-path>/docs/superpowers/plans" ] && FOUND+=("plans/ → plans/")
+# Root-level handovers
+[ -f "<project-path>/HANDOFF.md" ]  && git -C "<project-path>" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOVER.md")
+[ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOVER.md")
+
+# docs/ artifacts
+[ -d "<project-path>/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
+[ -d "<project-path>/docs/adr" ]               && FOUND+=("docs/adr/ → adr/")
+[ -d "<project-path>/docs/blog" ]              && FOUND+=("docs/blog/ → blog/")
+[ -d "<project-path>/docs/_posts" ]            && FOUND+=("docs/_posts/ → blog/")
+[ -d "<project-path>/docs/handoffs" ]          && FOUND+=("docs/handoffs/ → handoffs/")
+[ -f "<project-path>/docs/ideas/IDEAS.md" ]    && FOUND+=("docs/ideas/IDEAS.md → IDEAS.md")
+[ -d "<project-path>/docs/superpowers/specs" ] && FOUND+=("docs/superpowers/specs/ → specs/")
+[ -d "<project-path>/docs/superpowers/plans" ] && FOUND+=("docs/superpowers/plans/ → plans/")
+
+# Hidden directories
+[ -d "<project-path>/.superpowers/brainstorm" ] && FOUND+=(".superpowers/brainstorm/ → specs/")
 ```
 
-If any found, present to the user:
-> "Found existing methodology artifacts in `docs/`:
+If any found, present the list and ask:
+> "Found existing methodology artifacts:
 > - [list items]
 >
-> Migrate them to the workspace? (YES / no)"
->
-> Migration moves the files; does not delete them from the project repo
-> (user can do that manually after verifying).
+> Migrate them to the workspace? This will copy each to the workspace,
+> remove it from the project repo with `git rm`, and commit the deletion.
+> (YES / no / select)"
+
+If YES (or after selection is confirmed), for each item:
+```bash
+# 1. Copy to workspace (example for adr/)
+cp -r "<project-path>/docs/adr/." "$BASE/adr/"
+
+# 2. Remove from project
+git -C "<project-path>" rm -r docs/adr
+
+# ... repeat for each selected item
+```
+
+Then commit all removals in one go:
+```bash
+git -C "<project-path>" commit -m "chore: migrate methodology artifacts to workspace"
+```
+
+**Note on handovers:** If both `HANDOFF.md` and `HANDOVER.md` exist, use the
+more recent file as `workspace/HANDOVER.md` and discard the older one.
 
 ### Step 10 — Confirm
 
@@ -248,8 +334,9 @@ If any found, present to the user:
 - [ ] `snapshots/INDEX.md`, `adr/INDEX.md`, `blog/INDEX.md` exist
 - [ ] `specs/` and `plans/` directories exist
 - [ ] `.gitignore` exists
-- [ ] CLAUDE.md symlink exists in project (if project dir existed)
-- [ ] `CLAUDE.md` in `.git/info/exclude` of project (if project dir existed)
+- [ ] CLAUDE.md handled: migrated (symlink + .git/info/exclude) or left committed per user choice
+- [ ] Claude session history and memory migrated to workspace-keyed path (`~/.claude/projects/`)
+- [ ] Existing methodology artifacts offered for migration; selected ones copied and `git rm`'d with single commit
 - [ ] Git repo initialised with initial commit
 - [ ] Remote set and pushed (if URL provided)
 

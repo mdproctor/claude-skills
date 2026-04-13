@@ -38,7 +38,7 @@ Both repos are Java projects. That means `java-git-commit`, not `git-commit`.
 
 Claude checked `java-git-commit/SKILL.md` for Step 0b. It wasn't there. The
 prompt didn't exist in the specialised commit skills — only in the generic
-root. Any Java, blog, or custom project would silently never see the Work
+root. Any Java, blog, custom, skills, or generic project would silently never see the Work
 Tracking offer.
 
 The fix was one block added to three files: `java-git-commit`,

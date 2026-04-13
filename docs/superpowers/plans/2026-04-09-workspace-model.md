@@ -762,22 +762,111 @@ git commit -m "feat(design): write to workspace design/DESIGN.md instead of proj
 
 ---
 
-## Migration Task (Separate Session)
+## Migration Task (Handled in workspace-init Step 9)
 
-Existing projects have design artifacts in `docs/` in the project repo. When
-`workspace-init` runs on an existing project, offer to migrate them:
+**Historical ADRs and blog entries stay in the project repo** — they are already
+in the right long-term home. Only routing config and active in-progress work move.
+
+`workspace-init` Step 9 detects and offers (with automated git rm + commit):
 
 | Artifact | From | To |
 |----------|------|----|
+| `CLAUDE.md` (committed) | project root | workspace `CLAUDE.md` (appended); symlink back |
+| `HANDOFF.md` / `HANDOVER.md` | project root | workspace `HANDOVER.md` (most recent wins) |
+| Active specs/plans | `docs/superpowers/` or `.superpowers/` | workspace `specs/` or `plans/` |
 | Design snapshots | `docs/design-snapshots/` | workspace `snapshots/` |
-| ADRs | `docs/adr/` | workspace `adr/` |
-| Blog entries | `docs/blog/` | workspace `blog/` |
-| Ideas | `docs/ideas/IDEAS.md` | workspace `IDEAS.md` |
-| Specs | `docs/superpowers/specs/` | workspace `specs/` |
-| Plans | `docs/superpowers/plans/` | workspace `plans/` |
 
-`workspace-init` after git init: detect existing `docs/` artifacts and offer:
-"Found existing design artifacts in `docs/`. Migrate them to the workspace? (YES / no)"
+**Not migrated (stays in project repo):**
+- `docs/adr/` — permanent project record
+- `docs/blog/` / `docs/_posts/` — published diary
+- `docs/ideas/IDEAS.md` — if project-scoped
+
+---
+
+---
+
+## Task 11: Create `epic-start` skill
+
+**Files:**
+- Create: `epic-start/SKILL.md`
+- Create: `epic-start/commands/epic-start.md`
+
+- [ ] **Step 1: Write `epic-start/SKILL.md`**
+
+Workflow:
+1. Ask: epic name (becomes branch name, e.g. `epic-payments`)
+2. Confirm project path and workspace path (read from workspace CLAUDE.md)
+3. Create project branch: `git -C <project> checkout -b <epic-name>`
+4. Create matching workspace branch: `git -C <workspace> checkout -b <epic-name>`
+5. Stub `specs/<date>-<epic-name>.md` — offer to invoke brainstorming
+6. If issue tracking enabled (Work Tracking in CLAUDE.md): create GitHub epic issue via `gh issue create`
+
+Success criteria:
+- Both branches exist and are checked out
+- `specs/` stub created
+- User told: "Switch both branches together when you switch context"
+
+- [ ] **Step 2: Run validators, generate commands, commit**
+
+```bash
+python3 scripts/validate_all.py --tier commit
+python3 scripts/generate_commands.py
+git add epic-start/
+git commit -m "feat(epic-start): add epic branch setup skill"
+```
+
+---
+
+## Task 12: Create `epic-close` skill
+
+**Files:**
+- Create: `epic-close/SKILL.md`
+- Create: `epic-close/commands/epic-close.md`
+
+- [ ] **Step 1: Write `epic-close/SKILL.md`**
+
+Workflow:
+1. Confirm epic name and GitHub issue number (if issue tracking enabled)
+2. **Compose and post spec to GitHub issue:**
+   - Read `specs/<date>-<epic-name>.md`
+   - Draft visible summary (one paragraph)
+   - Read `plans/<date>-<epic-name>.md` — extract approach summary (one paragraph, no task list)
+   - Post as GitHub issue comment:
+     ```
+     ## Design Spec
+     <visible summary>
+     <details><summary>Full spec</summary>[full spec]</details>
+
+     ## Implementation Approach
+     <approach summary>
+
+     **Related:** ADR-NNNN | [blog entry](link)
+     ```
+3. **Promote ADRs:** copy `workspace/adr/` → `project/docs/adr/`, commit to project
+4. **Promote blog entries:** copy `workspace/blog/` → `project/docs/_posts/` (or blog dir per project CLAUDE.md), commit to project
+5. **Merge DESIGN.md:** Claude reads `workspace/design/DESIGN.md` + `project/DESIGN.md`, produces merged document, user confirms, commit to project
+6. **Close GitHub epic issue** (if issue tracking enabled): `gh issue close <number>`
+7. **Switch both repos to main:**
+   ```bash
+   git -C <project> checkout main
+   git -C <workspace> checkout main
+   ```
+8. **Delete epic branches:**
+   ```bash
+   git -C <project> branch -d <epic-name>
+   git -C <workspace> branch -d <epic-name>
+   ```
+9. Confirm: `✅ Epic closed. Spec posted to #<issue>. ADRs and blog promoted. Workspace cleaned.`
+
+- [ ] **Step 2: Register in marketplace and update metadata**
+
+```bash
+python3 scripts/validate_all.py --tier commit
+python3 scripts/generate_commands.py
+# Add to marketplace.json, test fixtures, generate_web_app_data.py
+git add epic-close/
+git commit -m "feat(epic-close): add epic close and artifact promotion skill"
+```
 
 ---
 
@@ -785,4 +874,3 @@ Existing projects have design artifacts in `docs/` in the project repo. When
 
 - Garden path changes — deferred
 - Parent `~/claude/` workspace git repo setup — deferred
-- Epic-close workflow skill — deferred
