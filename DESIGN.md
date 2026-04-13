@@ -66,9 +66,9 @@ Work Tracking is enabled in cc-praxis CLAUDE.md and wired into all four commit s
 
 ## Knowledge Garden
 
-The local `garden` skill (maintained separately, not in this repository) is deprecated in favour of `forage` + `harvest` (hortora project). The garden now lives at `~/.hortora/garden/` via the `HORTORA_GARDEN` env var. Legacy path `~/claude/knowledge-garden/` is preserved as a symlink for backwards compatibility.
+The `garden` skill was removed from cc-praxis and the entire knowledge garden system was migrated to the hortora project. The garden now lives at `~/.hortora/garden/` (via `HORTORA_GARDEN` env var; legacy symlink `~/claude/knowledge-garden/` preserved). The replacement skills — `forage` (session-time capture) and `harvest` (deduplication) — ship from hortora/soredium and are installed into `~/.claude/skills/` alongside cc-praxis skills.
 
-New projects should use `forage` for session-time capture and `harvest` for deduplication.
+Use `forage` for session-time capture and `harvest` for deduplication. The `garden` skill is gone.
 
 ---
 
@@ -76,4 +76,4 @@ New projects should use `forage` for session-time capture and `harvest` for dedu
 
 - Smoke test `workspace-init` — verify CLAUDE.md symlink auto-loads in a fresh Claude session
 - Consolidate cc-praxis's `docs/design-snapshots/` (in progress)
-- Remove `garden` skill from cc-praxis once `forage`+`harvest` are validated across multiple sessions
+- Continue validating `forage`+`harvest` across multiple sessions
