@@ -2,7 +2,7 @@
 **Date:** 2026-04-09
 **Topic:** Workspace model — where Claude artifacts live and how they're accessed
 **Supersedes:** *(none)*
-**Superseded by:** *(leave blank — filled in if this snapshot is later superseded)*
+**Superseded by:** [2026-04-13-workspace-implementation-complete](2026-04-13-workspace-implementation-complete.md)
 
 ---
 
