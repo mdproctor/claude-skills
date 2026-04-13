@@ -16,9 +16,9 @@ Skills write methodology artifacts to a companion workspace directory (`~/claude
 | CLAUDE.md symlink | Symlink from project `CLAUDE.md` → workspace `CLAUDE.md` via `.git/info/exclude` | Works for any repo regardless of ownership; never touches tracked files | Tracked `.gitignore` entry (modifies upstream repo) |
 | Single authoritative design doc | One `design/DESIGN.md` in workspace, no snapshot chain | Snapshots at different time periods create stale-content risk when merging; git is the archive | Snapshot-per-session accumulation (maintenance burden grows linearly) |
 
-**Open questions:**
-- Does Claude Code follow a CLAUDE.md symlink for session initialisation? Assumed yes; untested.
-- Should cc-praxis itself have a workspace? Currently the project is its own CWD.
+**Resolved:**
+- Claude Code follows a CLAUDE.md symlink for session initialisation — confirmed via smoke test on cccli (2026-04-13).
+- cc-praxis does not use the workspace model — its CLAUDE.md is a public artifact committed to the repo, not personal workflow config. Opening Claude in the project directory is the correct workflow.
 
 ---
 
@@ -72,8 +72,6 @@ Use `forage` for session-time capture and `harvest` for deduplication. The `gard
 
 ---
 
-## Next Steps
+## Design Backlog
 
-- Smoke test `workspace-init` — verify CLAUDE.md symlink auto-loads in a fresh Claude session
-- Consolidate cc-praxis's `docs/design-snapshots/` (in progress)
-- Continue validating `forage`+`harvest` across multiple sessions
+No open design decisions at this time.
