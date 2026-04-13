@@ -115,23 +115,24 @@ Present this exactly:
 Session wrap — create before writing the handover?
 
 [x] 1  write-blog       capture this session's work as a diary entry
-[x] 2  design-snapshot  freeze the current design state
+[ ] 2  design-snapshot  freeze the current design state
 [x] 3  update-claude-md sync any new workflow conventions
 [x] 4  forage sweep     check for gotchas, techniques, undocumented
 
 Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or Enter to proceed:
 ```
 
-- **Default:** all four ticked
+- **Default:** write-blog, update-claude-md, forage sweep ticked; design-snapshot OFF
+- **design-snapshot is off by default** — the project model is a single authoritative design document updated in place, not a growing snapshot chain. Only tick it for an explicit, intentional design freeze (e.g. a major milestone or architectural pivot worth preserving immutably). Without a workspace configured, the skill will fail or create the wrong directory.
 - **"all":** if all are on → turn all off; if any are off → turn all on
 - **Numbers:** toggle individual items
 - **Enter (no input):** proceed with current selections
 
 Run checked items **in this order** before continuing:
-1. Forage sweep — done while context is full (findings may feed the blog and illuminate design changes)
-2. update-claude-md — sync new conventions first, so the snapshot reflects current CLAUDE.md
-3. design-snapshot — freeze state after CLAUDE.md is current; snapshot now accurately reflects design and conventions
-4. write-blog — written last so it can reference the fresh snapshot path, mention forage submissions, and synthesise the complete session narrative including any new conventions
+1. Forage sweep — done while context is full (findings may feed the blog)
+2. update-claude-md — sync new conventions first
+3. design-snapshot — only if explicitly ticked; requires workspace configured
+4. write-blog — written last so it can mention forage submissions and synthesise the complete session narrative including any new conventions
 
 After all checked items complete, continue to Step 1.
 
@@ -363,7 +364,7 @@ Handover is complete when:
 - ✅ Forage sweep performed — all three categories checked (gotchas, techniques, undocumented)
 - ✅ Any garden-worthy entries submitted via forage CAPTURE before writing the handover
 - ✅ write-blog invoked (if checked) — session diary entry written
-- ✅ design-snapshot invoked (if checked) — design state frozen
+- ✅ design-snapshot invoked (if checked) — design state frozen; off by default
 - ✅ update-claude-md invoked (if checked) — CLAUDE.md synced
 - ✅ Session name offered — user was prompted to `/rename` or acknowledged the session already has a meaningful name
 - ✅ HANDOFF.md exists at project root

@@ -58,7 +58,7 @@ Work Tracking is enabled in cc-praxis CLAUDE.md and wired into all four commit s
 
 | Decision | Chosen | Why | Alternatives Rejected |
 |---|---|---|---|
-| Step 0b in all commit skills | Duplicate across java/blog/custom/git-commit | Each skill is independent; no inheritance mechanism | Single place in git-commit only (java repos never saw the prompt) |
+| Step 0b in all commit skills | Duplicate across java/blog/custom/skills/generic/git-commit | Each skill is independent; no inheritance mechanism | Single place in git-commit only (java repos never saw the prompt) |
 | Release notes | `gh release create --generate-notes` | Auto-generates from closed issues; zero maintenance | Manual CHANGELOG.md |
 | retro-issues.md retention | Permanent audit trail, never delete | Records the grouping rationale; GitHub issues record only outcomes | Delete after issue creation |
 
