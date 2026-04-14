@@ -1,5 +1,5 @@
 ---
-description: "Use when health-checking a TypeScript or Node.js project, or when invoked automatically by projec..."
+description: "Use when a TypeScript or Node.js project needs a health review. Invoked directly via /ts-project-..."
 ---
 
 Invoke the `ts-project-health` skill.

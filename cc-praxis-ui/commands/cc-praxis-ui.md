@@ -1,5 +1,5 @@
 ---
-description: Launch the cc-praxis skill manager UI at http://localhost:8765
+description: "Use when user wants to open the cc-praxis skill manager — says "open the installer", "open cc-pra..."
 ---
 
-Invoke the `cc-praxis-ui` skill to open the skill manager.
+Invoke the `cc-praxis-ui` skill.

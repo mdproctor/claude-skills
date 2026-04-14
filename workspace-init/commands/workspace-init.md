@@ -1,5 +1,5 @@
 ---
-description: One-time workspace setup for a project — creates ~/claude/private/<project>/ with full structure, routing CLAUDE.md, and gitignored project symlink
+description: "Use when a project has no companion workspace yet — user says "init workspace", "set up workspace..."
 ---
 
-Invoke the `workspace-init` skill to set up a new project workspace.
+Invoke the `workspace-init` skill.

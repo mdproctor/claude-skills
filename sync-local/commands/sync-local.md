@@ -1,5 +1,5 @@
 ---
-description: Sync all installed skills to the latest version from the cloned repository. DEV-ONLY — requires cloned repo with scripts/claude-skill available.
+description: "Use when the user wants to sync installed skills to the latest version from the cloned repository..."
 ---
 
-Invoke the `sync-local` skill to sync installed skills.
+Invoke the `sync-local` skill.

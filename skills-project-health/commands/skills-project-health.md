@@ -1,5 +1,5 @@
 ---
-description: "Run health checks for a Claude Code skill collection project (universal + skills-specific)"
+description: "Use when health-checking a type: skills (Claude Code skill collection) repository, or when invoke..."
 ---
 
 Invoke the `skills-project-health` skill.

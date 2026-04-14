@@ -1,5 +1,5 @@
 ---
-description: Close the current epic — routes artifacts, merges design journal, posts specs to GitHub. Approve-all or step-by-step.
+description: "Use when closing an epic — user says "close epic", "finish epic", "wrap up epic", or invokes /epi..."
 ---
 
-Invoke the `epic-close` skill to close the current epic.
+Invoke the `epic-close` skill.

@@ -1,5 +1,5 @@
 ---
-description: Start a new epic — creates project and workspace branches with JOURNAL.md scaffolding. One-time per epic.
+description: "Use when the user wants to begin a new development epic — says "begin epic", "new epic", or "crea..."
 ---
 
-Invoke the `epic-start` skill to begin a new epic.
+Invoke the `epic-start` skill.

@@ -1,5 +1,5 @@
 ---
-description: "Review staged Java/Quarkus code for safety, concurrency, and performance"
+description: "Use when the user says "review the code", "check these changes", "review this", "look at staged c..."
 ---
 
 Invoke the `java-code-review` skill.

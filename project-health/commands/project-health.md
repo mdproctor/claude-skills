@@ -1,5 +1,5 @@
 ---
-description: "Run health checks — correctness, completeness, and consistency for the current project"
+description: "Use when correctness, completeness, or consistency of a project needs verification — "is the proj..."
 ---
 
 Invoke the `project-health` skill.

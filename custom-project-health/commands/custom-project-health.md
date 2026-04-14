@@ -1,5 +1,5 @@
 ---
-description: "Run health checks for a type: custom project (universal + sync rules, project currency)"
+description: "Use when health-checking a type: custom project (working groups, research, advocacy, documentatio..."
 ---
 
 Invoke the `custom-project-health` skill.

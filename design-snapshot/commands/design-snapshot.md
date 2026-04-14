@@ -1,3 +1,5 @@
-# design-snapshot
+---
+description: "Use when user wants to freeze and record the current design state — says "create a design snapsho..."
+---
 
-Create an immutable, dated snapshot of the current design state.
+Invoke the `design-snapshot` skill.

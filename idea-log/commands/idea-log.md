@@ -1,5 +1,5 @@
 ---
-description: Log, review, promote, or discard ideas in IDEAS.md
+description: "Use when user wants to park an idea for later — says "log this idea", "add to idea log", "park th..."
 ---
 
-Invoke the `idea-log` skill to manage the project idea log.
+Invoke the `idea-log` skill.

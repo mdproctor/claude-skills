@@ -1,5 +1,5 @@
 ---
-description: Generate a concise HANDOFF.md so the next Claude session can resume without losing context — uses lazy references, not loaded content
+description: "Use when ending a session and wanting to preserve context for resumption — says "create a handove..."
 ---
 
-Invoke the `handover` skill to create or update the session handoff document.
+Invoke the `handover` skill.
