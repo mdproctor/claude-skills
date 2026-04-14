@@ -32,7 +32,8 @@ This skill is invoked by `java-git-commit` when:
 - **update-primary-doc**: Generic document sync patterns (read path, match files, propose updates, validate)
 
 **Java-specific additions:**
-- Hardcoded Primary Document: `design/DESIGN.md`
+- In **workspace mode** (when `design/JOURNAL.md` exists): writes journal entries to `design/JOURNAL.md`
+- In **direct mode** (no workspace): writes to `design/DESIGN.md` as before
 - Hardcoded architecture mappings:
   - New @Entity → Update "Domain Model" section
   - New @Service/@Repository → Update "Services" or "Data Access" section
@@ -44,8 +45,10 @@ This skill is invoked by `java-git-commit` when:
 - **Only operates in type: java repositories** — other project types use different documentation patterns
 - DESIGN.md lives at `design/DESIGN.md` in the workspace (CWD). In the workspace
   model, the project is accessed via `add-dir`.
-- **Epic close:** When the epic completes, merge workspace `design/DESIGN.md`
-  back into the project's `DESIGN.md` (user-confirmed, one manual merge step).
+- **Epic close:** When the epic completes, `epic-close` reads `design/JOURNAL.md`,
+  generates a three-way merge preview (base + current project + journal), and
+  applies the changes to the project `DESIGN.md` with user confirmation.
+  The journal itself is posted to the GitHub epic issue, then discarded.
 - **Never apply changes without explicit user confirmation** (a plain "YES" or
   equivalent). If in doubt, ask.
 - Focus only on **architectural impact**: new/removed components, changed
@@ -57,19 +60,26 @@ This skill is invoked by `java-git-commit` when:
 
 ## Workflow
 
-### Step 1: Locate DESIGN.md
+### Step 1: Locate JOURNAL.md (workspace mode detection)
 
 ```bash
-# Check standard location first
-ls design/DESIGN.md 2>/dev/null || find . -name "DESIGN.md" | head -5
+ls design/JOURNAL.md 2>/dev/null || echo "not found"
 ```
 
-- If found at `design/DESIGN.md` → proceed.
-- If found elsewhere → note the path, continue (but flag the non-standard location).
-- If not found → propose a starter structure (see **Starter Template** below),
-  then stop and ask the user to confirm before creating it.
+- If found → **workspace mode**: proceed with journal entry workflow below.
+- If not found → **direct mode**: no workspace configured, or not on an epic branch.
+  Fall back to the existing DESIGN.md sync workflow (unchanged — update the
+  project `DESIGN.md` directly as before). Do not prompt; do not create JOURNAL.md.
+  `epic-start` is responsible for creating it.
+
+In workspace mode: read `design/JOURNAL.md` to understand which sections have
+already been journalled during this epic before adding or updating an entry.
+
+> **Workspace mode path:** If `design/JOURNAL.md` was found in Step 1, skip Steps 5 and 6. Proceed directly to Step 7 after completing Steps 2-4 (read DESIGN.md for section names, review changes, map to sections). The journal entry (Step 7) is the only write action in workspace mode.
 
 ### Step 1a: Check for modular structure
+
+*(Direct mode only — skip in workspace mode)*
 
 Run `python scripts/document_discovery.py design/DESIGN.md` (or use the API) to detect linked module files. **If modules exist**, switch to the [modular-handling.md](modular-handling.md) workflow for Steps 2, 5, and 6.
 
@@ -165,7 +175,7 @@ When the user confirms with YES (or a clear equivalent):
 1. Apply **only** the proposed changes — no extras.
 2. **Validate the document:**
    ```bash
-   python scripts/validate_document.py design/DESIGN.md
+   python scripts/validate_all.py --tier commit
    ```
 3. **If validation fails (exit code 1):**
    - Revert changes: `git restore design/DESIGN.md`
@@ -177,6 +187,42 @@ When the user confirms with YES (or a clear equivalent):
    - Document is ready for staging
 
 **For modular DESIGN.md:** see [modular-handling.md](modular-handling.md) § Step 6.
+
+### Step 7: Write or update journal entry
+
+**In workspace mode only** (i.e. `design/JOURNAL.md` exists — detected in Step 1).
+
+Read `design/DESIGN.md` now if not already read in Step 2 — section names from the project DESIGN.md are required for the `§Section` anchors below.
+
+For each section affected by the committed changes, add or update an entry
+in `design/JOURNAL.md`.
+
+**Entry format:**
+```markdown
+### YYYY-MM-DD · §SectionName · ADR-N (optional)
+
+[Prose narrative: what changed in this section, why, what decision was made.
+Focus on reasoning and context — not implementation details. 2-6 sentences.]
+```
+
+**Rules:**
+- Use the exact section name from the project `DESIGN.md` in the `§` anchor
+  (e.g. `§Architecture`, `§Data Model`) — this is the merge map at epic close
+- If an entry for this `§Section` already exists in `JOURNAL.md` → update it
+  in place (the journal is a living document; git history preserves the evolution)
+- If this is a new section affected → append a new entry at the end
+- If the change generated an ADR → include it in the header: `· ADR-0042`
+- Do not summarise the code change — explain the *design reasoning*
+
+**Example:**
+```markdown
+### 2026-04-15 · §Architecture · ADR-0042
+
+We moved to an event-driven model: order service emits `OrderPlaced`, payment
+service listens and responds. The synchronous REST approach created coupling
+between services that complicated retry logic and made failure semantics
+ambiguous at the API boundary.
+```
 
 ---
 
@@ -195,6 +241,7 @@ Avoid these mistakes when updating DESIGN.md:
 | Skipping "Reason:" in proposals | User doesn't understand why change needed | Always explain rationale |
 | Not reading existing DESIGN.md first | Proposals conflict with structure | Always read full file before proposing |
 | Mentioning AI/tools in DESIGN.md | Breaks professional documentation standards | Never mention Claude, AI, or tooling in the doc itself |
+| Writing to design/DESIGN.md directly | Bypasses the journal; merge at epic close loses context | Always write to design/JOURNAL.md with §Section anchors |
 
 ## Document Structure Check
 
@@ -237,21 +284,29 @@ Then update CLAUDE.md:
 
 ## Success Criteria
 
-DESIGN.md update is complete when:
+**In direct mode** (no `design/JOURNAL.md` present):
 
-- ✅ design/DESIGN.md located and read
+- ✅ `design/DESIGN.md` located and read
 - ✅ Architectural changes identified from staged diff
 - ✅ Proposed updates formatted as before/after blocks
 - ✅ User confirmed with explicit **YES**
-- ✅ Changes applied to design/DESIGN.md
+- ✅ Changes applied to `design/DESIGN.md`
 - ✅ **Document validation passed** (no CRITICAL corruption)
 - ✅ File ready for staging (or user confirmed no changes needed)
 
-**Not complete until** all criteria met, validation passed, and DESIGN.md reflects current architecture.
+**In workspace mode** (`design/JOURNAL.md` exists):
+
+- ✅ Architectural changes identified from staged diff
+- ✅ Journal entry drafted with `§Section` anchor header matching the changed area
+- ✅ User confirmed with explicit **YES**
+- ✅ Entry appended to `design/JOURNAL.md`
+- ✅ File ready for staging (or user confirmed no changes needed)
+
+**Not complete until** all criteria for the active mode are met.
 
 ## Skill Chaining
 
-**Invoked by:** [`java-git-commit`] alongside `update-claude-md`, [`adr`] suggests running this when an ADR documents a new component or integration
+**Invoked by:** [`java-git-commit`] alongside [`update-claude-md`], [`adr`] suggests running this when an ADR documents a new component or integration
 
 **Invokes:** None (terminal skill in the chain)
 
