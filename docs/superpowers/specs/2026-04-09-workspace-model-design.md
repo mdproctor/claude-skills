@@ -159,33 +159,22 @@ directory. `workspace-init` is the living registry of where things go.
 
 ---
 
-## Design Document Lifecycle (`design/DESIGN.md`)
+## Design Document Lifecycle
 
-`design/DESIGN.md` is a single living working copy of the project's design
-document. **Git is the delta** — individual changes are not stored as separate
-files; every commit is implicitly a delta. Same principle as `HANDOVER.md`.
+> **⚠️ Superseded by `docs/superpowers/specs/2026-04-13-design-journal-design.md`**
+>
+> The `design/DESIGN.md` full-copy model described below has been replaced by
+> `design/JOURNAL.md` — a cohesive narrative of design changes made during the
+> current epic, with structured section anchors for merge at epic close. See the
+> design journal spec for the current model.
 
-**Lifecycle:**
+~~`design/DESIGN.md` is a single living working copy of the project's design
+document. `workspace-init` copies the project's DESIGN.md as the starting point.
+During the epic, design skills write to it. At epic close, Claude merges it back.~~
 
-1. **`workspace-init`** — copies the project's `DESIGN.md` into
-   `workspace/design/DESIGN.md` as the starting point. If the project has no
-   `DESIGN.md`, creates an empty stub.
-2. **During the epic** — `java-update-design`, `update-primary-doc`, and any
-   design-producing skill write to `workspace/design/DESIGN.md`. The project's
-   `DESIGN.md` is untouched during active development.
-3. **Epic close** — Claude merges `workspace/design/DESIGN.md` back into the
-   project's `DESIGN.md`. This is a single merge of two documents — Claude reads
-   both and produces a coherent current-state document, resolving any
-   contradictions. Explicit, user-confirmed, not automatic.
-
-**Why one file:** Multiple delta files would require a complex ordered merge at
-epic close. One file with git history gives the same audit trail at zero merge
-complexity. `git log -- design/DESIGN.md` shows every change; the file itself
-always reflects current intent.
-
-**Migration:** Existing projects with design artifacts scattered in `docs/`
-(design-snapshots, ADRs, DESIGN.md) need systematic migration to workspace.
-See migration task in the implementation plan.
+**Current model (2026-04-13):** `design/JOURNAL.md` — created by `epic-start`,
+written by `java-update-design` / `update-primary-doc`, merged by `epic-close`.
+See `docs/superpowers/specs/2026-04-13-design-journal-design.md`.
 
 ---
 
