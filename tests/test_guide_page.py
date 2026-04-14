@@ -8,7 +8,6 @@ Integration tests: all 12 sections present, sidebar steps match sections,
 """
 
 import re
-import sys
 import unittest
 from pathlib import Path
 
@@ -136,10 +135,11 @@ class TestSectionContent(unittest.TestCase):
         self.assertEqual(count, 10,
                          f'Expected 10 install-callout boxes (sections 3-12), found {count}')
 
-    def test_twelve_section_next_links(self):
+    def test_section_next_links(self):
+        # 11 sections have "Next →" links; the last section (12) has a completion message instead
         count = self.content.count('section-next')
         self.assertGreaterEqual(count, 11,
-                                f'Expected at least 11 section-next links, found {count}')
+                                f'Expected at least 11 section-next links (last section omits it), found {count}')
 
     def test_no_placeholder_text(self):
         for placeholder in ('TBD', 'TODO', 'Lorem ipsum', 'placeholder'):
@@ -148,7 +148,7 @@ class TestSectionContent(unittest.TestCase):
 
     def test_all_prompts_are_non_empty(self):
         blocks = re.findall(
-            r'class="prompt-block"[^>]*>(.*?)</div>',
+            r'class="[^"]*prompt-block[^"]*"[^>]*>(.*?)</div>',
             self.content,
             re.DOTALL,
         )
@@ -171,7 +171,9 @@ class TestJavaScript(unittest.TestCase):
         self.assertIn('guide-progress-fill', self.content)
 
     def test_active_class_logic_present(self):
-        self.assertIn('active', self.content)
+        self.assertIn("classList.add('active'", self.content,
+                      "JS must call classList.add('active') for scroll tracking")
 
     def test_done_class_logic_present(self):
-        self.assertIn('done', self.content)
+        self.assertIn("classList.add('done'", self.content,
+                      "JS must call classList.add('done') for completed steps")
