@@ -89,15 +89,27 @@ snapshots/YYYY-MM-DD-<kebab-case-topic>.md
 
 After writing the snapshot file:
 
-1. Append a row to `snapshots/INDEX.md`:
-   ```
-   | [YYYY-MM-DD-topic.md](YYYY-MM-DD-topic.md) | YYYY-MM-DD | <one-line summary> |
-   ```
+**Update INDEX.md:** If `snapshots/INDEX.md` doesn't exist yet, create it with:
+```markdown
+# Snapshots Index
 
-2. **Auto-pruning:** Count `.md` files in `snapshots/` (excluding `INDEX.md`). If
-   count exceeds 10 (or the limit declared in workspace CLAUDE.md), delete the
-   oldest file and remove its row from `INDEX.md`. Each snapshot references its
-   predecessor via git history — no deletion of that chain.
+| File | Date | Topic |
+|------|------|-------|
+```
+Then append a row:
+```
+| [YYYY-MM-DD-topic.md](YYYY-MM-DD-topic.md) | YYYY-MM-DD | <one-line summary> |
+```
+
+**Auto-pruning:** Count `.md` files in `snapshots/` (excluding `INDEX.md`):
+
+```bash
+ls snapshots/*.md 2>/dev/null | grep -v INDEX.md | wc -l
+```
+
+If count exceeds 10: delete the oldest file (by filename date, not mtime), remove its
+row from `INDEX.md`. Each snapshot references its predecessor — when pruning, the row's
+file link becomes the navigation record.
 
 ### Step 5 — Update superseded snapshot (if applicable)
 
