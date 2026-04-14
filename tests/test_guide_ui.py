@@ -263,3 +263,113 @@ class TestGuideScrollBehavior(unittest.TestCase):
         self.assertIsNotNone(sub, 'Step 2 must have a subtitle element')
         self.assertFalse(sub.is_visible(),
                          'Step 2 subtitle should be hidden on load (not active)')
+
+
+@unittest.skipUnless(PLAYWRIGHT_AVAILABLE, 'playwright not installed')
+class TestGuideTabSwitching(unittest.TestCase):
+    """E2E: tab bar switches panes, resets sidebar, updates hash."""
+
+    @classmethod
+    def setUpClass(cls):
+        raw = GUIDE_PATH.read_text(encoding='utf-8')
+        _GuideHandler._content = _strip_frontmatter(raw).encode('utf-8')
+        cls._server = http.server.HTTPServer(('127.0.0.1', 0), _GuideHandler)
+        cls._port = cls._server.server_address[1]
+        cls._base_url = f'http://127.0.0.1:{cls._port}'
+        cls._thread = threading.Thread(target=cls._server.serve_forever, daemon=True)
+        cls._thread.start()
+        cls._pw = sync_playwright().start()
+        cls._browser = cls._pw.chromium.launch()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._browser.close()
+        cls._pw.stop()
+        cls._server.shutdown()
+
+    def setUp(self):
+        self.page = self._browser.new_page(viewport={'width': 1280, 'height': 800})
+        self.page.goto(self._base_url, wait_until='domcontentloaded')
+        self.page.wait_for_timeout(400)
+
+    def tearDown(self):
+        self.page.close()
+
+    def test_three_tabs_visible(self):
+        tabs = self.page.query_selector_all('.guide-tab')
+        self.assertEqual(len(tabs), 3, 'Expected 3 language tabs')
+
+    def test_java_tab_active_on_load(self):
+        java_tab = self.page.query_selector('[data-lang="java"]')
+        self.assertIn('active', java_tab.get_attribute('class'))
+
+    def test_java_pane_visible_on_load(self):
+        self.assertTrue(self.page.query_selector('#pane-java').is_visible())
+
+    def test_typescript_pane_hidden_on_load(self):
+        self.assertFalse(self.page.query_selector('#pane-typescript').is_visible())
+
+    def test_python_pane_hidden_on_load(self):
+        self.assertFalse(self.page.query_selector('#pane-python').is_visible())
+
+    def test_click_typescript_tab_shows_ts_pane(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        self.assertTrue(self.page.query_selector('#pane-typescript').is_visible())
+
+    def test_click_typescript_tab_hides_java_pane(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        self.assertFalse(self.page.query_selector('#pane-java').is_visible())
+
+    def test_click_typescript_tab_marks_ts_active(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        ts_tab = self.page.query_selector('[data-lang="typescript"]')
+        self.assertIn('active', ts_tab.get_attribute('class'))
+
+    def test_click_typescript_tab_updates_hash(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        self.assertIn('#typescript', self.page.url)
+
+    def test_click_python_tab_shows_py_pane(self):
+        self.page.click('[data-lang="python"]')
+        self.page.wait_for_timeout(300)
+        self.assertTrue(self.page.query_selector('#pane-python').is_visible())
+
+    def test_click_python_tab_updates_hash(self):
+        self.page.click('[data-lang="python"]')
+        self.page.wait_for_timeout(300)
+        self.assertIn('#python', self.page.url)
+
+    def test_switch_back_to_java_from_typescript(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        self.page.click('[data-lang="java"]')
+        self.page.wait_for_timeout(300)
+        self.assertTrue(self.page.query_selector('#pane-java').is_visible())
+        self.assertFalse(self.page.query_selector('#pane-typescript').is_visible())
+
+    def test_direct_link_to_typescript_via_hash(self):
+        self.page.goto(self._base_url + '#typescript', wait_until='domcontentloaded')
+        self.page.wait_for_timeout(500)
+        self.assertTrue(self.page.query_selector('#pane-typescript').is_visible())
+        self.assertFalse(self.page.query_selector('#pane-java').is_visible())
+
+    def test_direct_link_to_python_via_hash(self):
+        self.page.goto(self._base_url + '#python', wait_until='domcontentloaded')
+        self.page.wait_for_timeout(500)
+        self.assertTrue(self.page.query_selector('#pane-python').is_visible())
+
+    def test_typescript_sidebar_has_twelve_steps(self):
+        self.page.click('[data-lang="typescript"]')
+        self.page.wait_for_timeout(300)
+        steps = self.page.query_selector_all('#sidebar-typescript .guide-step')
+        self.assertEqual(len(steps), 12, 'TypeScript sidebar must have 12 steps')
+
+    def test_python_sidebar_has_twelve_steps(self):
+        self.page.click('[data-lang="python"]')
+        self.page.wait_for_timeout(300)
+        steps = self.page.query_selector_all('#sidebar-python .guide-step')
+        self.assertEqual(len(steps), 12, 'Python sidebar must have 12 steps')
