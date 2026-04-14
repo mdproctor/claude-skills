@@ -4,30 +4,25 @@
 
 # cc-praxis
 
-A curated collection of Claude Code skills for professional software development — with deep Java/Quarkus support and universal principles that apply to any project.
+**Claude Code skills that make professional software development feel automatic.**
 
-## Installation
+You commit code — it reviews for safety issues first, syncs your design document, links the GitHub issue, and writes the conventional commit message. You ask Claude to implement a feature — it designs a spec, gets your approval, then writes a TDD implementation plan. You end a session — it captures a handover so the next session picks up in one message.
 
-### Quick Start — Claude Code Marketplace
+48 skills for Java/Quarkus, TypeScript/Node.js, and Python. Install the ones relevant to your stack, in any order.
+
+---
+
+## Quick Start
 
 ```bash
-# Add this marketplace to Claude Code
 /plugin marketplace add github.com/mdproctor/cc-praxis
-
-# Run the one-time bootstrap wizard
 /plugin install install-skills
 /install-skills
 ```
 
-The `/install-skills` wizard:
-- Configures a session-start hook for automatic CLAUDE.md detection
-- Lets you choose what to install (all skills, Java/Quarkus bundle, foundation principles, or individual)
-- Automatically resolves and installs dependencies
-- Verifies the setup
+Pick a language bundle (or start with just 3 skills — see [Getting Started Guide](https://mdproctor.github.io/cc-praxis/guide/)). Close the session. Skills are active in every session after.
 
-After the wizard completes, **close that conversation** — skills are then available in all future sessions.
-
-> **New to cc-praxis?** Work through the [interactive getting started guide](https://mdproctor.github.io/cc-praxis/guide/) — covers CLAUDE.md setup, workspace configuration, and the full Java workflow in 12 steps.
+> **New to cc-praxis?** The [Getting Started Guide](https://mdproctor.github.io/cc-praxis/guide/) walks you through the full workflow in 12 steps — pick Java, TypeScript, or Python.
 
 > **Dependency resolution note:** The official Claude Code marketplace doesn't yet support automatic dependency resolution ([Issue #9444](https://github.com/anthropics/claude-code/issues/9444)). The `/install-skills` wizard handles this for you. If you prefer installing manually, use the `scripts/claude-skill` installer below.
 
@@ -35,8 +30,6 @@ After the wizard completes, **close that conversation** — skills are then avai
 ```bash
 /uninstall-skills
 ```
-
-The wizard checks for reverse dependencies and confirms before removing anything.
 
 ---
 
