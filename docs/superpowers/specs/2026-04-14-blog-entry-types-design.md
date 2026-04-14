@@ -81,7 +81,13 @@ tags: [quarkus, skills, workflow]
 ## Routing Config Format
 
 Routing is resolved at publish time — entries carry type/tags/projects only.
-The routing config computes destinations when `publish-blog` or `epic-close` runs.
+The routing config computes destinations when `publish-blog` runs.
+
+> **Note:** `blog-routing.yaml` is a second level of routing within the `blog` artifact
+> type. The first level — where the `blog/` directory lives after an epic closes — is
+> governed by the workspace `## Routing` config (project/workspace/alternative). `epic-close`
+> handles that level. `publish-blog` handles this level: per-entry cross-posting to blog
+> platforms based on entry metadata. The two systems are independent.
 
 ### Two-layer config (same strategy as CLAUDE.md `@include`)
 
