@@ -347,7 +347,7 @@ python3 scripts/web_installer.py          # opens http://localhost:8765
 # Regenerate web app data after chaining changes
 python3 scripts/generate_web_app_data.py
 
-# Run all tests (1016 tests; ~2m including Playwright UI tests)
+# Run all tests (1152 tests; ~2m including Playwright UI tests)
 python3 -m pytest tests/ -v
 
 # Run commit-tier validators
@@ -572,6 +572,7 @@ Full design: `docs/superpowers/specs/2026-04-09-workspace-model-design.md`
 - `design-snapshot` — immutable dated record of design state; links to ADRs rather than duplicating them
 - `idea-log` — lightweight living log for undecided possibilities; park ideas before they evaporate, promote to ADR when ready
 - `write-blog` — living project diary; captures decisions, pivots, and discoveries in diary voice as they happen; never revised in hindsight
+- `publish-blog` — routes blog entries to external git destinations via blog-routing.yaml; Level 2 blog routing (per-entry cross-posting), independent of epic-close Level 1 routing
 - `handover` — end-of-session HANDOFF.md generator; lazy references to blog, design-snapshot, and CLAUDE.md rather than loading them; invokes write-blog, design-snapshot, and update-claude-md via user-confirmed wrap checklist
 
 **TypeScript/Node.js skills:**
@@ -642,7 +643,7 @@ For complete inventory of validation scripts by tier:
 - **COMMIT tier (<2s)**: frontmatter, CSO, references, naming, sections, structure, project-types, blog-frontmatter
 - **PUSH tier (<30s)**: flowcharts, cross-document, temporal, usability, edge-cases, behavior, readme-sync, external-links, code-examples, web-app
 - **CI tier (<5min)**: Python quality (mypy, flake8, bandit) + functional tests
-- **On disk, not yet registered**: validate_blog_commit.py, validate_doc_structure.py
+- **On disk, not yet registered**: validate_blog_commit.py (git hook only — needs commit message), validate_doc_structure.py (on-demand — needs target path)
 
 ### Success Criteria
 

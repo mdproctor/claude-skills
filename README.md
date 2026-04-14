@@ -27,6 +27,8 @@ The `/install-skills` wizard:
 
 After the wizard completes, **close that conversation** — skills are then available in all future sessions.
 
+> **New to cc-praxis?** Work through the [interactive getting started guide](https://mdproctor.github.io/cc-praxis/guide/) — covers CLAUDE.md setup, workspace configuration, and the full Java workflow in 12 steps.
+
 > **Dependency resolution note:** The official Claude Code marketplace doesn't yet support automatic dependency resolution ([Issue #9444](https://github.com/anthropics/claude-code/issues/9444)). The `/install-skills` wizard handles this for you. If you prefer installing manually, use the `scripts/claude-skill` installer below.
 
 **To uninstall:**
@@ -1679,7 +1681,7 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │       ├── validate_links.py           # External link reachability [PUSH]
 │       ├── validate_examples.py        # Code example correctness [PUSH]
 │       └── validate_python_quality.py  # mypy, flake8, bandit [CI]
-├── tests/                               # Test suite (1110 tests)
+├── tests/                               # Test suite (1152 tests)
 │   ├── test_claude_skill.py            # Tests for scripts/claude-skill
 │   ├── test_mockup_chaining.py         # Skill chaining ground truth (CHAINING_TRUTH)
 │   ├── test_chain_data_drift.py        # CHAIN JS in index.html vs CHAINING_TRUTH
@@ -1691,9 +1693,16 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │   ├── test_modular_validator.py       # Tests for modular validator
 │   ├── test_blog_router.py             # Blog routing resolver (37 tests — unit, integration, e2e)
 │   ├── test_jekyll_pages.py            # Jekyll articles/diary page templates (21 tests)
-│   └── test_workspace_routing.py       # Three-layer workspace routing resolver (36 tests)
+│   ├── test_workspace_routing.py       # Three-layer workspace routing resolver (36 tests)
+│   ├── test_guide_page.py              # Getting started guide structural tests (24 tests)
+│   └── test_guide_ui.py               # Getting started guide Playwright e2e tests (18 tests)
 ├── docs/                                # Web skill manager + documentation
 │   ├── index.html                       # Web skill manager UI (About/Browse/Install tabs)
+│   ├── guide.html                       # 12-section interactive getting started guide (/guide/)
+│   ├── articles/
+│   │   └── index.html                   # Articles listing page — filters entry_type: article
+│   ├── blog/
+│   │   └── index.html                   # Diary listing page — filters subtype: diary
 │   ├── ideas/
 │   │   └── IDEAS.md                     # Project idea log (undecided possibilities)
 │   ├── PROJECT-TYPES.md                # Complete project type taxonomy and routing

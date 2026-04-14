@@ -1,10 +1,9 @@
 ---
 name: publish-blog
 description: >
-  Use when publishing blog entries to external platforms — user says "publish
-  blog", "publish entries", "cross-post this entry", or invokes /publish-blog.
-  Reads blog-routing.yaml to determine which entries go to which destinations.
-  NOT for writing new entries (use write-blog for that).
+  Use when publishing blog entries to external platforms via blog-routing.yaml
+  — user says "publish blog", "publish entries", "cross-post this entry", or
+  invokes /publish-blog. NOT for writing new entries (use write-blog for that).
 ---
 
 # Publish Blog
