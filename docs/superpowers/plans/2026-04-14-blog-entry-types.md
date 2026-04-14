@@ -589,7 +589,7 @@ Find the validator count reference in `README.md § Skill Quality & Validation` 
 
 Find in `CLAUDE.md`:
 ```
-**17 validators across 3 tiers (COMMIT/PUSH/CI):**
+**18 validators across 3 tiers (COMMIT/PUSH/CI):**
 ```
 Update to:
 ```
