@@ -879,15 +879,18 @@ title: Getting Started with cc-praxis
   }
 
   var observer = new IntersectionObserver(function (entries) {
+    // Pick the topmost intersecting section across all entries in this batch
+    // (fast scroll can deliver multiple entries simultaneously in arbitrary order)
+    var best = null;
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
-        var sectionEl = entry.target;
-        var n = parseInt(sectionEl.getAttribute('data-section'), 10);
-        if (!isNaN(n)) {
-          setActive(n - 1);
+        var n = parseInt(entry.target.getAttribute('data-section'), 10);
+        if (!isNaN(n) && (best === null || n < best)) {
+          best = n;
         }
       }
     });
+    if (best !== null) setActive(best - 1);
   }, {
     threshold: 0.25,
     rootMargin: '-10% 0px -60% 0px'
