@@ -16,3 +16,4 @@
 | [2026-04-09-mdp01-where-claude-lives-now.md](2026-04-09-mdp01-where-claude-lives-now.md) | 2026-04-09 | cc-praxis — Where Claude Lives Now |
 | [2026-04-13-mdp01-workspace-init-ships.md](2026-04-13-mdp01-workspace-init-ships.md) | 2026-04-13 | cc-praxis — workspace-init Ships |
 | [2026-04-14-mdp01-the-model-comes-together.md](2026-04-14-mdp01-the-model-comes-together.md) | 2026-04-14 | cc-praxis — The Model Comes Together |
+| [2026-04-14-mdp02-closing-gaps.md](2026-04-14-mdp02-closing-gaps.md) | 2026-04-14 | Blog types, workspace routing, health sweeps, 446→1016 tests, six forage entries |
