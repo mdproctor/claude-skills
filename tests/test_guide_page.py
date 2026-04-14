@@ -99,9 +99,10 @@ class TestSectionStructure(unittest.TestCase):
                           f'Missing data-section="{n}"')
 
     def test_sidebar_has_twelve_steps(self):
-        count = len(re.findall(r'data-step="\d+"', self.content))
+        # Java tab only — count java-section IDs as proxy for Java sidebar steps
+        count = len(re.findall(r'id="java-section-\d+"', self.content))
         self.assertEqual(count, SECTION_COUNT,
-                         f'Sidebar needs {SECTION_COUNT} data-step entries, found {count}')
+                         f'Java sidebar needs {SECTION_COUNT} section IDs, found {count}')
 
     def test_sidebar_steps_are_sequential(self):
         for n in range(1, SECTION_COUNT + 1):
@@ -121,19 +122,23 @@ class TestSectionContent(unittest.TestCase):
         self.content = load_guide()
 
     def test_twelve_what_it_does_boxes(self):
+        # Each complete language tab contributes 12; tally grows as tabs are added.
+        # Java tab: 12, TypeScript tab: 12 → 24 total when both are complete.
         count = self.content.count('what-it-does')
-        self.assertEqual(count, SECTION_COUNT,
-                         f'Expected {SECTION_COUNT} what-it-does boxes, found {count}')
+        self.assertGreaterEqual(count, SECTION_COUNT,
+                                f'Expected at least {SECTION_COUNT} what-it-does boxes, found {count}')
 
     def test_twelve_prompt_blocks(self):
+        # Each complete language tab contributes 12.
         count = self.content.count('prompt-block')
-        self.assertEqual(count, SECTION_COUNT,
-                         f'Expected {SECTION_COUNT} prompt-block elements, found {count}')
+        self.assertGreaterEqual(count, SECTION_COUNT,
+                                f'Expected at least {SECTION_COUNT} prompt-block elements, found {count}')
 
     def test_ten_install_callouts(self):
+        # Each complete language tab contributes 10.
         count = self.content.count('install-callout')
-        self.assertEqual(count, 10,
-                         f'Expected 10 install-callout boxes (sections 3-12), found {count}')
+        self.assertGreaterEqual(count, 10,
+                                f'Expected at least 10 install-callout boxes, found {count}')
 
     def test_section_next_links(self):
         # 11 sections have "Next →" links; the last section (12) has a completion message instead
@@ -177,6 +182,52 @@ class TestJavaScript(unittest.TestCase):
     def test_done_class_logic_present(self):
         self.assertIn("classList.add('done'", self.content,
                       "JS must call classList.add('done') for completed steps")
+
+
+class TestTypescriptTab(unittest.TestCase):
+    """Integration: TypeScript tab has correct content."""
+
+    def setUp(self):
+        self.content = load_guide()
+
+    def _ts_content(self):
+        start = self.content.index('id="pane-typescript"')
+        end = self.content.index('id="pane-python"')
+        return self.content[start:end]
+
+    def test_ts_pane_has_twelve_sections(self):
+        import re
+        count = len(re.findall(r'id="ts-section-\d+"', self.content))
+        self.assertEqual(count, 12, f'TypeScript tab needs 12 sections, found {count}')
+
+    def test_ts_sidebar_has_id(self):
+        self.assertIn('id="sidebar-typescript"', self.content)
+
+    def test_ts_specific_skills_mentioned(self):
+        ts = self._ts_content()
+        for skill in ('ts-dev', 'ts-code-review', 'npm-dependency-update'):
+            self.assertIn(skill, ts, f'TypeScript tab must mention {skill}')
+
+    def test_ts_commit_uses_git_commit_not_java(self):
+        ts = self._ts_content()
+        self.assertNotIn('java-git-commit', ts,
+                         'TypeScript pane must not reference java-git-commit')
+        self.assertIn('git-commit', ts)
+
+    def test_ts_section9_has_design_snapshot_not_journal(self):
+        ts = self._ts_content()
+        self.assertIn('design-snapshot', ts)
+        self.assertNotIn('java-update-design', ts)
+
+    def test_ts_has_twelve_prompt_blocks(self):
+        ts = self._ts_content()
+        count = ts.count('prompt-block')
+        self.assertEqual(count, 12, f'TypeScript tab needs 12 prompt blocks, found {count}')
+
+    def test_ts_has_ten_install_callouts(self):
+        ts = self._ts_content()
+        count = ts.count('install-callout')
+        self.assertEqual(count, 10, f'TypeScript tab needs 10 install callouts, found {count}')
 
 
 class TestTabStructure(unittest.TestCase):
