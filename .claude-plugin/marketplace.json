@@ -223,6 +223,12 @@
       "version": "1.0.0-SNAPSHOT"
     },
     {
+      "name": "publish-blog",
+      "source": "./publish-blog",
+      "description": "Publish blog entries to external platforms \u2014 reads blog-routing.yaml to route entries per entry_type, tags, and projects to configured git destinations",
+      "version": "1.0.0-SNAPSHOT"
+    },
+    {
       "name": "handover",
       "source": "./handover",
       "description": "Generates a concise HANDOFF.md at session end \u2014 lazy references to design snapshots, project blog, and knowledge garden rather than loading them",

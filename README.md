@@ -268,6 +268,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **design-snapshot** | Immutable dated design state record | (standalone) |
 | **idea-log** | Living log for undecided possibilities | (standalone) |
 | **write-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
+| **publish-blog** | Routes blog entries to external git destinations via blog-routing.yaml | write-blog |
 | **forage** | Cross-project library of hard-won bugs, gotchas, and unexpected behaviours. Session-time: CAPTURE, SWEEP, SEARCH, REVISE. Dedup via harvest. | (standalone, writes to ~/.hortora/garden/) |
 
 ### Layer 7: Health & Quality (8 skills)
@@ -766,6 +767,31 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 - `tags`: topic tags — drives routing rules via `blog-routing.yaml`
 
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions. `/write-blog` alone triggers the full retrospective sweep.
+
+#### **publish-blog**
+Routes blog entries from `docs/_posts/` to configured external git destinations based on `blog-routing.yaml` routing rules:
+- Reads global `~/.claude/blog-routing.yaml` and optionally a per-workspace `blog-routing.yaml` (project rules extend global via `extends:`)
+- Resolves destinations per entry using AND-logic match fields (`entry_type`, `tags`, `projects`) — multiple matching rules union their destinations
+- Shows a routing plan before any file operations; user confirms or selects entries individually
+- Copies entries to each destination directory; commits and pushes git destinations; reports per-destination outcome (✅ / ❌)
+- Powered by `scripts/blog_router.py` — independently testable routing resolver
+
+**Routing config format:**
+```yaml
+# ~/.claude/blog-routing.yaml
+destinations:
+  personal-blog: { type: git, path: ~/blog/, subdir: _posts/ }
+  quarkus-blog:  { type: git, path: ~/quarkus-community-blog/, subdir: _posts/ }
+defaults:
+  destinations: [personal-blog]
+rules:
+  - match: { tags: [quarkus] }
+    destinations: [quarkus-blog, personal-blog]
+```
+
+**This is Level 2 blog routing** — independent of `epic-close`'s Level 1 routing (where the `blog/` directory lives). The two systems do not interact.
+
+**Triggers:** "publish blog", "publish entries", "cross-post this entry", `/publish-blog`.
 
 #### **forage**
 Cross-project library of hard-won technical knowledge — stored at `${HORTORA_GARDEN:-~/.hortora/garden}/` (a git repo shared across all projects on this machine). Three entry types: **gotchas** (bugs that silently fail, behaviours contradicting docs), **techniques** (non-obvious approaches a skilled developer wouldn't naturally reach for), and **undocumented** (features that exist and work but aren't in any docs).
@@ -1410,6 +1436,7 @@ Claude: [Uses git-commit]
 | `handover` | `write-blog` | conditional | Blog entry checked in wrap checklist |
 | `handover` | `design-snapshot` | conditional | Design snapshot checked in wrap checklist |
 | `handover` | `update-claude-md` | conditional | Convention sync checked in wrap checklist |
+| `write-blog` | `publish-blog` | manual | User wants to push entries to external platforms |
 
 ---
 ## License
@@ -1620,7 +1647,7 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 ├── bin/
 │   └── cc-praxis                        # Shell launcher (added to PATH on plugin install)
 ├── .claude-plugin/
-│   └── marketplace.json                 # Marketplace catalog (47 skills; excludes sync-local dev-only)
+│   └── marketplace.json                 # Marketplace catalog (48 skills; excludes sync-local dev-only)
 ├── scripts/                             # Automation and validation
 │   ├── claude-skill                     # Skill installer/manager CLI (install, sync-local, etc.)
 │   ├── web_installer.py                 # Web skill manager server (serves docs/index.html)
@@ -1628,6 +1655,8 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │   ├── validate_all.py                  # Master orchestrator (3-tier validation)
 │   ├── validate_document.py             # Universal .md corruption detector
 │   ├── generate_skill_metadata.py       # Regenerates skill.json for all skills
+│   ├── blog_router.py                   # Blog routing config resolver (load, merge, resolve destinations)
+│   ├── workspace_routing.py             # Three-layer workspace routing resolver (CLAUDE.md ## Routing)
 │   └── validation/                      # SKILL.md validators (21 total, 3 tiers)
 │       ├── validate_frontmatter.py     # YAML structure, required fields [COMMIT]
 │       ├── validate_cso.py             # Description CSO compliance [COMMIT]
@@ -1650,7 +1679,7 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │       ├── validate_links.py           # External link reachability [PUSH]
 │       ├── validate_examples.py        # Code example correctness [PUSH]
 │       └── validate_python_quality.py  # mypy, flake8, bandit [CI]
-├── tests/                               # Test suite (1016 tests)
+├── tests/                               # Test suite (1110 tests)
 │   ├── test_claude_skill.py            # Tests for scripts/claude-skill
 │   ├── test_mockup_chaining.py         # Skill chaining ground truth (CHAINING_TRUTH)
 │   ├── test_chain_data_drift.py        # CHAIN JS in index.html vs CHAINING_TRUTH
@@ -1659,7 +1688,10 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │   ├── test_web_installer_ui.py        # Playwright browser UI tests (38 tests)
 │   ├── test_document_discovery.py      # Tests for document discovery
 │   ├── test_document_cache.py          # Tests for document caching
-│   └── test_modular_validator.py       # Tests for modular validator
+│   ├── test_modular_validator.py       # Tests for modular validator
+│   ├── test_blog_router.py             # Blog routing resolver (37 tests — unit, integration, e2e)
+│   ├── test_jekyll_pages.py            # Jekyll articles/diary page templates (21 tests)
+│   └── test_workspace_routing.py       # Three-layer workspace routing resolver (36 tests)
 ├── docs/                                # Web skill manager + documentation
 │   ├── index.html                       # Web skill manager UI (About/Browse/Install tabs)
 │   ├── ideas/
@@ -1711,6 +1743,10 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 ├── quarkus-flow-testing/                # Quarkus workflow testing patterns
 │   └── SKILL.md
 ├── quarkus-observability/               # Quarkus observability configuration
+│   └── SKILL.md
+├── write-blog/                          # Living project diary skill
+│   └── SKILL.md
+├── publish-blog/                        # Blog entry publishing to external git destinations
 │   └── SKILL.md
 └── adr/                                 # Architecture Decision Records skill
     └── SKILL.md
