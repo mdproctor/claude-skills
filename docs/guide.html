@@ -621,7 +621,7 @@ title: Getting Started with cc-praxis
         <div class="section-num">6</div>
         <div>
           <h2>Brainstorming</h2>
-          <span class="section-tag">Skill: superpowers:brainstorming (via /install-skills)</span>
+          <span class="section-tag">Skill: superpowers:brainstorming</span>
         </div>
       </div>
 
@@ -633,7 +633,7 @@ title: Getting Started with cc-praxis
       <div class="install-callout" data-guide="ic">
         <div>
           <strong>Install this skill</strong>
-          <code>/install-skills</code> → select <code>superpowers:brainstorming</code>
+          <code>/plugin install superpowers</code> (installs the full superpowers bundle, which includes brainstorming)
         </div>
       </div>
 
@@ -644,8 +644,8 @@ title: Getting Started with cc-praxis
         <li><strong>Questions</strong> — asks clarifying questions before proposing anything</li>
         <li><strong>Approaches</strong> — presents multiple design options with tradeoffs</li>
         <li><strong>Design</strong> — develops the chosen approach in depth</li>
-        <li><strong>Spec</strong> — writes a formal spec document to <code>specs/</code></li>
-        <li><strong>Plan</strong> — produces a phased implementation plan ready for <code>/java-git-commit</code> to execute</li>
+        <li><strong>Spec</strong> — writes a formal spec document to <code>docs/superpowers/specs/</code></li>
+        <li><strong>Plan</strong> — produces a phased implementation plan ready to execute via <code>/executing-plans</code> or <code>/subagent-driven-development</code></li>
       </ol>
 
       <p>The hard gate at phase 5 means Claude will not write implementation code until you explicitly approve the spec. This prevents the common failure mode of starting implementation before the design is clear.</p>
@@ -872,7 +872,7 @@ title: Getting Started with cc-praxis
 
       <div class="what-it-does" data-guide="wid">
         <strong>What this does</strong>
-        write-blog captures the evolving story of a project in diary voice — the decisions made, the wrong turns taken, the realisations that changed the direction. Entries are published to /blog/ (diary) or /articles/ (articles). The skill reads a personal writing style guide to match your voice.
+        write-blog captures the evolving story of a project in diary voice — the decisions made, the wrong turns taken, the realisations that changed the direction. Entries are saved to the workspace <code>blog/</code> directory. The skill reads a personal writing style guide to match your voice.
       </div>
 
       <div class="install-callout" data-guide="ic">
@@ -882,7 +882,7 @@ title: Getting Started with cc-praxis
         </div>
       </div>
 
-      <p>Entry metadata uses two fields: <code>entry_type: article | note</code> and <code>subtype: diary</code>. Diary entries route to <code>/blog/</code>; articles route to <code>/articles/</code>.</p>
+      <p>Entry metadata uses two fields: <code>entry_type: article | note</code> and <code>subtype: diary</code>. When published to the Jekyll site, diary entries appear under <code>/blog/</code> and articles under <code>/articles/</code> — that filtering is done by the Jekyll page templates. <code>publish-blog</code> handles cross-posting entries to external platforms.</p>
 
       <p>The skill reads a writing style guide from <code>$PERSONAL_WRITING_STYLES_PATH</code> if set, or falls back to a bundled default. The guide controls vocabulary, register, heading style, and what to avoid — so entries written by Claude match your actual voice rather than sounding generic.</p>
 
