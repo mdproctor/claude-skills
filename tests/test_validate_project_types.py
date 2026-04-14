@@ -94,7 +94,8 @@ class TestFindHardcodedLists:
     def test_complete_pipe_list_no_issues(self, tmp_path):
         canonical = ["skills", "java", "blog", "generic"]
         pattern = _build_list_pattern(canonical)
-        f = make_file(tmp_path, "complete.md", "Choices: skills | java | blog | generic\n")
+        content = "Choices: skills | java | blog | generic\n"  # nocheck:project-types
+        f = make_file(tmp_path, "complete.md", content)
         issues = find_hardcoded_lists(f, canonical, pattern)
         assert issues == []
 
@@ -102,7 +103,8 @@ class TestFindHardcodedLists:
         canonical = ["skills", "java", "blog", "generic"]
         pattern = _build_list_pattern(canonical)
         # "generic" is missing — only 3 listed, pattern requires 3+
-        f = make_file(tmp_path, "incomplete.md", "Choices: skills | java | blog\n")
+        content = "Choices: skills | java | blog\n"  # nocheck:project-types
+        f = make_file(tmp_path, "incomplete.md", content)
         issues = find_hardcoded_lists(f, canonical, pattern)
         critical = [i for i in issues if is_critical(i)]
         assert len(critical) >= 1
@@ -132,10 +134,8 @@ class TestFindHardcodedLists:
     def test_complete_comma_list_no_issues(self, tmp_path):
         canonical = ["skills", "java", "blog", "generic"]
         pattern = _build_list_pattern(canonical)
-        f = make_file(
-            tmp_path, "comma.md",
-            "Types: skills, java, blog, generic\n"
-        )
+        content = "Types: skills, java, blog, generic\n"  # nocheck:project-types
+        f = make_file(tmp_path, "comma.md", content)
         issues = find_hardcoded_lists(f, canonical, pattern)
         assert issues == []
 
@@ -143,10 +143,8 @@ class TestFindHardcodedLists:
         canonical = ["skills", "java", "blog", "generic"]
         pattern = _build_list_pattern(canonical)
         # Missing "blog"
-        f = make_file(
-            tmp_path, "comma_incomplete.md",
-            "Types: skills, java, generic\n"
-        )
+        content = "Types: skills, java, generic\n"  # nocheck:project-types
+        f = make_file(tmp_path, "comma_incomplete.md", content)
         issues = find_hardcoded_lists(f, canonical, pattern)
         critical = [i for i in issues if is_critical(i)]
         assert len(critical) >= 1
