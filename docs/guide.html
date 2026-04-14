@@ -304,6 +304,46 @@ title: Getting Started with cc-praxis
     .guide-pane { padding: 1rem; }
   }
 
+  /* ── Workspace decision box ───────────────────────────── */
+  .workspace-decision {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
+  }
+  .workspace-decision .wd-option {
+    padding: 1rem 1.125rem;
+    border-right: 1px solid #e5e7eb;
+  }
+  .workspace-decision .wd-option:last-child { border-right: none; }
+  .workspace-decision .wd-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .workspace-decision .wd-option.wd-simple { background: #f9fafb; }
+  .workspace-decision .wd-option.wd-simple .wd-label { color: #6b7280; }
+  .workspace-decision .wd-option.wd-separate { background: #eef2ff; }
+  .workspace-decision .wd-option.wd-separate .wd-label { color: #4338ca; }
+  .workspace-decision .wd-title {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .workspace-decision .wd-desc { color: #6b7280; line-height: 1.5; }
+  .workspace-decision .wd-when {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 6px;
+  }
+  .workspace-decision .wd-when strong { color: #6b7280; }
+
   /* ── Tab bar ──────────────────────────────────────────── */
   .guide-tab-bar {
     display: flex;
@@ -493,6 +533,23 @@ title: Getting Started with cc-praxis
         <strong>What this does</strong>
         The workspace is a companion git repository that stores methodology artifacts — design journals, ADRs, snapshots, ideas, specs, and handoff notes — separately from the project repo. It keeps AI-generated working documents out of your main codebase history.
       </div>
+
+      <div class="workspace-decision">
+        <div class="wd-option wd-simple">
+          <div class="wd-label">Option A</div>
+          <div class="wd-title">Keep it simple — project only</div>
+          <div class="wd-desc">Skip workspace setup. ADRs, handovers, and snapshots stay inside your project repo.</div>
+          <div class="wd-when"><strong>Best for:</strong> quick experiments, solo projects, or if you're just getting started</div>
+        </div>
+        <div class="wd-option wd-separate">
+          <div class="wd-label">Option B — recommended</div>
+          <div class="wd-title">Separate — project + workspace</div>
+          <div class="wd-desc">Run <code>/workspace-init</code> once. Methodology artifacts live in <code>~/claude/private/&lt;project&gt;/</code>.</div>
+          <div class="wd-when"><strong>Best for:</strong> long-running projects, teams, or when you want a clean project history</div>
+        </div>
+      </div>
+
+      <p>You can start with Option A and add a workspace later — <code>/workspace-init</code> migrates existing artifacts. The rest of this guide works either way.</p>
 
       <p>cc-praxis supports three workspace modes:</p>
 
@@ -1058,7 +1115,21 @@ title: Getting Started with cc-praxis
         <strong>What this does</strong>
         Creates a companion git repo that stores ADRs, design snapshots, and session handovers — keeping your project repo focused on code.
       </div>
-      <p>Optional but recommended. Without a workspace, ADRs and HANDOFF.md land in your project repo. Run <code>/workspace-init</code> once to create a separate home for methodology artifacts.</p>
+      <div class="workspace-decision">
+        <div class="wd-option wd-simple">
+          <div class="wd-label">Option A</div>
+          <div class="wd-title">Keep it simple — project only</div>
+          <div class="wd-desc">Skip workspace setup. ADRs, handovers, and snapshots stay inside your project repo.</div>
+          <div class="wd-when"><strong>Best for:</strong> quick experiments, solo projects, or if you're just getting started</div>
+        </div>
+        <div class="wd-option wd-separate">
+          <div class="wd-label">Option B — recommended</div>
+          <div class="wd-title">Separate — project + workspace</div>
+          <div class="wd-desc">Run <code>/workspace-init</code> once. Methodology artifacts live in <code>~/claude/private/&lt;project&gt;/</code>.</div>
+          <div class="wd-when"><strong>Best for:</strong> long-running projects, teams, or when you want a clean project history</div>
+        </div>
+      </div>
+      <p>You can start with Option A and add a workspace later — <code>/workspace-init</code> migrates existing artifacts.</p>
       <p>Routing is configured in the workspace CLAUDE.md with three destinations: <code>project</code> · <code>workspace</code> · <code>alternative ~/path/</code>. Configure this before starting your first epic.</p>
       <div class="prompt-label">Prompt to try</div>
       <div class="prompt-block" data-guide="pb">/workspace-init</div>
@@ -1410,7 +1481,21 @@ title: Getting Started with cc-praxis
         <strong>What this does</strong>
         Creates a companion git repo that stores ADRs, design snapshots, and session handovers — keeping your project repo focused on code.
       </div>
-      <p>Optional but recommended. Without a workspace, ADRs and HANDOFF.md land in your project repo. Run <code>/workspace-init</code> once to create a separate home for methodology artifacts.</p>
+      <div class="workspace-decision">
+        <div class="wd-option wd-simple">
+          <div class="wd-label">Option A</div>
+          <div class="wd-title">Keep it simple — project only</div>
+          <div class="wd-desc">Skip workspace setup. ADRs, handovers, and snapshots stay inside your project repo.</div>
+          <div class="wd-when"><strong>Best for:</strong> quick experiments, solo projects, or if you're just getting started</div>
+        </div>
+        <div class="wd-option wd-separate">
+          <div class="wd-label">Option B — recommended</div>
+          <div class="wd-title">Separate — project + workspace</div>
+          <div class="wd-desc">Run <code>/workspace-init</code> once. Methodology artifacts live in <code>~/claude/private/&lt;project&gt;/</code>.</div>
+          <div class="wd-when"><strong>Best for:</strong> long-running projects, teams, or when you want a clean project history</div>
+        </div>
+      </div>
+      <p>You can start with Option A and add a workspace later — <code>/workspace-init</code> migrates existing artifacts.</p>
       <p>Routing is configured in the workspace CLAUDE.md: <code>project</code> · <code>workspace</code> · <code>alternative ~/path/</code>. Configure before starting your first epic.</p>
       <div class="prompt-label">Prompt to try</div>
       <div class="prompt-block" data-guide="pb">/workspace-init</div>
