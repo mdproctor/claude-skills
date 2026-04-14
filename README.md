@@ -268,7 +268,7 @@ This collection follows a **layered architecture** where foundation skills provi
 | **design-snapshot** | Immutable dated design state record | (standalone) |
 | **idea-log** | Living log for undecided possibilities | (standalone) |
 | **write-blog** | Living project diary — decisions, pivots, and discoveries in the moment | (standalone) |
-| **garden** | Cross-project library of hard-won bugs, gotchas, and unexpected behaviours | (standalone, writes to ~/claude/knowledge-garden/) |
+| **forage** | Cross-project library of hard-won bugs, gotchas, and unexpected behaviours. Session-time: CAPTURE, SWEEP, SEARCH, REVISE. Dedup via harvest. | (standalone, writes to ~/.hortora/garden/) |
 
 ### Layer 7: Health & Quality (8 skills)
 
@@ -394,6 +394,12 @@ Closes the current epic — run at the end of each epic:
 - Posts accumulated specs to the linked GitHub issue
 - Handles branch cleanup: merge project branch or open PR, delete workspace branch
 - Supports approve-all or step-by-step confirmation modes
+
+**Artifact routing** — three-layer config controls where artifacts go at epic close:
+- Layer 1 (built-in): all artifacts → project repo
+- Layer 2 (global): `~/.claude/CLAUDE.md ## Routing` — default destination
+- Layer 3 (workspace): `## Routing` table in workspace CLAUDE.md — per-artifact override
+Valid destinations: `project`, `workspace` (workspace/main), `alternative <path>`
 
 **Triggers:** "close epic", "finish epic", "wrap up epic", `/epic-close`.
 
@@ -753,25 +759,32 @@ Living project diary — captures decisions, pivots, and discoveries written in 
 - Visual elements: illustrations (web-sourced or AI-generated), code blocks for interesting implementation detail, mandatory screenshots for any UI work (clipped to relevant area)
 - Stored in `docs/blog/YYYY-MM-DD-<initials>NN-<topic>.md` (author initials from `~/.claude/settings.json` + per-author sequence number, prevents merge conflicts)
 
+**Entry metadata (added at write time):**
+- `entry_type`: `article` (topic-driven, standalone) or `note` (session narrative)
+- `subtype`: `diary` for note entries
+- `projects`: 1..n project identifiers — drives personal blog filtering
+- `tags`: topic tags — drives routing rules via `blog-routing.yaml`
+
 **Triggers:** "write a blog entry", "update the project blog", "log what we built today", "document this pivot", "add a diary entry", or at significant architectural decisions, pivots, or phase completions. `/write-blog` alone triggers the full retrospective sweep.
 
-#### **garden**
-Cross-project library of hard-won technical knowledge — stored in `~/claude/knowledge-garden/` (a git repo shared across all projects on this machine). Three entry types: **gotchas** (bugs that silently fail, behaviours contradicting docs), **techniques** (non-obvious approaches a skilled developer wouldn't naturally reach for), and **undocumented** (features that exist and work but aren't in any docs).
+#### **forage**
+Cross-project library of hard-won technical knowledge — stored at `${HORTORA_GARDEN:-~/.hortora/garden}/` (a git repo shared across all projects on this machine). Three entry types: **gotchas** (bugs that silently fail, behaviours contradicting docs), **techniques** (non-obvious approaches a skilled developer wouldn't naturally reach for), and **undocumented** (features that exist and work but aren't in any docs).
 
-Five workflows:
-- **CAPTURE** — add a specific entry (assign GE-ID, score, draft, confirm, submit to `submissions/`, commit)
+Four session-time workflows:
+- **CAPTURE** — add a specific entry (score, draft, confirm, commit to garden repo)
 - **SWEEP** — scan the session for all three entry types; propose scored candidates; never asks the user to re-explain
+- **SEARCH** — retrieve existing entries by keyword or symptom
 - **REVISE** — enrich an existing entry with a solution, alternative, variant, or status change
-- **MERGE** — dedicated session to integrate submissions with duplicate detection and GARDEN.md index update
-- **DEDUPE** — full within-category duplicate sweep when drift threshold is exceeded
+
+For deduplication across existing entries, use `harvest` (separate skill — dedicated session operation).
 
 **Features:**
 - Submission model: write first, deduplicate later — no expensive garden reads during CAPTURE
 - Garden Score (1–15) gates every submission: non-obviousness, discoverability, breadth, pain/impact, longevity
-- GARDEN.md dual-indexed by technology, symptom type, and label cross-cuts (By Technology / By Symptom / By Label)
+- Git-only access model: all reads via `git show HEAD:path` — never direct filesystem reads
 - Distinct from `idea-log` (undecided possibilities), `adr` (formal decisions), `write-blog` (project narrative)
 
-**Triggers:** "add this to the garden", "garden sweep", "merge garden submissions", or proactively when something genuinely non-obvious surfaces during debugging.
+**Triggers:** "add this to the garden", "forage sweep", "search the garden", or proactively when something genuinely non-obvious surfaces during debugging.
 
 #### **issue-workflow**
 Full-lifecycle GitHub issue tracking across four phases:
@@ -798,8 +811,8 @@ One-off retrospective mapping of git history to GitHub epics and issues:
 #### **handover**
 End-of-session HANDOFF.md generator — gives the next Claude session enough context to resume immediately:
 - Delta-first: only changed sections written in full; unchanged sections reference git history
-- Wrap checklist: offers write-blog, design-snapshot, update-claude-md, garden sweep before writing
-- Garden sweep built in: scans session for gotchas, techniques, and undocumented items across all three categories before context is lost
+- Wrap checklist: offers write-blog, design-snapshot, update-claude-md, forage sweep before writing
+- Forage sweep built in: scans session for gotchas, techniques, and undocumented items across all three categories before context is lost
 - Session rename prompt: suggests a meaningful name and prompts `/rename` at the right moment
 - Token budget: HANDOFF.md stays under 500 tokens — if it grows fat, routing is failing mid-epic
 
@@ -1393,7 +1406,7 @@ Claude: [Uses git-commit]
 | `python-security-audit` | `git-commit` | manual | After security review complete |
 | `pip-dependency-update` | `adr` | manual | Major version jump or significant new package |
 | `pip-dependency-update` | `git-commit` | manual | After successful dependency updates |
-| `handover` | `garden` | conditional | Garden sweep checked in wrap checklist (Step 2b) |
+| `handover` | `forage` | conditional | Forage sweep checked in wrap checklist (Step 2b) |
 | `handover` | `write-blog` | conditional | Blog entry checked in wrap checklist |
 | `handover` | `design-snapshot` | conditional | Design snapshot checked in wrap checklist |
 | `handover` | `update-claude-md` | conditional | Convention sync checked in wrap checklist |
@@ -1607,7 +1620,7 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 ├── bin/
 │   └── cc-praxis                        # Shell launcher (added to PATH on plugin install)
 ├── .claude-plugin/
-│   └── marketplace.json                 # Marketplace catalog (all 41 skills)
+│   └── marketplace.json                 # Marketplace catalog (47 skills; excludes sync-local dev-only)
 ├── scripts/                             # Automation and validation
 │   ├── claude-skill                     # Skill installer/manager CLI (install, sync-local, etc.)
 │   ├── web_installer.py                 # Web skill manager server (serves docs/index.html)
@@ -1615,7 +1628,7 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │   ├── validate_all.py                  # Master orchestrator (3-tier validation)
 │   ├── validate_document.py             # Universal .md corruption detector
 │   ├── generate_skill_metadata.py       # Regenerates skill.json for all skills
-│   └── validation/                      # SKILL.md validators (18 total, 3 tiers)
+│   └── validation/                      # SKILL.md validators (21 total, 3 tiers)
 │       ├── validate_frontmatter.py     # YAML structure, required fields [COMMIT]
 │       ├── validate_cso.py             # Description CSO compliance [COMMIT]
 │       ├── validate_references.py      # Cross-reference integrity [COMMIT]
@@ -1624,6 +1637,8 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │       ├── validate_structure.py       # File organization [COMMIT]
 │       ├── validate_project_types.py   # Project type list consistency [COMMIT]
 │       ├── validate_blog_frontmatter.py # Blog post frontmatter validation [COMMIT]
+│       ├── validate_blog_commit.py     # Blog commit message conventions [COMMIT]
+│       ├── validate_doc_structure.py   # Modularisation nudge threshold check [COMMIT]
 │       ├── validate_flowcharts.py      # Mermaid syntax validation [PUSH]
 │       ├── validate_web_app.py         # Web app sync with SKILL.md data [PUSH]
 │       ├── validate_cross_document.py  # Cross-document consistency [PUSH]
@@ -1632,6 +1647,8 @@ See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for comp
 │       ├── validate_edge_cases.py      # Edge case coverage [PUSH]
 │       ├── validate_behavior.py        # Behavioral consistency [PUSH]
 │       ├── validate_readme_sync.py     # README/CLAUDE sync [PUSH]
+│       ├── validate_links.py           # External link reachability [PUSH]
+│       ├── validate_examples.py        # Code example correctness [PUSH]
 │       └── validate_python_quality.py  # mypy, flake8, bandit [CI]
 ├── tests/                               # Test suite (446 tests)
 │   ├── test_claude_skill.py            # Tests for scripts/claude-skill
