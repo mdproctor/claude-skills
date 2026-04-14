@@ -39,7 +39,7 @@ ALL_SKILLS = {
 # Ground truth extracted from all SKILL.md files.
 # Update this when a skill's chaining is intentionally changed.
 CHAINING_TRUTH = {
-    'adr': {'chains_to': ['custom-git-commit', 'git-commit', 'java-git-commit', 'java-update-design', 'write-blog'], 'invoked_by': ['design-snapshot', 'idea-log', 'java-update-design', 'maven-dependency-update', 'write-blog'], 'builds_on': [], 'extended_by': []},
+    'adr': {'chains_to': ['custom-git-commit', 'git-commit', 'java-git-commit', 'java-update-design', 'write-blog'], 'invoked_by': ['design-snapshot', 'git-commit', 'idea-log', 'java-update-design', 'maven-dependency-update', 'write-blog'], 'builds_on': [], 'extended_by': []},
     'blog-git-commit': {'chains_to': ['update-claude-md'], 'invoked_by': ['git-commit'], 'builds_on': [], 'extended_by': []},
     'blog-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'cc-praxis-ui': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
@@ -47,13 +47,12 @@ CHAINING_TRUTH = {
     'custom-git-commit': {'chains_to': ['update-claude-md', 'update-primary-doc'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'write-blog'], 'builds_on': ['git-commit'], 'extended_by': []},
     'custom-project-health': {'chains_to': [], 'invoked_by': ['project-health'], 'builds_on': ['project-health'], 'extended_by': []},
     'dependency-management-principles': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': ['maven-dependency-update', 'npm-dependency-update', 'pip-dependency-update']},
-    'design-snapshot': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'idea-log', 'java-git-commit', 'write-blog'], 'invoked_by': ['handover', 'write-blog'], 'builds_on': [], 'extended_by': []},
+    'design-snapshot': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'idea-log', 'java-git-commit', 'write-blog'], 'invoked_by': ['git-commit', 'handover', 'write-blog'], 'builds_on': [], 'extended_by': []},
     'epic-close': {'chains_to': [], 'invoked_by': ['epic-start'], 'builds_on': [], 'extended_by': []},
     'epic-start': {'chains_to': ['epic-close'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'garden': {'chains_to': [], 'invoked_by': ['handover'], 'builds_on': [], 'extended_by': []},
-    'git-commit': {'chains_to': ['blog-git-commit', 'python-code-review', 'ts-code-review', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'python-code-review', 'ts-code-review', 'write-blog'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
-    'handover': {'chains_to': ['design-snapshot', 'garden', 'update-claude-md', 'write-blog'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'idea-log': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'issue-workflow', 'java-git-commit'], 'invoked_by': ['design-snapshot'], 'builds_on': [], 'extended_by': []},
+    'git-commit': {'chains_to': ['adr', 'blog-git-commit', 'design-snapshot', 'idea-log', 'python-code-review', 'ts-code-review', 'update-claude-md', 'write-blog'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'python-code-review', 'ts-code-review', 'write-blog'], 'builds_on': [], 'extended_by': ['custom-git-commit', 'java-git-commit']},
+    'handover': {'chains_to': ['design-snapshot', 'update-claude-md', 'write-blog'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'idea-log': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'issue-workflow', 'java-git-commit'], 'invoked_by': ['design-snapshot', 'git-commit'], 'builds_on': [], 'extended_by': []},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'issue-workflow': {'chains_to': [], 'invoked_by': ['idea-log'], 'builds_on': [], 'extended_by': []},
     'java-code-review': {'chains_to': ['java-git-commit', 'java-security-audit'], 'invoked_by': ['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'], 'builds_on': ['code-review-principles', 'java-dev'], 'extended_by': []},
@@ -86,7 +85,8 @@ CHAINING_TRUTH = {
     'update-claude-md': {'chains_to': ['java-update-design'], 'invoked_by': ['blog-git-commit', 'custom-git-commit', 'git-commit', 'handover', 'java-git-commit', 'write-blog'], 'builds_on': [], 'extended_by': []},
     'update-primary-doc': {'chains_to': [], 'invoked_by': ['custom-git-commit'], 'builds_on': [], 'extended_by': ['java-update-design']},
     'workspace-init': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'write-blog': {'chains_to': ['adr', 'custom-git-commit', 'design-snapshot', 'git-commit', 'java-git-commit', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'handover'], 'builds_on': [], 'extended_by': []},
+    'write-blog': {'chains_to': ['adr', 'custom-git-commit', 'design-snapshot', 'git-commit', 'java-git-commit', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'git-commit', 'handover'], 'builds_on': [], 'extended_by': []},
+    'garden': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
 }
 
 

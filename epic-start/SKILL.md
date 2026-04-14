@@ -64,6 +64,21 @@ date: <YYYY-MM-DD>
 issue:
 ```
 
+**Routing-aware SHA baseline:** Before writing `project-sha`, read the workspace
+`CLAUDE.md ## Routing` config (and global `~/.claude/CLAUDE.md ## Routing`). If the
+resolved `design` destination is `workspace`, record the **workspace/main HEAD SHA**
+instead of the project HEAD SHA:
+
+```bash
+# If design → workspace:
+git -C <workspace-path> rev-parse main   # use this as the baseline SHA
+# If design → project (default):
+git -C <project-path> rev-parse HEAD     # use this (current behaviour)
+```
+
+This ensures the journal merge at epic-close compares against the right DESIGN.md
+(workspace/main's, not the project's) when design artifacts live in the workspace.
+
 ### Step 4 — GitHub issue
 
 If `## Work Tracking` with `Issue tracking: enabled` exists in CLAUDE.md:
