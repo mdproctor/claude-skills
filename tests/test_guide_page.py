@@ -361,3 +361,59 @@ class TestQuickStartBundles(unittest.TestCase):
             for skill in self.bundles[bundle_name]['skills']:
                 self.assertIn(skill, self.all_skills,
                               f"Bundle '{bundle_name}' references skill '{skill}' not in marketplace")
+
+
+ARCHITECTURE_PATH = REPO_ROOT / 'docs' / 'architecture.md'
+SKILLS_CATALOG_PATH = REPO_ROOT / 'docs' / 'skills-catalog.md'
+
+
+class TestReadmeExtraction(unittest.TestCase):
+    """Integration: README extraction produced correct documents."""
+
+    def test_architecture_doc_exists(self):
+        self.assertTrue(ARCHITECTURE_PATH.exists(),
+                        'docs/architecture.md must exist')
+
+    def test_skills_catalog_exists(self):
+        self.assertTrue(SKILLS_CATALOG_PATH.exists(),
+                        'docs/skills-catalog.md must exist')
+
+    def test_readme_links_to_architecture(self):
+        readme = (REPO_ROOT / 'README.md').read_text()
+        self.assertIn('docs/architecture.md', readme,
+                      'README must link to docs/architecture.md')
+
+    def test_readme_links_to_skills_catalog(self):
+        readme = (REPO_ROOT / 'README.md').read_text()
+        self.assertIn('docs/skills-catalog.md', readme,
+                      'README must link to docs/skills-catalog.md')
+
+    def test_readme_under_800_lines(self):
+        lines = (REPO_ROOT / 'README.md').read_text().splitlines()
+        self.assertLess(len(lines), 800,
+                        f'README should be under 800 lines after extraction, got {len(lines)}')
+
+    def test_architecture_doc_has_layer_sections(self):
+        content = ARCHITECTURE_PATH.read_text()
+        self.assertIn('Layer 1', content)
+        self.assertIn('Layer 9', content)
+
+    def test_skills_catalog_has_skill_descriptions(self):
+        content = SKILLS_CATALOG_PATH.read_text()
+        self.assertIn('#### **git-commit**', content)
+        self.assertIn('#### **java-dev**', content)
+        self.assertIn('#### **python-dev**', content)
+
+    def test_readme_still_has_key_features(self):
+        readme = (REPO_ROOT / 'README.md').read_text()
+        self.assertIn('Key Features', readme)
+
+    def test_readme_still_has_chaining_reference(self):
+        readme = (REPO_ROOT / 'README.md').read_text()
+        self.assertIn('Skill Chaining Reference', readme)
+
+    def test_readme_has_bundle_table(self):
+        readme = (REPO_ROOT / 'README.md').read_text()
+        self.assertIn('Quick Start: Java', readme)
+        self.assertIn('Quick Start: TypeScript', readme)
+        self.assertIn('Quick Start: Python', readme)
