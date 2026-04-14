@@ -36,8 +36,46 @@ Read GitHub repo from workspace CLAUDE.md `## Work Tracking` → `GitHub repo:` 
 grep "GitHub repo:" CLAUDE.md | head -1 | sed 's/.*GitHub repo: *//'
 ```
 
-Read `## Routing` section from workspace CLAUDE.md if present. If absent, all
-artifacts default to project repo.
+#### Step 1a — Read Layer 2 (global routing default)
+
+```bash
+grep -A 5 "^## Routing$" "$HOME/.claude/CLAUDE.md" 2>/dev/null \
+  | grep "^\*\*Default destination:\*\*" \
+  | sed 's/\*\*Default destination:\*\* *//'
+```
+
+Valid values: `workspace` or `project` only. If the value is anything else, warn:
+```
+⚠️ Invalid global routing value '<X>' in ~/.claude/CLAUDE.md ## Routing.
+   Valid values: project | workspace
+   Ignoring Layer 2 — falling through to Layer 1.
+```
+If the `## Routing` section is absent or has no valid `**Default destination:**` line,
+Layer 2 is considered absent.
+
+#### Step 1b — Read Layer 3 (workspace per-artifact overrides)
+
+```bash
+grep -A 30 "^## Routing$" "$WORKSPACE/CLAUDE.md" 2>/dev/null
+```
+
+Parse the markdown table for per-artifact rows. Valid values per cell:
+`workspace`, `project`, `alternative <path>`.
+
+**Deprecated vocabulary check:** If the routing config (Layer 2 or Layer 3) contains
+any of the following, warn before using the value:
+- `base` — deprecated alias; use `project` or `workspace`
+- `project repo` — deprecated phrase; use `project`
+- A table key named `design-journal` — deprecated key; use `journal`
+
+Warn for each deprecated value found:
+```
+⚠️ Routing config uses deprecated value '<X>'.
+   Replace with: project | workspace | alternative <path>
+   Falling through to next layer for this artifact.
+```
+
+If Layer 3 is absent or empty, skip to Layer 2.
 
 ### Step 2 — Inventory artifacts
 
@@ -86,10 +124,35 @@ If no issue or tracking disabled → skip this step silently.
 
 ### Step 5 — Resolve destinations
 
-For each artifact type with files present:
+Apply the three-layer routing algorithm for each artifact type with files present:
 
-1. Read `## Routing` from CLAUDE.md — apply `base`, explicit path, or `project repo` default
-2. Detect destination capability:
+1. **Layer 3 check:** If a per-artifact row exists in the Layer 3 workspace CLAUDE.md
+   `## Routing` table and the value is valid → use that value.
+2. **Layer 2 check:** Else if Layer 2 is present and has a valid `**Default destination:**`
+   line → use that value for this artifact.
+3. **Layer 1 default:** Else → use `project`.
+
+Edge cases:
+- `alternative <path>` is valid at Layer 3 only; if seen at Layer 2, warn and fall to Layer 1.
+- `alternative` without a path → invalid; warn and fall to next layer.
+- Any deprecated vocabulary (see Step 1b) → warn and fall to next layer.
+
+After resolving all artifacts, show the routing table and the layer source for each:
+
+```
+Resolved routing for this epic:
+  adr       → workspace   (Layer 3 workspace override)
+  blog      → project     (Layer 1 default)
+  design    → workspace   (Layer 2 global default)
+  snapshots → project     (Layer 1 default)
+
+Proceed? (y/n)
+```
+
+Do not proceed until the user confirms. If the user says `n`, stop and let them fix
+their routing config before re-running.
+
+Detect destination capability for each resolved path:
 
 ```bash
 detect_capability() {
