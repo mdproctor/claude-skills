@@ -45,6 +45,32 @@ You are an expert in keeping primary documents synchronized with repository chan
 
 ## Workflow
 
+### Step 0 — Workspace mode detection
+
+Before doing anything else, check whether this session is running inside a workspace:
+
+```bash
+ls design/JOURNAL.md 2>/dev/null && echo "workspace-mode" || echo "direct-mode"
+```
+
+- **Workspace mode** (file found): Do not sync to the primary doc directly. Instead, write a journal entry to `design/JOURNAL.md` using the entry format below. The primary doc is updated at epic close via `epic-close`. Skip Steps 1–7.
+- **Direct mode** (file not found): Proceed with the existing Sync Rules workflow unchanged (Steps 1–7 below). No file is created; detection is silent.
+
+**In workspace mode — journal entry format:**
+
+```markdown
+### YYYY-MM-DD · §SectionName · ADR-N (optional)
+
+[Prose narrative: what changed in this section of the primary doc, why,
+what decision was made. Focus on reasoning and context. 2-6 sentences.]
+```
+
+Use the exact section name from the project's primary document in the `§` anchor.
+If an entry for this `§Section` already exists in `JOURNAL.md` → update it in place.
+If this is a new section → append a new entry.
+
+---
+
 ### Step 1 — Extract configuration from CLAUDE.md
 
 Read CLAUDE.md to extract:
@@ -398,6 +424,8 @@ If exit code 1 or 2, follow the nudge workflow described in `java-update-design`
 
 ## Success Criteria
 
+**In direct mode** (no `design/JOURNAL.md` present):
+
 Primary document sync proposal is complete when:
 
 - ✅ CLAUDE.md configuration read and validated
@@ -415,6 +443,15 @@ Primary document sync proposal is complete when:
 - ✅ "Last Updated" metadata updated (if exists)
 - ✅ **Document validation passed** (no CRITICAL corruption)
 - ✅ Success returned to calling skill, document ready for staging
+
+**Workspace mode is complete when** (`design/JOURNAL.md` exists):
+
+- ✅ Architectural or content changes identified from staged diff
+- ✅ Journal entry drafted with `§Section` anchor matching the changed primary doc section
+- ✅ Entry written to (or updated in) `design/JOURNAL.md`
+- ✅ User confirmed (or confirmed no design changes this session)
+
+**Not complete until** all criteria for the active mode are met.
 
 ---
 
