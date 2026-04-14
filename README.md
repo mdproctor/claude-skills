@@ -531,7 +531,7 @@ Invoked automatically by `custom-git-commit` when Sync Rules configured.
 - Cross-reference integrity (bidirectional chaining)
 - Documentation completeness (Success Criteria, Common Pitfalls, Prerequisites)
 
-**Automated validators:** `scripts/validate_all.py` orchestrates 18 validators across 3 tiers (commit/push/ci). See CLAUDE.md § Quality Assurance Framework for complete validation architecture.
+**Automated validators:** `scripts/validate_all.py` orchestrates 19 validators across 3 tiers (commit/push/ci). See CLAUDE.md § Quality Assurance Framework for complete validation architecture.
 
 **Why modular, not a skill:** Skills-specific validation only applies to THIS repository (type: skills). Loading as a portable skill would waste ~800 lines of tokens in all other projects (java, custom, generic). See CLAUDE.md § Skills-Repository-Specific Documentation. <!-- nocheck:project-types -->
 

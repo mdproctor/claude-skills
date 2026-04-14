@@ -612,7 +612,7 @@ For complete details on the division of labor, validation tiers, what gets check
 
 ### Automated Validation
 
-**18 validators across 3 tiers (COMMIT/PUSH/CI):**
+**19 validators across 3 tiers (COMMIT/PUSH/CI):**
 
 For complete validator specifications, tier assignments, and implementation details:
 📖 **[QUALITY.md § Implementation Status](QUALITY.md#implementation-status)**
@@ -638,10 +638,11 @@ When user requests deep analysis of skills ("/skill-review", "do a deep analysis
 For complete inventory of validation scripts by tier:
 📖 **[QUALITY.md § Validation Script Roadmap](QUALITY.md#validation-script-roadmap)**
 
-**Quick reference (18 validators total):**
-- **COMMIT tier (<2s)**: frontmatter, CSO, references, naming, sections, structure, project-types, blog-frontmatter, flowcharts, doc-structure, blog-commit
-- **PUSH tier (<30s)**: cross-document, temporal, usability, edge cases, behavior, readme-sync
+**Quick reference (19 validators total):**
+- **COMMIT tier (<2s)**: frontmatter, CSO, references, naming, sections, structure, project-types, blog-frontmatter
+- **PUSH tier (<30s)**: flowcharts, cross-document, temporal, usability, edge-cases, behavior, readme-sync, external-links, code-examples, web-app
 - **CI tier (<5min)**: Python quality (mypy, flake8, bandit) + functional tests
+- **On disk, not yet registered**: validate_blog_commit.py, validate_doc_structure.py
 
 ### Success Criteria
 

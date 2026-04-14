@@ -759,7 +759,7 @@ Claude:
 - ✅ Automatic revert on corruption
 - ✅ Modular documentation support (primary + modules)
 
-**Validation Infrastructure (18 validators across 3 tiers):**
+**Validation Infrastructure (19 validators across 3 tiers):**
 
 **COMMIT Tier (<2s budget):**
 - ✅ `validate_frontmatter.py` — YAML structure, required fields
