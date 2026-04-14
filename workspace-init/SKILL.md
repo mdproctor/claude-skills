@@ -79,23 +79,8 @@ EOF
 
 (`specs/`, `plans/`, and `design/` need no INDEX.md — superpowers and design skills manage them directly.)
 
-### Step 3b — Copy project DESIGN.md into workspace (if it exists)
-
-```bash
-if [ -f "<project-path>/DESIGN.md" ]; then
-  cp "<project-path>/DESIGN.md" "$BASE/design/DESIGN.md"
-  echo "Copied project DESIGN.md to workspace/design/DESIGN.md"
-else
-  cat > "$BASE/design/DESIGN.md" << 'EOF'
-# Design
-
-*Design document for this project. Updated during the epic; merged back to
-the project at epic close. Git history records every change — no separate
-delta files needed.*
-EOF
-  echo "Created design/DESIGN.md stub (project has no DESIGN.md yet)"
-fi
-```
+The `design/` directory is intentionally left empty at workspace init. `epic-start`
+creates `design/JOURNAL.md` and `design/.meta` when an epic branch begins.
 
 ### Step 4 — Create HANDOVER.md and IDEAS.md stubs
 
@@ -140,7 +125,7 @@ Run `add-dir <absolute-path-to-project>` before any other work.
 | handover | `HANDOVER.md` |
 | idea-log | `IDEAS.md` |
 | design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/DESIGN.md` |
+| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic-start`) |
 | adr | `adr/` |
 | write-blog | `blog/` |
 
