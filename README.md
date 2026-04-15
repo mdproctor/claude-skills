@@ -108,54 +108,15 @@ git add <your files>
 
 **Option 2: Manual**
 
-Create `CLAUDE.md` in your repository root:
+Add to your `CLAUDE.md`:
 
-**For Skills Repositories:**
 ```markdown
 ## Project Type
 
-**Type:** skills
+**Type:** java   # java | skills | blog | custom | generic
 ```
 
-**For Java Projects:**
-```markdown
-## Project Type
-
-**Type:** java
-```
-Then create `docs/DESIGN.md` (java-git-commit will block without it).
-
-**For Custom Projects** (working groups, research, docs, etc.):
-```markdown
-## Project Type
-
-**Type:** custom
-**Primary Document:** docs/vision.md
-
-**Sync Strategy:** bidirectional-consistency
-
-**Sync Rules:**
-| Changed Files | Document Section | Update Type |
-|---------------|------------------|-------------|
-| catalog/*.md | Vision - Current Landscape | Add project summary |
-| docs/meetings/*.md | Governance | Add meeting summary |
-
-**Current Milestone:** Phase 1 - Discovery
-```
-
-**For Blog Projects** (GitHub Pages / Jekyll):
-```markdown
-## Project Type
-
-**Type:** blog
-```
-
-**For Generic Projects:**
-```markdown
-## Project Type
-
-**Type:** generic
-```
+For the `custom` type's full sync configuration and all type definitions: [docs/PROJECT-TYPES.md](docs/PROJECT-TYPES.md).
 
 ### What Happens at Commit Time
 
