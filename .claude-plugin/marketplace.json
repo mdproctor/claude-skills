@@ -112,7 +112,7 @@
       "name": "cc-praxis-check",
       "source": "./cc-praxis-check",
       "description": "Use when something seems wrong with cc-praxis \u2014 diagnoses CLAUDE.md, installed skills, session hook, and DESIGN.md with specific recovery steps for each issue",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "install-skills",
@@ -250,151 +250,151 @@
       "name": "design-snapshot",
       "source": "./design-snapshot",
       "description": "Immutable dated record of design state \u2014 where we are, how we got here, where we're going",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "write-blog",
       "source": "./write-blog",
       "description": "Living project diary \u2014 captures decisions, pivots, and discoveries in the moment with honest diary voice, not polished retrospectives",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "publish-blog",
       "source": "./publish-blog",
       "description": "Publish blog entries to external platforms \u2014 reads blog-routing.yaml to route entries per entry_type, tags, and projects to configured git destinations",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "handover",
       "source": "./handover",
       "description": "Generates a concise HANDOFF.md at session end \u2014 lazy references to design snapshots, project blog, and knowledge garden rather than loading them",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "idea-log",
       "source": "./idea-log",
       "description": "Lightweight living log for undecided possibilities \u2014 capture, review, promote, and discard ideas",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "ts-dev",
       "source": "./ts-dev",
       "description": "TypeScript development workflow \u2014 strict mode, async patterns, error handling, testing",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "ts-code-review",
       "source": "./ts-code-review",
       "description": "TypeScript code review extending code-review-principles \u2014 type safety, async correctness",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "ts-security-audit",
       "source": "./ts-security-audit",
       "description": "TypeScript/Node.js OWASP Top 10 security audit \u2014 injection, auth, SSRF, prototype pollution",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "npm-dependency-update",
       "source": "./npm-dependency-update",
       "description": "npm/yarn/pnpm dependency management extending dependency-management-principles",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "ts-project-health",
       "source": "./ts-project-health",
       "description": "Health checks for TypeScript/Node.js projects \u2014 extends project-health with TS-specific checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "python-dev",
       "source": "./python-dev",
       "description": "Python development workflow \u2014 type hints, async patterns, safety, testing with pytest",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "python-code-review",
       "source": "./python-code-review",
       "description": "Python code review extending code-review-principles \u2014 type safety, async correctness, safety",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "python-security-audit",
       "source": "./python-security-audit",
       "description": "Python OWASP Top 10 security audit \u2014 injection, pickle deserialization, secrets, SSRF",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "pip-dependency-update",
       "source": "./pip-dependency-update",
       "description": "pip/poetry/pipenv dependency management extending dependency-management-principles",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "python-project-health",
       "source": "./python-project-health",
       "description": "Health checks for Python projects \u2014 extends project-health with Python-specific checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "project-health",
       "source": "./project-health",
       "description": "Universal project health checks \u2014 correctness, consistency, and compliance across all project types",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "project-refine",
       "source": "./project-refine",
       "description": "Improvement opportunities across docs and code \u2014 structure, deduplication, and bloat reduction",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "skills-project-health",
       "source": "./skills-project-health",
       "description": "Health checks for Claude Code skill collection repositories \u2014 extends project-health with skills-specific checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "java-project-health",
       "source": "./java-project-health",
       "description": "Health checks for Java/Maven/Gradle projects \u2014 extends project-health with Java-specific checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "blog-project-health",
       "source": "./blog-project-health",
       "description": "Health checks for GitHub Pages/Jekyll blogs \u2014 extends project-health with blog-specific checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "custom-project-health",
       "source": "./custom-project-health",
       "description": "Health checks for custom projects \u2014 extends project-health with sync-rules and project-currency checks",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "retro-issues",
       "source": "./retro-issues",
       "description": "One-off retrospective mapping of git history to GitHub epics and issues \u2014 analyses git log, ADRs, blog entries, and design docs; proposes structure for review before creating anything",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "workspace-init",
       "source": "./workspace-init",
       "description": "One-time workspace setup \u2014 creates ~/claude/private/<project>/ with routing CLAUDE.md, gitignored project symlink, and full directory structure",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "epic-start",
       "source": "./epic-start",
       "description": "One-time setup per epic \u2014 creates project and workspace branches, scaffolds design/JOURNAL.md with SHA baseline, links or creates a GitHub issue, optionally invokes brainstorming",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     },
     {
       "name": "epic-close",
       "source": "./epic-close",
       "description": "Close an epic \u2014 routes artifacts per routing config, merges design/JOURNAL.md into project DESIGN.md, posts specs to GitHub issue, handles branch cleanup with approve-all or step-by-step option",
-      "version": "1.0.0-SNAPSHOT"
+      "version": "1.0.0"
     }
   ]
 }
