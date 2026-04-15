@@ -449,63 +449,7 @@ These skills encode conventions from specific projects. When customising:
 
 ## Quality & Validation Framework
 
-📖 **[Full Documentation: QUALITY.md](QUALITY.md)** — Comprehensive guide to validation tiers, division of labor between scripts and Claude, and implementation details.
-
-**Every project using these skills gets comprehensive quality protection.** This multi-layered framework ensures reliability, consistency, and correctness across all project types — not just for the skills repository itself, but for **your Java projects, blogs, custom documentation, and generic repositories**.
-
-### Quick Reference: Running Validation
-
-**Validate specific documents:**
-```bash
-python scripts/validate_document.py README.md
-python scripts/validate_document.py docs/DESIGN.md
-python scripts/validate_document.py docs/vision.md
-```
-
-**For skills repository:**
-```bash
-python scripts/validate_all.py                    # All skills
-python scripts/validation/validate_cso.py         # CSO compliance
-python scripts/validation/validate_flowcharts.py  # Mermaid syntax (PUSH tier)
-```
-
-**Automatic validation:** Pre-commit gates block CRITICAL issues. Post-sync validation auto-reverts corruption. See [QUALITY.md § When Validation Runs](QUALITY.md#when-validation-runs).
-
-### Quality Protection by Project Type
-
-| Project Type | Universal Protection | Type-Specific Protection |
-|--------------|---------------------|-------------------------|
-| **java** | Document corruption, CLAUDE.md sync | Code review, security audit, DESIGN.md sync, BOM alignment |
-| **blog** | Document corruption, CLAUDE.md sync | Blog-aware commit scopes (post/layout/config/asset) |
-| **custom** | Document corruption, CLAUDE.md sync | Primary doc sync, user-configured validation, sync rules |
-| **skills** | Document corruption, CLAUDE.md sync | SKILL.md validation, CSO compliance, README sync |
-| **generic** | Document corruption, CLAUDE.md sync | (universal only) |
-
-See [QUALITY.md § Quality Protection by Project Type](QUALITY.md#quality-protection-by-project-type) for detailed before/after comparisons.
-
-### Validation Tiers
-
-| Level | When | Time Budget | Key Checks |
-|-------|------|-------------|-----------|
-| **Quick** | File save | <100ms | Syntax, heading hierarchy |
-| **Commit** | Pre-commit | <2s | Structure, corruption (blocks CRITICAL) |
-| **Review** | User-invoked | User-driven | Scripts + Claude deep analysis |
-| **Push** | Pre-push | <30s | Cross-document consistency |
-| **Full** | CI/Scheduled | <5min | Everything + external URLs |
-
-See [QUALITY.md § Tiered Validation](QUALITY.md#tiered-validation) for complete details.
-
-### Why This Framework Matters
-
-Quality issues in AI-guided development compound exponentially. This framework prevents:
-- **Code issues:** Resource leaks, concurrency bugs, security vulnerabilities
-- **Documentation drift:** DESIGN.md, VISION.md, THESIS.md become lies
-- **Corruption:** Duplicate headers, broken tables slip into git history
-- **Expensive wallpaper:** Skills with bad descriptions get ignored by Claude
-
-**Result:** Production-grade quality by default. The java-dev skill was pressure-tested and successfully prevented resource leaks that baseline Claude introduced. This framework ensures that reliability across all project types.
-
-See [QUALITY.md § Why Quality Matters](QUALITY.md#why-quality-matters) for complete before/after comparisons and real incident examples.
+For contributors and skill authors: [QUALITY.md](QUALITY.md) covers the full validation framework — 19 validators across commit/push/CI tiers, the division of labour between scripts and Claude, and the skill authoring quality bar.
 
 ## Repository Structure
 
