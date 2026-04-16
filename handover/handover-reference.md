@@ -10,7 +10,6 @@ when resuming work. Contains the template, routing table, and git read patterns.
 ```markdown
 # Handover — YYYY-MM-DD
 
-**Head commit:** `<hash>` — <subject line>
 **Previous handover:** `git show HEAD~1:HANDOFF.md` | diff: `git diff HEAD~1 HEAD -- HANDOFF.md`
 
 ## What Changed This Session
