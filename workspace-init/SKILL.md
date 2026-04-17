@@ -79,14 +79,14 @@ EOF
 
 (`specs/`, `plans/`, and `design/` need no INDEX.md — superpowers and design skills manage them directly.)
 
-The `design/` directory is intentionally left empty at workspace init. `epic-start`
+The `design/` directory is intentionally left empty at workspace init. `epic`
 creates `design/JOURNAL.md` and `design/.meta` when an epic branch begins.
 
-### Step 4 — Create HANDOVER.md and IDEAS.md stubs
+### Step 4 — Create HANDOFF.md and IDEAS.md stubs
 
 ```bash
-cat > "$BASE/HANDOVER.md" << 'EOF'
-# Handover
+cat > "$BASE/HANDOFF.md" << 'EOF'
+# Handoff
 
 No sessions yet.
 EOF
@@ -122,16 +122,16 @@ Run `add-dir <absolute-path-to-project>` before any other work.
 |-------|-----------|
 | brainstorming (specs) | `specs/` |
 | writing-plans (plans) | `plans/` |
-| handover | `HANDOVER.md` |
+| handover | `HANDOFF.md` |
 | idea-log | `IDEAS.md` |
 | design-snapshot | `snapshots/` |
-| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic-start`) |
+| java-update-design / update-primary-doc | `design/JOURNAL.md` (created by `epic`) |
 | adr | `adr/` |
 | write-blog | `blog/` |
 
 ## Structure
 
-- `HANDOVER.md` — session handover (single file, overwritten each session)
+- `HANDOFF.md` — session handover (single file, overwritten each session)
 - `IDEAS.md` — idea log (single file)
 - `specs/` — brainstorming / design specs (superpowers output)
 - `plans/` — implementation plans (superpowers output)
@@ -166,7 +166,7 @@ To set a global default across all workspaces, add to `~/.claude/CLAUDE.md`:
 Global valid values: `workspace` or `project` only (no alternative at global level).
 ```
 
-> **Note:** `epic-start` reads the routing config at branch creation time. If `design → workspace`,
+> **Note:** `epic` reads the routing config at branch creation time. If `design → workspace`,
 > it records the workspace/main HEAD SHA as the design baseline instead of the project HEAD SHA.
 > Configure routing before starting your first epic.
 
@@ -313,8 +313,8 @@ Scan for existing methodology artifacts across the project:
 ```bash
 FOUND=()
 # Root-level handovers
-[ -f "<project-path>/HANDOFF.md" ]  && git -C "<project-path>" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOVER.md")
-[ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOVER.md")
+[ -f "<project-path>/HANDOFF.md" ]  && git -C "<project-path>" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOFF.md")
+[ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOFF.md")
 
 # docs/ artifacts
 [ -d "<project-path>/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
@@ -355,7 +355,7 @@ git -C "<project-path>" commit -m "chore: migrate methodology artifacts to works
 ```
 
 **Note on handovers:** If both `HANDOFF.md` and `HANDOVER.md` exist, use the
-more recent file as `workspace/HANDOVER.md` and discard the older one.
+more recent file as `workspace/HANDOFF.md` and discard the older one.
 
 ### Step 10 — Confirm
 
@@ -374,7 +374,7 @@ more recent file as `workspace/HANDOVER.md` and discard the older one.
 
 - [ ] Directory exists at correct path with all subdirs
 - [ ] `CLAUDE.md` contains session-start `add-dir` instruction and artifact locations table
-- [ ] `HANDOVER.md` and `IDEAS.md` exist as stubs
+- [ ] `HANDOFF.md` and `IDEAS.md` exist as stubs
 - [ ] `snapshots/INDEX.md`, `adr/INDEX.md`, `blog/INDEX.md` exist
 - [ ] `specs/` and `plans/` directories exist
 - [ ] `.gitignore` exists
