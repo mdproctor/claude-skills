@@ -120,7 +120,7 @@ Session wrap — create before writing the handover?
 [x] 4  forage sweep     check for gotchas, techniques, undocumented
 [ ] 5  journal-entry    document any design changes this session not yet in design/JOURNAL.md
 
-Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or Enter to proceed:
+Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or "go" to proceed:
 ```
 
 - **Default:** write-blog, update-claude-md, forage sweep ticked; design-snapshot and journal-entry OFF
@@ -130,7 +130,7 @@ Type numbers to toggle (e.g. "2 4"), "all" to toggle all on/off, or Enter to pro
   this session not yet journalled, tick it and write the entry before the handover.
 - **"all":** if all are on → turn all off; if any are off → turn all on
 - **Numbers:** toggle individual items
-- **Enter (no input):** proceed with current selections
+- **"go" (or "ok", "yes", blank Enter if the UI allows it):** proceed with current selections
 
 Run checked items **in this order** before continuing:
 1. Forage sweep — done while context is full (findings may feed the blog)

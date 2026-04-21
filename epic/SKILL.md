@@ -213,6 +213,16 @@ Warn for each deprecated value found:
 
 If Layer 3 is absent or empty, skip to Layer 2.
 
+#### Step B1c — Derive design repo
+
+Apply the three-layer algorithm for the `design` artifact (same as Step B5) to resolve
+the destination, then set `<design-repo>`:
+
+- `design → workspace`: `<design-repo>` = `.` (workspace CWD)
+- `design → project` (or Layer 1 default): `<design-repo>` = `<project-path>`
+
+Use `<design-repo>` throughout B3, B7a, and B7b for all DESIGN.md operations.
+
 ### Step B2 — Inventory artifacts
 
 ```bash
@@ -225,13 +235,13 @@ cat design/JOURNAL.md 2>/dev/null            # Journal
 
 ### Step B3 — Generate journal merge preview
 
-Retrieve baseline project DESIGN.md at the recorded SHA:
+Retrieve baseline DESIGN.md at the recorded SHA (using `<design-repo>` from Step B1c):
 
 ```bash
-git -C <project-path> show <project-sha>:DESIGN.md 2>/dev/null || echo "(no DESIGN.md at baseline)"
+git -C <design-repo> show <project-sha>:DESIGN.md 2>/dev/null || echo "(no DESIGN.md at baseline)"
 ```
 
-Read current `<project-path>/DESIGN.md`.
+Read current `<design-repo>/DESIGN.md`.
 
 Read `design/JOURNAL.md` — extract all `§Section` anchors from entry headers
 (lines matching `^### .* · §`).
@@ -354,15 +364,15 @@ git -C "<dest>" push
 ```
 
 **Journal merge:**
-1. Read baseline: `git -C <project-path> show <project-sha>:DESIGN.md` — extract the `§Section` content from the baseline
-2. Read the same section from the current project `DESIGN.md` — note independent changes on main
+1. Read baseline: `git -C <design-repo> show <project-sha>:DESIGN.md` — extract the `§Section` content from the baseline
+2. Read the same section from the current `<design-repo>/DESIGN.md` — note independent changes on main
 3. Apply journal narrative to the current section, incorporating independent changes
-4. Write the merged result back to `<project-path>/DESIGN.md`
-5. Re-read each updated `§Section` in the project `DESIGN.md`; confirm it reflects the journal narrative. Report any section that looks wrong before continuing.
+4. Write the merged result back to `<design-repo>/DESIGN.md`
+5. Re-read each updated `§Section` in `<design-repo>/DESIGN.md`; confirm it reflects the journal narrative. Report any section that looks wrong before continuing.
 6. Commit:
    ```bash
-   git -C <project-path> add DESIGN.md
-   git -C <project-path> commit -m "docs(<epic-name>): apply design journal — <date>"
+   git -C <design-repo> add DESIGN.md
+   git -C <design-repo> commit -m "docs(<epic-name>): apply design journal — <date>"
    ```
 
 **Spec posting:**
@@ -391,7 +401,7 @@ gh issue close <issue> --repo <owner>/<repo>
 **Final report:**
 ```
 ✅ <N> ADRs promoted → <destination>
-✅ Journal merged → project DESIGN.md
+✅ Journal merged → DESIGN.md (<design-repo>)
 ✅ Spec posted to #<N>, issue closed
 ❌ Push failed — <dest> has no network. Run: git -C <dest> push
 ```
@@ -413,7 +423,7 @@ For each `§Section` in the journal, show:
 §<SectionName> (journal — last updated <date>):
   <journal narrative>
 
-Current project §<SectionName>:
+Current §<SectionName> (<design-repo>):
   <current content>
 
 Will update §<SectionName> with journal narrative,
@@ -423,12 +433,12 @@ preserving any independent main-branch changes.
 Prompt: "Apply journal merge? (y/n)"
 
 If yes:
-1. Apply all section updates to `<project-path>/DESIGN.md`
+1. Apply all section updates to `<design-repo>/DESIGN.md`
 2. Post-merge verification: re-read each updated section, confirm it reflects the journal. Report any section that looks wrong.
 3. Commit:
    ```bash
-   git -C <project-path> add DESIGN.md
-   git -C <project-path> commit -m "docs(<epic-name>): apply design journal — <date>"
+   git -C <design-repo> add DESIGN.md
+   git -C <design-repo> commit -m "docs(<epic-name>): apply design journal — <date>"
    ```
 
 Prompt: "Continue to GitHub posting? (y/n)"
