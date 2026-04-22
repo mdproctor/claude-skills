@@ -218,6 +218,8 @@ Rate every finding on two axes:
 - **B** — noticeable improvement
 - **C** — cosmetic or marginal
 
+**The axes are independent.** A small change can have large impact. 🟢A (small fix, high impact) is common and important — wrong documentation that misleads users, a missing comment on a confusing invariant, or a one-line fix that makes a hot-path method scannable all qualify. Do not let a finding's small size push it toward B or C impact.
+
 Filter findings by `Refine min score` from configuration:
 - `all` → show 🔴🟡🟢
 - `medium` → show 🔴🟡 only
@@ -228,6 +230,15 @@ Filter findings by `Refine min score` from configuration:
 docs: 🟡 moderate    code: 🔴 high    universal: 🟢 low
 ```
 
+**Before presenting, run this self-check on every finding rated B or C:**
+> "If someone fixes this, does it significantly change how quickly a reader understands the code or doc — or prevent them from acting on wrong information?"
+> If yes → upgrade to A, regardless of how small the change is.
+
+Common 🟢A patterns (small change, large impact):
+- A capability doc says a feature is "Research phase" but it shipped — one paragraph fix, but every reader who evaluates the project is misled until it's corrected
+- A hot-path method (called on every write) is 60 lines mixing 6 concerns — extracting one private method halves visual complexity permanently
+- A missing class-level comment on a class with non-obvious invariants — two sentences, but saves every future contributor 10 minutes of archaeology
+
 **Detailed findings:**
 ```
 ## project-refine — Opportunities Found
@@ -235,6 +246,15 @@ docs: 🟡 moderate    code: 🔴 high    universal: 🟢 low
 ### 🔴A — High impact, significant size reduction
 - scripts/validate_all.py (lines 45–89): run_validator() logic repeated
   for each tier; extract to a shared helper. Est. -40 lines. [code]
+
+### 🟡A — High impact, medium size reduction
+- OrderService.processOrder() (85 lines): mixes validation, business logic,
+  and persistence; split into three methods. Est. -25 lines from save(). [code]
+
+### 🟢A — High impact, small size reduction
+- CAPABILITIES.md:313: "Current state: Research phase" — feature shipped six
+  months ago; every evaluator reads this and thinks it doesn't exist. Fix: 2
+  sentences. [docs]
 
 ### 🟡B — Medium impact
 - update-primary-doc/SKILL.md (312 lines): Steps 4–7 cover two unrelated
@@ -301,6 +321,7 @@ report. Findings are matched by file path and description prefix.
 | Mistake | Why It's Wrong | Fix |
 |---------|----------------|-----|
 | Using severity language (CRITICAL/HIGH) | project-refine never blocks — that's project-health | Use bloat scores (🔴🟡🟢) only |
+| Rating small-change findings as B or C because the change is small | Size and impact are independent — a two-sentence fix that corrects wrong documentation is 🟢A | Run the self-check: "does fixing this significantly change how quickly someone understands this, or prevent them acting on wrong info?" If yes → A |
 | Auto-applying refine findings | All are judgment calls requiring human decision | Present opportunities only; never apply without explicit user request |
 | Running `code` domain at tier 1 without reading files | Can miss duplication that isn't obvious from structure | Acknowledge tier 1 limitations; recommend tier 2+ for code findings |
 | Checking tests in a separate domain from code | Tests are code — duplication patterns apply equally | Apply all code checks to test files as well |
