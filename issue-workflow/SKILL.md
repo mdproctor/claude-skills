@@ -48,8 +48,27 @@ flowchart TD
 
 ## Phase 0: Setup
 
-Run when the user calls `/issue-workflow` directly, or when `git-commit` offers
-it during CLAUDE.md initialisation.
+Run when the user calls `/issue-workflow` directly, or when `git-commit` or
+`workspace-init` offers it during project initialisation.
+
+### Step 0 — Idempotency check
+
+```bash
+grep -q "Issue tracking.*enabled" CLAUDE.md 2>/dev/null && echo "configured" || echo "not configured"
+```
+
+**If already configured** → skip the setup flow and show:
+
+> Issue tracking is already configured (`Issue tracking: enabled` found in CLAUDE.md).
+>
+> **What would you like to do?**
+> 1. **Update labels** — re-run label creation (useful if labels were deleted from GitHub)
+> 2. **Remap past history** — run `/retro-issues` to map git history to issues
+> 3. **Nothing** — all good, no changes needed
+
+Wait for choice. If 3, stop. If 1, jump to Step 4. If 2, jump to Step 6.
+
+**If not configured** → continue to Step 1.
 
 ### Step 1 — Detect GitHub repository
 
@@ -87,8 +106,8 @@ Stop if `gh` is not usable.
 >
 > **How would you like to proceed?**
 >
-> 1. **Start fresh** — configure issue tracking for ongoing work only
-> 2. **Include past work** — I'll read the git history and help create issues for significant past work
+> 1. **Track ongoing work** — configure issue tracking for new work going forward
+> 2. **Include past work** — read git history; match commits to existing issues where possible, create new ones for unlinked work
 > 3. **Skip** — no issue tracking for this project
 
 Wait for user choice. If 3, stop.
@@ -521,7 +540,8 @@ user confirmation to skip. Skipping silently is not permitted.**
 
 **Invoked by:**
 - User directly via `/issue-workflow` → Phase 0: Setup
-- `git-commit` Step 0b → Phase 0: Setup (offered on new CLAUDE.md)
+- `git-commit` Step 0b → Phase 0: Setup (offered when Work Tracking absent)
+- `workspace-init` Step 10b → Phase 0: Setup (offered at workspace creation)
 - `git-commit` Step 2 → Phase 3: Pre-Commit (automatic when Work Tracking enabled)
 - Work Tracking automatic behaviours in CLAUDE.md → Phase 1 or Phase 2 (automatic)
 - [`idea-log`] PROMOTE flow → creates a tracked GitHub issue from a promoted idea

@@ -368,6 +368,28 @@ more recent file as `workspace/HANDOFF.md` and discard the older one.
 > **Symlink status:** CLAUDE.md in the project points to this workspace CLAUDE.md.
 > Opening Claude in the project by mistake will still load full config.
 
+### Step 10b — Offer issue tracking setup
+
+Check if Work Tracking is already configured:
+
+```bash
+grep -q "Issue tracking.*enabled" CLAUDE.md 2>/dev/null && echo "configured" || echo "not configured"
+```
+
+If already configured → skip silently.
+
+If not configured, ask:
+
+> **Set up GitHub issue tracking? (YES / n)**
+>
+> Links all commits to GitHub issues automatically — clean release notes,
+> enforced issue creation before coding starts, commit split detection.
+>
+> Default: **YES** — press Enter to enable, type **n** to skip.
+
+If YES → invoke the `issue-workflow` skill (Phase 0 runs automatically).
+If n → skip. Do not ask again this session.
+
 ---
 
 ## Success Criteria
@@ -383,6 +405,7 @@ more recent file as `workspace/HANDOFF.md` and discard the older one.
 - [ ] Existing methodology artifacts offered for migration; selected ones copied and `git rm`'d with single commit
 - [ ] Git repo initialised with initial commit
 - [ ] Remote set and pushed (if URL provided)
+- [ ] Issue tracking offered; configured via `issue-workflow` Phase 0 if accepted
 
 ---
 
@@ -391,4 +414,4 @@ more recent file as `workspace/HANDOFF.md` and discard the older one.
 **Invoked by:** User directly at project setup time; session-start hook when
 no workspace is detected
 
-**Does not chain to anything** — one-time setup skill
+**Invokes (optional):** `issue-workflow` Phase 0 — if user accepts the offer in Step 10b

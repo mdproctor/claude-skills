@@ -60,14 +60,14 @@ If > 500 commits:
 
 Wait for user choice before continuing.
 
-Check for existing closed issues to avoid duplication:
+Fetch all existing issues (open and closed) to use as a match pool:
 ```bash
-gh issue list --state closed --limit 10 --repo {owner/repo}
+gh issue list --state all --limit 200 --repo {owner/repo} --json number,title,state,body
 ```
 
-If closed issues exist, warn:
-> This repo already has {N} closed issues. The retrospective will propose new
-> issues alongside them — review carefully to avoid duplicates.
+Store as `existing_issues`. These will be matched against commit clusters in Step 7
+to avoid creating duplicates — a cluster that already has a suitable existing issue
+gets linked to it instead of spawning a new one.
 
 ---
 
@@ -242,7 +242,13 @@ collection-bucket epics.
 
 Write `docs/retro-issues.md` (create `docs/` if needed) using the structure in [proposal-format.md](proposal-format.md).
 
-Use `#TBD` as the issue number placeholder — replaced with real numbers after creation. Every non-trivial commit must appear under exactly one ticket. The Excluded Commits table should be short — if it's long, re-examine the trivial classification.
+For each ticket in the proposal, check `existing_issues` for a title or subject match:
+- **Match found** → use `#N (existing — {title})` as the placeholder; Step 8 will link commits to this issue rather than creating a new one
+- **No match** → use `#TBD` as the placeholder; Step 8 will create a new issue
+
+A match is suitable when the existing issue title covers the same feature area and the commits in the cluster would logically belong under it. Err on the side of linking — creating a duplicate is worse than a slightly loose match.
+
+Every non-trivial commit must appear under exactly one ticket. The Excluded Commits table should be short — if it's long, re-examine the trivial classification.
 
 Tell the user:
 > Proposal written to `docs/retro-issues.md`.
@@ -258,8 +264,11 @@ Wait. Accept:
 
 ## Step 8 — Create issues on GitHub
 
-Read `docs/retro-issues.md` as the authoritative source. Create in this order —
-never create in parallel, order matters for issue numbers.
+Read `docs/retro-issues.md` as the authoritative source. For each ticket:
+- **`#N (existing)`** → skip creation; record `#N` as the issue number and proceed to commit linking
+- **`#TBD`** → create a new issue; record the returned number
+
+Never create in parallel — order matters for issue numbers.
 
 **8a. Create epics:**
 ```bash

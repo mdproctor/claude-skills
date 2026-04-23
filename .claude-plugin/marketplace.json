@@ -51,12 +51,13 @@
     {
       "name": "principles",
       "displayName": "Principles",
-      "description": "Universal foundations extended by language-specific skills: code review, security, dependencies, observability",
+      "description": "Universal foundations extended by language-specific skills: code review, security, dependencies, observability, testing",
       "skills": [
         "code-review-principles",
         "security-audit-principles",
         "dependency-management-principles",
-        "observability-principles"
+        "observability-principles",
+        "testing-principles"
       ]
     },
     {
@@ -148,6 +149,12 @@
       "name": "observability-principles",
       "source": "./observability-principles",
       "description": "Universal observability principles covering logging, tracing, and metrics",
+      "version": "1.0.0"
+    },
+    {
+      "name": "testing-principles",
+      "source": "./testing-principles",
+      "description": "Universal test strategy: test taxonomy, happy path/correctness/robustness coverage, coverage analysis, high-value prioritization, browser automation mandate",
       "version": "1.0.0"
     },
     {
