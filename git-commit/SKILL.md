@@ -193,6 +193,12 @@ Once an issue is confirmed, include it in the commit:
 - Work in progress: append `Refs #{N}` to the commit body
 - Completing the issue: append `Closes #{N}` to the commit body
 
+**If the user explicitly says to skip issue linking** (e.g. "commit as is",
+"no issue", "just commit it"):
+- Add `no-issue: <reason>` to the commit body
+- This satisfies the `commit-msg` hook while making the skip deliberate and traceable
+- Confirm once before proceeding — it must be an intentional choice
+
 **If not enabled or user has no `gh` CLI:**
 
 Skip this step entirely — no issue linking required.

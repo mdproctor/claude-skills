@@ -128,6 +128,33 @@ Confirm:
 > ✅ Work Tracking configured in CLAUDE.md. Issue creation is now enforced before
 > implementation begins.
 
+### Step 5b — Install commit-msg hook
+
+Install the hook that hard-blocks commits without an issue reference:
+
+```bash
+# Derive project path — use add-dir line from workspace CLAUDE.md,
+# or "." if running directly in the project repo
+PROJECT_PATH=$(grep "add-dir" CLAUDE.md 2>/dev/null | head -1 | sed 's/.*add-dir //' || echo ".")
+
+HOOK_SRC="$HOME/.claude/skills/issue-workflow/hooks/commit-msg"
+HOOK_DEST="$PROJECT_PATH/.git/hooks/commit-msg"
+
+if [ -f "$HOOK_DEST" ]; then
+  echo "⚠️  .git/hooks/commit-msg already exists — skipping install."
+  echo "   Review manually: $HOOK_DEST"
+else
+  cp "$HOOK_SRC" "$HOOK_DEST"
+  chmod +x "$HOOK_DEST"
+  echo "✅ commit-msg hook installed."
+fi
+```
+
+The hook blocks any commit that lacks both an issue reference (`Refs #N`,
+`Closes #N`, `Fixes #N`, `Resolves #N`) and the explicit bypass token
+`no-issue`. Use `no-issue` with a brief reason for commits that genuinely
+don't need an issue (e.g. `chore: update .gitignore  no-issue: tooling only`).
+
 ### Step 6 — Past work reconstruction (if user chose option 2)
 
 Use the `/retro-issues` skill for retrospective mapping of git history to
@@ -515,6 +542,7 @@ If YES: proceed without a footer. If anything else: return to issue selection.
 - ✅ GitHub remote detected and `gh` authenticated
 - ✅ All standard labels created (including `epic`)
 - ✅ `## Work Tracking` written to CLAUDE.md with all automatic behaviours
+- ✅ `commit-msg` hook installed in `.git/hooks/` (or existing hook noted)
 - ✅ User confirmed setup complete
 
 ### Phase 1 (Pre-Implementation) is complete when:
