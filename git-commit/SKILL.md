@@ -99,9 +99,9 @@ grep -q "Issue tracking.*enabled" CLAUDE.md 2>/dev/null && echo "exists" || echo
 > - Check staged changes for commit splits before committing
 > - All commits reference a GitHub issue, so release notes generate cleanly
 >
-> Default: **YES** — press Enter to enable, type **n** to skip.
+> Default: **YES** — type **YES** to enable, type **n** to skip.
 
-If **YES** or Enter → invoke the `issue-workflow` skill in Setup mode before continuing.
+If **YES** → invoke the `issue-workflow` skill in Setup mode before continuing.
 If **n** → continue immediately. Do not ask again this session.
 
 ---

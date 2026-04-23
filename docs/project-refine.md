@@ -82,7 +82,7 @@ Every invocation has a depth level. Pass `--tier N` or omit it to be prompted:
 | 4 | Full doc scan | All of tier 3 plus prompts for user-specified focus area | ~30-45 min |
 
 **Focus prompt (tier 2+):** Before scanning code, project-refine asks:
-> Would you like to focus on a specific directory or package? Enter a path (e.g. `src/main/java/com/example/payment`), or press Enter to use git history and file size to find candidates automatically.
+> Would you like to focus on a specific directory or package? Enter a path (e.g. `src/main/java/com/example/payment`), or type "auto" to use git history and file size to find candidates automatically.
 
 ---
 

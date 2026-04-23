@@ -71,7 +71,7 @@ Before scanning code at tier 2 or above, ask:
 
 > **Would you like to focus on a specific directory or package?**
 >
-> Enter a path (e.g. `src/main/java/com/example/payment`), or press Enter
+> Enter a path (e.g. `src/main/java/com/example/payment`), or type "auto"
 > to use git history and file size to find candidates automatically.
 
 Wait for response. If a path is provided, limit code scanning to that path.

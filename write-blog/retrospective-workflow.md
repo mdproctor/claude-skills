@@ -36,7 +36,7 @@ by default), a date range, and a one-line description of what that phase covers:
 
 ```
 Proposed blog entries — all selected by default.
-Type numbers to deselect (e.g. "2 4"), or press Enter to write all:
+Type numbers to deselect (e.g. "2 4"), or "go" to write all:
 
 [x] 1  2026-03-29        Day Zero: The First Nine Skills
 [x] 2  2026-03-31        Building the Infrastructure

@@ -385,7 +385,7 @@ If not configured, ask:
 > Links all commits to GitHub issues automatically — clean release notes,
 > enforced issue creation before coding starts, commit split detection.
 >
-> Default: **YES** — press Enter to enable, type **n** to skip.
+> Default: **YES** — type **YES** to enable, type **n** to skip.
 
 If YES → invoke the `issue-workflow` skill (Phase 0 runs automatically).
 If n → skip. Do not ask again this session.

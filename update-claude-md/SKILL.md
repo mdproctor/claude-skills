@@ -125,9 +125,9 @@ If absent, prompt:
 >
 > Adds automatic behaviours: flag cross-cutting tasks before starting, check staged changes for commit splits, and link every commit to a GitHub issue for clean release notes.
 >
-> Default: **YES** — press Enter to enable, type **n** to skip.
+> Default: **YES** — type **YES** to enable, type **n** to skip.
 
-If **YES** or Enter → propose adding to CLAUDE.md (include in the Step 5 proposal block):
+If **YES** → propose adding to CLAUDE.md (include in the Step 5 proposal block):
 ```markdown
 ## Work Tracking
 
