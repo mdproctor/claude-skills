@@ -443,6 +443,11 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 | "Let me refactor this code I haven't read yet" | Refactoring unknown code | Breaking working functionality | Read and understand first |
 | "I'll just use the class/package name as a String" | String class or package reference | Silently breaks on rename/move/repackage; not type-safe | Use `MyClass.class`, `.getName()`, or `.getPackageName()` |
 
+## Prerequisites
+
+**This skill builds on `testing-principles`.** Apply all rules from:
+- **testing-principles**: test taxonomy (unit/integration/E2E), happy path / correctness / robustness coverage, coverage analysis checklist, high-value prioritization
+
 ## Skill Chaining
 
 - **Before committing:** invoke `java-code-review` to catch safety, concurrency, and performance issues

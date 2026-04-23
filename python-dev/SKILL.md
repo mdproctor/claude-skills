@@ -437,6 +437,11 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 | "The f-string expression is complex but readable" | Complex expressions in f-strings are hard to test | Formatting logic is invisible to unit tests | Extract to a variable or function first |
 | "Catch `Exception` broadly and log it" | Swallows unexpected bugs as mere log lines | Real bugs hidden; system in unknown state | Log AND rethrow; let unexpected exceptions propagate |
 
+## Prerequisites
+
+**This skill builds on `testing-principles`.** Apply all rules from:
+- **testing-principles**: test taxonomy (unit/integration/E2E), happy path / correctness / robustness coverage, coverage analysis checklist, high-value prioritization
+
 ## Skill Chaining
 
 - **Before committing:** invoke `python-code-review` to catch safety, type, and async issues before they reach the repository

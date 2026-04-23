@@ -452,6 +452,11 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 | "This works at runtime, types are just noise" | Types are a correctness contract | The next person breaks it without warning | Fix the types to match the runtime |
 | "`@ts-ignore` just for now" | Suppresses errors without fixing them | Real bug hidden until it surfaces in production | Fix the root cause instead |
 
+## Prerequisites
+
+**This skill builds on `testing-principles`.** Apply all rules from:
+- **testing-principles**: test taxonomy (unit/integration/E2E/browser), happy path / correctness / robustness coverage, coverage analysis checklist, high-value prioritization, Playwright mandate for web UI
+
 ## Skill Chaining
 
 - **Before committing:** invoke `ts-code-review` to catch type safety, async, and error handling issues
