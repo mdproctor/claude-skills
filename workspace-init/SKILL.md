@@ -390,6 +390,41 @@ If not configured, ask:
 If YES → invoke the `issue-workflow` skill (Phase 0 runs automatically).
 If n → skip. Do not ask again this session.
 
+### Step 10c — Offer superpowers installation
+
+Check if superpowers is already installed:
+
+```bash
+python3 -c "
+import json, os
+s = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+enabled = s.get('enabledPlugins', {})
+print('installed' if 'superpowers@claude-plugins-official' in enabled else 'not installed')
+"
+```
+
+If already installed → skip silently.
+
+If not installed, ask:
+
+> **Install superpowers? (YES / n)**
+>
+> Superpowers adds structured workflows for TDD, debugging, brainstorming,
+> code review, and more — loaded automatically when relevant.
+>
+> Default: **YES** — type **YES** to install, type **n** to skip.
+
+If YES:
+
+> To install superpowers, run this slash command in Claude Code:
+> ```
+> /plugin install superpowers
+> ```
+> This installs from the official Claude Code plugin marketplace. Once installed,
+> superpowers skills are available immediately — no restart needed.
+
+If n → skip. Do not ask again this session.
+
 ---
 
 ## Success Criteria
@@ -406,6 +441,7 @@ If n → skip. Do not ask again this session.
 - [ ] Git repo initialised with initial commit
 - [ ] Remote set and pushed (if URL provided)
 - [ ] Issue tracking offered; configured via `issue-workflow` Phase 0 if accepted
+- [ ] Superpowers offered; install command shown if not already installed
 
 ---
 
@@ -414,4 +450,4 @@ If n → skip. Do not ask again this session.
 **Invoked by:** User directly at project setup time; session-start hook when
 no workspace is detected
 
-**Invokes (optional):** `issue-workflow` Phase 0 — if user accepts the offer in Step 10b
+**Invokes (optional):** `issue-workflow` Phase 0 — if user accepts the offer in Step 10b; superpowers install command shown (user must run `/plugin install superpowers` manually) — if user accepts the offer in Step 10c
