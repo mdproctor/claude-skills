@@ -274,6 +274,53 @@ Installing skills...
   ✅ quarkus-observability
 ```
 
+### Step 5a: Add write-blog permissions (if write-blog installed)
+
+If `write-blog` was in the install list, add its required permissions to
+`~/.claude/settings.json` to prevent repeated permission prompts during
+blogging workflows.
+
+Check what's already in the allow list:
+```bash
+python3 -c "
+import json, os
+path = os.path.expanduser('~/.claude/settings.json')
+s = json.load(open(path))
+print(json.dumps(s.get('permissions', {}).get('allow', []), indent=2))
+"
+```
+
+Add any missing entries from this set:
+```json
+"Bash(grep -i * CLAUDE.md*)",
+"Bash(grep -i * */CLAUDE.md*)",
+"Bash(echo *)",
+"Bash(ls $PERSONAL_WRITING_STYLES_PATH*)"
+```
+
+Then resolve the writing styles path and add it to `additionalDirectories`:
+```bash
+python3 -c "
+import json, os
+path = os.path.expanduser('~/.claude/settings.json')
+s = json.load(open(path))
+# Read PERSONAL_WRITING_STYLES_PATH from env section if set
+styles_path = s.get('env', {}).get('PERSONAL_WRITING_STYLES_PATH', '')
+if styles_path:
+    resolved = os.path.expanduser(styles_path)
+    print(resolved)
+else:
+    print('')
+"
+```
+
+If a path is returned, add it to `permissions.additionalDirectories` (merge,
+don't replace). This allows `Read` calls to all style guide files in that
+directory without prompting.
+
+If `PERSONAL_WRITING_STYLES_PATH` is not configured, skip the
+`additionalDirectories` addition — the user hasn't set up a styles directory yet.
+
 ### Step 5b: Offer document content boundaries
 
 Check whether document boundaries protection is already configured:
