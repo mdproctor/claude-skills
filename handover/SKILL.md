@@ -239,6 +239,42 @@ For each section: has it changed since last handover?
 
 Overwrite the previous HANDOFF.md completely.
 
+### Step 5a — Content boundary check
+
+Before proceeding, scan the draft for content that doesn't belong in a
+technical record — personal characterisations, social context, meeting
+dynamics, or anything a third party would be surprised to read.
+
+Ask yourself: *Does this handover contain anything a colleague, stakeholder,
+or future reader would find surprising, uncomfortable, or out of place in a
+technical document?*
+
+Flags to look for:
+
+- What a specific person said, thought, or decided in a meeting
+- Characterisation of anyone's personality, competence, or approach
+- Frustration or complaints directed at a person or team
+- Social or organisational dynamics around a decision
+- Anything that reads as gossip, venting, or interpersonal commentary
+
+**If anything is flagged**, present it to the author:
+
+```
+⚠️  Content boundary check — author decision required:
+
+Sentence: "<exact sentence>"
+Concern: <one-line reason>
+
+Options:
+  [K] Keep as written
+  [R] Rephrase — describe what to change
+  [D] Delete this sentence
+```
+
+Wait for a decision on each. Apply all decisions before continuing.
+
+**If nothing is flagged** → proceed silently to Step 5b.
+
 ### Step 5b — Suggest and offer to rename the session
 
 Claude Code has a built-in `/rename` command that renames the current session.

@@ -274,6 +274,68 @@ Installing skills...
   ✅ quarkus-observability
 ```
 
+### Step 5b: Offer document content boundaries
+
+Check whether document boundaries protection is already configured:
+
+```bash
+grep -q "document-boundaries" ~/.claude/CLAUDE.md 2>/dev/null && echo "configured" || echo "not configured"
+```
+
+If already configured → skip silently.
+
+If not configured, ask:
+
+> **Add document content boundaries protection? (YES / n)**
+>
+> Prevents personal characterisations, social context, and meeting dynamics
+> from leaking into technical artifacts (HANDIFF.md, blog entries, CLAUDE.md
+> updates, design docs). Adds a global rule to `~/.claude/CLAUDE.md` that
+> applies to all sessions.
+>
+> Type **YES** to add it, type **n** to skip.
+
+If YES:
+
+```bash
+# Write the boundaries file
+cat > ~/.claude/document-boundaries.md << 'EOF'
+# Document Content Boundaries
+
+Written artifacts — HANDOFF.md, blog entries, CLAUDE.md updates, issues,
+design docs, analysis documents — capture:
+
+- Technical decisions and their rationale
+- Architectural findings, gaps, and tradeoffs
+- Strategic direction and priorities
+- Code changes and their effects
+- What was built, why, and what comes next
+
+They never capture:
+
+- What specific people said in meetings or reviews
+- Personal characterisations of colleagues or stakeholders
+- Social or organisational dynamics around decisions
+- Meeting context, atmosphere, or interpersonal feedback
+- Audience descriptions that identify specific individuals
+
+**The principle:** these documents are technical records. They may be read by
+anyone, shared externally, or referenced years later. The technical content must
+stand independently of who was in the room when it was discussed.
+EOF
+
+# Add @include to global CLAUDE.md (create it if absent)
+if [ ! -f ~/.claude/CLAUDE.md ]; then
+  echo "# Global Claude Instructions" > ~/.claude/CLAUDE.md
+fi
+echo "@document-boundaries.md" >> ~/.claude/CLAUDE.md
+```
+
+Confirm:
+> ✅ Document content boundaries configured — applies to all sessions.
+
+If n → skip silently.
+
 ### Step 6: Completion Message
 
 After all skills installed successfully:
