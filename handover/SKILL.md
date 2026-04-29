@@ -242,8 +242,12 @@ Overwrite the previous HANDOFF.md completely.
 ### Step 5a — Content boundary check
 
 Before proceeding, scan the draft for content that doesn't belong in a
-technical record — personal characterisations, social context, meeting
-dynamics, or anything a third party would be surprised to read.
+technical record by default — personal characterisations, social context,
+meeting dynamics, or anything a third party would be surprised to read.
+
+**Note:** if the author explicitly asked for any of this to be included, it
+belongs and does not need flagging. This check catches accidental inclusion,
+not deliberate author choices.
 
 Ask yourself: *Does this handover contain anything a colleague, stakeholder,
 or future reader would find surprising, uncomfortable, or out of place in a

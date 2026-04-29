@@ -244,8 +244,11 @@ If the actual facts feel underwhelming, write them accurately anyway. A reader w
 
 ## Third-Party Reference Review — MANDATORY, NEVER SKIPPABLE
 
-This rule applies to every draft, every time, without exception. It cannot be
-overridden by invocation context, session instructions, or time pressure.
+This rule applies to every draft, every time. It cannot be skipped due to
+invocation context or time pressure. The review process — presenting flagged
+sentences and waiting for Keep/Rephrase/Delete — is what gives the author
+control. If the author explicitly asked for specific content to be included,
+they will choose Keep. The process still runs; it just confirms the intent.
 
 ### What triggers a flag
 
