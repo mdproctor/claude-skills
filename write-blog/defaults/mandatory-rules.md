@@ -242,6 +242,80 @@ If the actual facts feel underwhelming, write them accurately anyway. A reader w
 
 ---
 
+## Third-Party Reference Review — MANDATORY, NEVER SKIPPABLE
+
+This rule applies to every draft, every time, without exception. It cannot be
+overridden by invocation context, session instructions, or time pressure.
+
+### What triggers a flag
+
+Any sentence that refers to — or makes a statement about — a named person (other
+than the author or Claude) or an identifiable group must be flagged before the
+entry is written to disk. This includes:
+
+| Category | Examples |
+|----------|----------|
+| **Opinion** | Any evaluative statement — "X is brilliant", "Y doesn't get it" |
+| **Characterisation** | Personality, competence, attitude, approach of a person |
+| **Generalisation** | "developers tend to...", "the Java community always...", "managers never..." |
+| **Frustration / complaint** | "X was unhelpful", "Y's team doesn't understand this" |
+| **Competitive** | Favouring or criticising a product, company, or community in a way that could embarrass |
+| **Blame** | "X's decision caused this problem" — even if accurate |
+| **Gossip** | Inside knowledge about what someone did, said, or decided that they haven't made public |
+| **Presumptuous** | Speaking for someone else's thoughts or motivations — "X probably thought...", "Y clearly doesn't care..." |
+| **Reputational** | Anything affecting how someone is perceived professionally, even if factually correct |
+| **Overly familiar** | Using private knowledge of someone in a public context |
+| **Unsolicited praise** | "X is the best engineer I know" — can embarrass, create jealousy, or read as sycophantic publicly |
+| **Political / cultural** | Anything touching politics, nationality, religion, gender, ethnicity |
+| **Personal** | Any information the subject might prefer not to be public |
+
+**The test:** If the subject of this sentence read it, could they feel embarrassed,
+misrepresented, criticised, patronised, or uncomfortable? If yes — flag it.
+**If unsure — flag it.**
+
+### Safe exceptions — no flag needed
+
+These do not need author review:
+
+- **Factual citations** — "X wrote this paper", "Y founded this company"
+- **Technical attribution** — "Built on Quarkus, maintained by Red Hat"
+- **Public announcements** — "Anthropic released Claude 4", "GitHub open-sourced X"
+- **Quoting someone's own public words** — from a blog post, talk, or documentation
+- **Tools as tools** — "We used AWS S3", "Built in IntelliJ" — no evaluative statement attached
+
+### The review process — non-negotiable
+
+After drafting and before writing to disk:
+
+1. Scan the complete draft for every sentence containing a reference to a named
+   person (other than the author or Claude) or an identifiable group.
+
+2. Present each flagged sentence to the author:
+
+   ```
+   ⚠️  Third-party reference — author approval required:
+
+   Sentence: "<exact sentence>"
+   Reason flagged: <one-line reason from the category table>
+
+   Options:
+     [K] Keep as written
+     [R] Rephrase — describe what to change
+     [D] Delete this sentence
+   ```
+
+3. Wait for the author's decision on each flagged sentence before proceeding.
+
+4. Apply all decisions, then re-scan the revised draft to confirm no flagged
+   sentences remain.
+
+5. Only after zero flagged sentences remain may the entry be written to disk.
+
+**There is no shortcut.** If the author is not available to review, do not
+write the entry. Hold the draft and wait.
+
+---
+
 ## Pre-Draft Gate
 
 Before generating any prose, answer these questions. Do not draft until complete.
@@ -260,3 +334,10 @@ Before generating any prose, answer these questions. Do not draft until complete
 - Does the draft make any claims about duration, count, or magnitude?
 - If yes: verify each one against git log, file diffs, or session context before presenting.
 - If unverifiable: qualify as an estimate or remove.
+
+**Third-party reference check — runs after drafting, before writing to disk:**
+- Scan the full draft for any sentence referencing a named person (other than
+  the author or Claude) or an identifiable group.
+- Present every flagged sentence to the author using the review format above.
+- Wait for approval on each. Zero unresolved flags before writing.
+- This step cannot be skipped, deferred, or abbreviated.
