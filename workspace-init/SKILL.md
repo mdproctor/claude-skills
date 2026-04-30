@@ -10,7 +10,9 @@ description: >
 # Workspace Init
 
 Creates a companion workspace at `~/claude/private/<project>/` or
-`~/claude/public/<project>/`. Run once per project, per machine.
+`~/claude/public/<project>/`. If the project belongs to a family of
+related projects, the workspace can be nested under a shared parent folder
+(e.g. `~/claude/private/casehub/claudony/`). Run once per project, per machine.
 
 After running, open Claude in the workspace — CLAUDE.md instructs Claude to
 `add-dir` the project automatically at session start.
@@ -45,10 +47,70 @@ fi
 Confirm with the user before proceeding. The workspace can be created
 regardless of whether the project directory or git repo exists.
 
+### Step 1a — Detect project family
+
+Run this detection **immediately after Step 1**, before creating anything.
+The goal: infer whether this project belongs to a family and offer a nested
+workspace path if so.
+
+**Infer the potential parent name from the project path:**
+
+```bash
+PROJECT_PARENT_DIR=$(dirname "<project-path>")
+INFERRED_PARENT=$(basename "$PROJECT_PARENT_DIR")
+
+# Ignore generic/system directory names that don't signal a family
+case "$INFERRED_PARENT" in
+  src|projects|code|repos|dev|home|Users|claude|private|public|workspace|workspaces|".")
+    INFERRED_PARENT=""
+    ;;
+esac
+```
+
+If `INFERRED_PARENT` is non-empty, run two checks in order:
+
+**Check A — Existing family workspace folder:**
+
+```bash
+FAMILY_PATH=~/claude/<privacy>/$INFERRED_PARENT
+FAMILY_MEMBERS=""
+if [ -d "$FAMILY_PATH" ]; then
+  FAMILY_MEMBERS=$(find "$FAMILY_PATH" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort | tr '\n' ', ' | sed 's/,$//')
+fi
+```
+
+If `$FAMILY_MEMBERS` is non-empty (the family folder already exists with at least one member), present:
+
+> "Found an existing family workspace at `~/claude/<privacy>/<INFERRED_PARENT>/` containing: `<FAMILY_MEMBERS>`.
+>
+> Place this workspace there as `~/claude/<privacy>/<INFERRED_PARENT>/<project>/`? **(YES / no)**"
+
+If YES → set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 2.
+If no → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
+
+**Check B — Sibling git repos in same parent directory (no existing family workspace):**
+
+Only run Check B if Check A did not trigger (no existing family folder found).
+
+```bash
+SIBLING_COUNT=$(find "$PROJECT_PARENT_DIR" -maxdepth 2 -mindepth 2 -name ".git" -type d 2>/dev/null | wc -l | tr -d ' ')
+```
+
+If `$SIBLING_COUNT` is greater than 1, present:
+
+> "Your project lives in `<PROJECT_PARENT_DIR>` alongside `<SIBLING_COUNT>` other git repos — this looks like a project family named `<INFERRED_PARENT>`.
+>
+> Create a family workspace at `~/claude/<privacy>/<INFERRED_PARENT>/<project>/` to group related projects together? **(YES / no)**"
+
+If YES → set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 2.
+If no → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
+
+**If neither check triggers:** proceed directly to Step 2 with `BASE=~/claude/<privacy>/<project>`.
+
 ### Step 2 — Create directory structure
 
 ```bash
-BASE=~/claude/<privacy>/<project>
+# BASE is set in Step 1a (flat or nested under parent)
 mkdir -p "$BASE/snapshots" "$BASE/adr" "$BASE/blog" "$BASE/specs" "$BASE/plans" "$BASE/design"
 ```
 
@@ -429,6 +491,8 @@ If n → skip. Do not ask again this session.
 
 ## Success Criteria
 
+- [ ] Project family detection ran (Step 1a): existing family folder checked, sibling repos checked
+- [ ] `BASE` path is correct: flat (`~/claude/<privacy>/<project>/`) or nested (`~/claude/<privacy>/<parent>/<project>/`) per user choice
 - [ ] Directory exists at correct path with all subdirs
 - [ ] `CLAUDE.md` contains session-start `add-dir` instruction and artifact locations table
 - [ ] `HANDOFF.md` and `IDEAS.md` exist as stubs
