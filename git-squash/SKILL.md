@@ -99,38 +99,66 @@ View full comparison table? (YES / n)
 
 ## Step 4a — Full table (if user says YES)
 
-Show a table with one row per commit:
+Show the squash plan as a grouped diff table. Use emoji icons for immediate
+scannability, inline `*(reason)*` annotations explaining WHY, a result column
+showing the final message for each KEEP/MERGE commit, and dashed separators
+between squash groups.
 
 ```
-#  | SHA     | Message                                     | Action        | Target
----|---------|---------------------------------------------|---------------|-------
-1  | abc1234 | feat(api): add UserRepository SPI           | KEEP          | —
-2  | def5678 | docs(api): align findByKey Javadoc wording  | SQUASH → #1   | feat(api): add UserRepository SPI
-3  | ghi9012 | feat(api): wire UserRepository into locator  | MERGE ← #1   | (see proposed message below)
-...
+SQUASH PLAN — <N> commits → <M> commits
 
-Proposed merged message for #1+#3:
-  feat(api): add UserRepository SPI and wire into ServiceLocator
+| SHA     | Message                                          | Action       | Result / Reason                                                        |
+|---------|--------------------------------------------------|--------------|------------------------------------------------------------------------|
+| abc1234 | feat(api): add UserRepository SPI                | ✅ KEEP      | `feat(api): add UserRepository SPI and wire into locator` (+ def5678) |
+| def5678 | feat(api): wire UserRepository into ServiceLocator | 🔀 MERGE ↑  | *(unified — two halves of same capability)*                            |
+| ghi9012 | docs(api): align findByKey Javadoc wording       | 🔽 SQUASH ↑  | *(absorbed — docs follow feature)*                                     |
+|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
+| jkl0123 | feat(engine): add CaseRepository                 | ✅ KEEP      | `feat(engine): add CaseRepository` (unchanged)                         |
+| mno4567 | chore: remove dead buildContext() call            | 🔽 SQUASH ↑  | *(absorbed — cleanup after feature)*                                   |
+| pqr8901 | fix(test): correct assertion in same test        | 🔽 SQUASH ↑  | *(absorbed — same test being hardened)*                                |
+|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
+| stu2345 | wip: halfway through blackboard refactor          | 🔽 SQUASH ↓  | *(absorbed — WIP save-state artifact)*                                 |
+| vwx6789 | refactor(blackboard): extract PlanItemFactory    | ✅ KEEP      | `refactor(blackboard): extract PlanItemFactory` (unchanged)            |
+|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
+| ci12345 | ci: trigger CI for PR                            | ❌ DROP      | *(dropped — mechanical CI artifact, no information value)*             |
+
+> **Result:** <M> commits. <one-line narrative of what remains>.
+
+AFTER
+────────────────────────────────────────────────────────────────────────────
+abc1234  feat(api): add UserRepository SPI and wire into ServiceLocator
+jkl0123  feat(engine): add CaseRepository
+vwx6789  refactor(blackboard): extract PlanItemFactory
 ```
+
+**Icon guide:**
+- ✅ `KEEP` — standalone commit, stays as-is (or reworded if MERGE target)
+- 🔽 `SQUASH ↑` — absorbed into the preceding KEEP commit
+- 🔽 `SQUASH ↓` — absorbed into the following KEEP commit (when WIP precedes its target)
+- 🔀 `MERGE ↑` — merged into the preceding KEEP; unified message written
+- ❌ `DROP` — discarded entirely; purely mechanical, zero information value
+
+**Table rules:**
+- Dashed separators between squash groups — one group per KEEP target
+- Reason annotation on every non-KEEP row — always say WHY
+- Result column on KEEP/MERGE rows shows the final committed message
+- Result summary line gives a one-line narrative of what survives
+- AFTER block shows the clean final list for easy review
 
 Then ask:
 ```
-Accept or override each SQUASH/MERGE?
-Type item numbers to refuse (e.g. "2 5"), "all" to accept all, or "none" to refuse all:
+Refuse any changes? Type SHAs or row numbers (e.g. "def5678 pqr8901"),
+"all" to accept all, or "none" to refuse all:
 ```
 
-Wait for response. Parse numbers as refusals; everything else remains accepted.
+Wait for response. Parse as refusals; everything else remains accepted.
 
-Show the updated plan:
+Show confirmation:
 ```
-Plan after your choices:
-  Accepted: <n> squashes/merges
-  Refused:  <n> (kept as standalone)
+  Accepted: <n> changes  (abc1234←def5678 merged, abc1234←ghi9012 squashed ...)
+  Refused:  <n> kept standalone  (pqr8901)
 
-  Accepted:  #2 SQUASH into #1, #3 MERGE into #1 ...
-  Refused:   #5 kept as standalone
-
-Apply <n> squashes? (YES / n)
+Apply <n> changes? (YES / n)
 ```
 
 ---
@@ -139,9 +167,9 @@ Apply <n> squashes? (YES / n)
 
 ```
 Apply all <N> squash/merge candidates? (YES / n / custom)
-  YES    — apply everything
+  YES    — apply all candidates shown in the summary
   n      — abort, make no changes
-  custom — view the table to pick individually
+  custom — show the full table to pick individually
 ```
 
 ---
@@ -177,11 +205,21 @@ After rebase completes:
 git log --oneline <original-range-equivalent>
 ```
 
-Show the before/after count:
+Show the same table format used in the plan, now as a completed record:
+
 ```
-✅ Done. History cleaned:
-   Before: <N> commits
-   After:  <M> commits (<squashed> squashed, <merged> merged)
+SQUASH RESULT — <N> → <M> commits
+
+| SHA     | Message                                          | Action      | Result / Reason                                                        |
+|---------|--------------------------------------------------|-------------|------------------------------------------------------------------------|
+| abc1234 | feat(api): add UserRepository SPI                | ✅ KEEP     | `feat(api): add UserRepository SPI and wire into locator` (+ def5678) |
+| def5678 | feat(api): wire UserRepository into ServiceLocator | 🔀 MERGE ↑ | *(unified — two halves of same capability)*                            |
+| ghi9012 | docs(api): align findByKey Javadoc wording       | 🔽 SQUASH ↑ | *(absorbed — docs follow feature)*                                     |
+...
+
+> **Result:** <M> commits. <one-line narrative>.
+
+✅ <N> → <M> commits  (<squashed> squashed, <merged> merged, <dropped> dropped, <kept> unchanged)
 ```
 
 ---
