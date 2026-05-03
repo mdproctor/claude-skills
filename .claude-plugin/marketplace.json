@@ -170,6 +170,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "git-squash",
+      "source": "./git-squash",
+      "description": "Classify and squash commits per policy before pushing — summary, optional per-commit table, rebase execution",
+      "version": "1.0.0"
+    },
+    {
       "name": "blog-git-commit",
       "source": "./blog-git-commit",
       "description": "GitHub Pages / Jekyll blog commits with content-specific conventions and validation",

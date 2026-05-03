@@ -321,6 +321,37 @@ directory without prompting.
 If `PERSONAL_WRITING_STYLES_PATH` is not configured, skip the
 `additionalDirectories` addition — the user hasn't set up a styles directory yet.
 
+### Step 5a2: Install git-squash pre-push hook (if git-squash installed)
+
+If `git-squash` was in the install list and the current directory is a git
+repository, offer to install the pre-push hook:
+
+```bash
+git rev-parse --git-dir 2>/dev/null && echo "in git repo" || echo "not a git repo"
+```
+
+If in a git repo, ask:
+
+> **Install git-squash pre-push hook in this repo? (YES / n)**
+>
+> Blocks pushes if obvious squash candidates are detected, prompting you
+> to run `/git-squash` first. Use `git push --no-verify` to bypass.
+
+If YES:
+```bash
+HOOK_SRC="$HOME/.claude/skills/git-squash/hooks/pre-push"
+HOOK_DEST="$(git rev-parse --git-dir)/hooks/pre-push"
+if [ -f "$HOOK_DEST" ]; then
+  echo "⚠️  pre-push hook already exists — skipping."
+else
+  cp "$HOOK_SRC" "$HOOK_DEST"
+  chmod +x "$HOOK_DEST"
+  echo "✅ pre-push hook installed in $(git rev-parse --git-dir)/hooks/"
+fi
+```
+
+If n → skip silently.
+
 ### Step 5b: Offer document content boundaries
 
 Check whether document boundaries protection is already configured:
