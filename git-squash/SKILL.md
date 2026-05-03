@@ -23,7 +23,9 @@ The full policy is in `squash-policy.md` alongside this skill.
 - **On demand:** clean up a branch at any point (`/git-squash`)
 - **After the hook fires:** the pre-push hook detected squash candidates; run this to resolve them
 - **Pre-PR review:** branch is pushed but no PR exists yet — final review before opening the PR;
-  squashing requires `git push --force-with-lease` but is safe on a personal fork branch
+  squashing requires `git push --force-with-lease` but is safe on a personal fork branch.
+  In practice the history should already be clean from the pre-push run — this is a safety
+  net, not a primary step. Verify rather than redo.
 - **On pushed commits:** specify a range explicitly for any other pushed-branch cleanup
 
 ---
