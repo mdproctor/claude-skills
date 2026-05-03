@@ -6,7 +6,7 @@
 
 remote="$1"
 
-SQUASH_PATTERNS='(^chore: (remove dead|apply spotless|fix formatting|remove unused)|^docs\([^)]+\): (align|fix wording|add missing)|^fix\(test\):|^ci: retrigger|^Revert ")'
+SQUASH_PATTERNS='(^chore: (remove dead|apply spotless|fix formatting|remove unused|pin |add jandex)|^docs\([^)]+\): (align|fix wording|add missing)|^docs: (session handover|session wrap|add blog entry|add project blog entry|fix stale)|^docs\(claude\):|^fix\(test\):|^fix\(ci\):|^ci: (retrigger|trigger CI|use GH_PAT|standardise|add workflow)|^chore: (retroactive issue|pin )|^Revert ")'
 
 total=0
 candidates=0

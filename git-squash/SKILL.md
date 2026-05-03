@@ -22,7 +22,9 @@ The full policy is in `squash-policy.md` alongside this skill.
 - **Before pushing:** run on unpushed commits to clean history before it's shared
 - **On demand:** clean up a branch at any point (`/git-squash`)
 - **After the hook fires:** the pre-push hook detected squash candidates; run this to resolve them
-- **On pushed commits:** specify a range explicitly (requires force-push — confirm with user first)
+- **Pre-PR review:** branch is pushed but no PR exists yet — final review before opening the PR;
+  squashing requires `git push --force-with-lease` but is safe on a personal fork branch
+- **On pushed commits:** specify a range explicitly for any other pushed-branch cleanup
 
 ---
 
