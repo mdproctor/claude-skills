@@ -516,15 +516,25 @@ Otherwise, check whether CLAUDE.md is committed to git:
 git -C "<project-path>" ls-files --error-unmatch CLAUDE.md 2>/dev/null && echo "committed" || echo "not committed"
 ```
 
-**If CLAUDE.md is committed**, present:
-> "CLAUDE.md is committed to git (`<size>` bytes). Migrate it to the workspace?
-> This will append its content to `workspace/CLAUDE.md`, remove it from the
-> project repo with `git rm`, commit the deletion, then create a symlink back.
-> (YES / no)"
+**If CLAUDE.md is committed**, present both options clearly:
 
-If YES:
+> "CLAUDE.md is committed to git (`<size>` bytes). Where should it live?
+>
+> **A — Migrate to workspace** *(recommended)*
+>    Content moves to workspace CLAUDE.md. Removed from project repo with `git rm`.
+>    Symlink created: `project/CLAUDE.md → workspace/CLAUDE.md`
+>    Opening Claude anywhere loads the same config.
+>
+> **B — Keep in project repo**
+>    CLAUDE.md stays committed in the project. The workspace CLAUDE.md will
+>    `@include` it explicitly so both directions load the full config.
+>    Link direction: `workspace/CLAUDE.md` includes `@<project-path>/CLAUDE.md`
+>
+> Reply **A** or **B**:"
+
+**If A (migrate to workspace):**
 ```bash
-# Append project CLAUDE.md content to workspace CLAUDE.md (below routing header)
+# Append project CLAUDE.md content to workspace CLAUDE.md
 echo -e "\n---\n" >> "$BASE/CLAUDE.md"
 cat "<project-path>/CLAUDE.md" >> "$BASE/CLAUDE.md"
 
@@ -537,9 +547,16 @@ ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
 echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
 ```
 
-If no: skip the symlink. Tell the user:
-> "CLAUDE.md stays in the project repo. Open Claude in the workspace dir —
-> `add-dir` will load the project including its CLAUDE.md."
+**If B (keep in project repo):**
+```bash
+# Add @include of the project CLAUDE.md to the workspace CLAUDE.md
+echo "" >> "$BASE/CLAUDE.md"
+echo "@<project-path>/CLAUDE.md" >> "$BASE/CLAUDE.md"
+```
+Tell the user:
+> "CLAUDE.md stays in the project repo. The workspace CLAUDE.md now includes
+> it via `@<project-path>/CLAUDE.md` — opening Claude in either location
+> loads the full config."
 
 **If CLAUDE.md is not committed**, create the symlink as normal:
 ```bash
