@@ -63,16 +63,38 @@ GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
 
 Then ask:
 1. **Privacy** — `private` or `public`?
-2. **GitHub remote URL** for the workspace repo — optional.
-   The naming convention is `wsp-<workspace-name>` (e.g. `wsp-casehub`, `wsp-casehub-engine`).
-   Show the suggested default:
-   `github.com/<GITHUB_OWNER>/wsp-<workspace-name>`
+2. **Workspace repo tag** — the short label that distinguishes workspace repos from project repos.
+
+   > "Workspace repos use a tag to distinguish them from project repos.
+   > Default: **`wsp`**
+   >
+   > Accept `wsp`, or choose:
+   >   1. `wsp`  *(default)*
+   >   2. `ws`
+   >   3. `wrk`
+   >   4. Custom — type your own
+   >
+   > Reply with a number or your own term:"
+
+   Once confirmed, ask position:
+
+   > "Use `<TAG>` as a prefix or postfix?
+   >   **prefix** → `<TAG>-<name>`  e.g. `wsp-casehub`  *(default)*
+   >   **postfix** → `<name>-<TAG>`  e.g. `casehub-wsp`"
+
+   Set `REPO_NAME` = `<TAG>-<workspace-name>` or `<workspace-name>-<TAG>` per choice.
+   Use `REPO_NAME` consistently for all workspace repos in this family
+   (family root and all children).
+
+3. **GitHub remote URL** for the workspace repo — optional.
+   Show the suggested default using the resolved `REPO_NAME`:
+   `github.com/<GITHUB_OWNER>/<REPO_NAME>`
    > "(YES to use this, or provide a different URL, or leave blank to add later)"
 
 **If a GitHub URL is provided or confirmed**, check whether the repo already exists:
 
 ```bash
-gh repo view <owner>/wsp-<workspace-name> --json name,description 2>/dev/null && echo "exists" || echo "not found"
+gh repo view <owner>/<REPO_NAME> --json name,description 2>/dev/null && echo "exists" || echo "not found"
 ```
 
 Handle each case:
@@ -584,16 +606,16 @@ git commit -m "init: workspace for <project>"
 If the user provided a GitHub remote URL, create the repo and push:
 
 ```bash
-gh repo create <owner>/wsp-<workspace-name> --private --description "Workspace for <workspace-name>" 2>/dev/null || true
-git remote add origin git@github.com:<owner>/wsp-<workspace-name>.git
+gh repo create <owner>/<REPO_NAME> --private --description "Workspace for <workspace-name>" 2>/dev/null || true
+git remote add origin git@github.com:<owner>/<REPO_NAME>.git
 git push -u origin main
 ```
 
 If no remote URL provided, tell the user:
-> Remote not configured. Convention: `wsp-<workspace-name>`. When ready:
+> Remote not configured. When ready (using your chosen tag `<REPO_NAME>`):
 > ```bash
-> gh repo create <owner>/wsp-<workspace-name> --private
-> git remote add origin git@github.com:<owner>/wsp-<workspace-name>.git
+> gh repo create <owner>/<REPO_NAME> --private
+> git remote add origin git@github.com:<owner>/<REPO_NAME>.git
 > git push -u origin main
 > ```
 
