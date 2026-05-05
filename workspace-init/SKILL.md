@@ -230,23 +230,37 @@ CHILD WORKSPACES  (one git repo each)
   ~/claude/<privacy>/<INFERRED_PARENT>/ledger/
   ...
 
-CLAUDE.md HANDLING  ← decision required per repo before YES
-┌──────────┬───────────────┬──────────────────────────────────────────────┐
-│ Repo     │ Status        │ Planned action — confirm or override          │
-├──────────┼───────────────┼──────────────────────────────────────────────┤
-│ engine   │ committed     │ A — migrate to workspace + symlink back       │
-│ work     │ committed     │ A — migrate to workspace + symlink back       │
-│ ledger   │ untracked     │ C — symlink project→workspace (Case 3)        │
-│ qhorus   │ missing       │ init — run /init first, then decide           │
-│ ...      │ ...           │ ...                                           │
-└──────────┴───────────────┴──────────────────────────────────────────────┘
-  A = migrate content to workspace, git rm, symlink project→workspace
-  B = keep in project, workspace @includes it
-  C = untracked — symlink project→workspace
-  init = no CLAUDE.md exists — /init must run first
+WORKSPACE CLAUDE.md DRAFTS  ← content shown and approved here, not later
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For EACH repo, draft the full workspace CLAUDE.md content and show it
+in the plan. YES approves the specific content shown — there are no
+further per-file confirmations during execution.
 
-  **The user must confirm or override each row before YES is accepted.**
-  "adjust" responses can change individual rows (e.g. "keep ledger as B").
+Format per repo:
+
+  ── engine  (project CLAUDE.md: committed → action A: migrate + symlink) ──
+  <full proposed workspace CLAUDE.md content for engine>
+  ────────────────────────────────────────────────────────────────
+
+  ── work  (project CLAUDE.md: committed → action A: migrate + symlink) ──
+  <full proposed workspace CLAUDE.md content for work>
+  ────────────────────────────────────────────────────────────────
+
+  ── ledger  (project CLAUDE.md: untracked → action C: symlink only) ──
+  <full proposed workspace CLAUDE.md content for ledger>
+  ────────────────────────────────────────────────────────────────
+
+  ...one block per repo...
+
+Actions:
+  A = project content migrated into workspace CLAUDE.md, git rm from project, symlink back
+  B = keep in project, workspace CLAUDE.md gets @<project-path>/CLAUDE.md
+  C = untracked — workspace CLAUDE.md created fresh, symlink project→workspace
+  init = no CLAUDE.md exists — /init runs first, then content is drafted
+
+"adjust" can change any repo's action or edit any draft before YES.
+**YES approves every draft shown. Nothing will be written that isn't
+shown here.**
 
 FILE MOVES  (copied to workspace, then git rm'd and committed in project)
 ┌──────────┬──────────────────────────────────┬──────────────────────────────┬────────┐
@@ -272,14 +286,18 @@ Total: <N> workspaces · <M> file moves · <K> git commits across <J> repos
 Proceed with this plan? (YES / adjust / no)
 ```
 
-- **YES** → execute everything as shown
-- **adjust** → user specifies changes (e.g. "don't migrate engine CLAUDE.md", "skip connectors")
-  Apply adjustments, re-show the updated plan, ask again
-- **no** → abort, nothing written
+- **YES** → execute exactly what is shown above. Every workspace CLAUDE.md
+  written will match the draft shown in this plan. No additional confirmations
+  during execution — approval is given here.
+- **adjust** → user edits any draft or changes any action. Re-show updated plan, ask again.
+- **no** → abort, nothing written.
 
 **Do not create any directories, move any files, run any git commands,
 or create any GitHub repos (`gh repo create`) until the user confirms with YES.**
 Nothing touches the filesystem or GitHub until the plan is approved.
+
+**During execution: write each workspace CLAUDE.md exactly as shown in the
+approved plan. Do not re-draft or re-confirm — the content was already approved.**
 
 ### Step 1b — Create or update family workspace root
 
@@ -430,13 +448,11 @@ EOF
 
 ### Step 5 — Create workspace CLAUDE.md (routing hub)
 
-⛔ **GATE — do not proceed past this point until:**
-- The workspace directory exists (Step 2 complete)
-- The CLAUDE.md decision for this repo is recorded in the approved plan (A / B / C / init)
-- No other step for this repo or any other repo is running concurrently
-
-Draft the base CLAUDE.md content, then **show it to the user and ask for
-acceptance before writing**. Never write CLAUDE.md without confirmation.
+Write the workspace CLAUDE.md using the exact content approved in Step 1.5.
+Do not re-draft or ask again — the content was shown and approved in the plan.
+The only exception: if the user said "init" for this repo (no CLAUDE.md existed),
+run /init now to create the project CLAUDE.md, then write the workspace CLAUDE.md
+incorporating the newly created content.
 
 Draft:
 
