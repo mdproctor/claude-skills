@@ -63,27 +63,25 @@ GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
 
 Then ask:
 1. **Privacy** — `private` or `public`?
-2. **Workspace repo tag** — the short label that distinguishes workspace repos from project repos.
+2. **Workspace repo tag** — ask tag and position together as two separate questions
+   in the same prompt. Both are required before proceeding.
 
+   **Question A — Tag:**
    > "Workspace repos use a tag to distinguish them from project repos.
    > Default: **`wsp`**
    >
-   > Accept `wsp`, or choose:
-   >   1. `wsp`  *(default)*
-   >   2. `ws`
-   >   3. `wrk`
-   >   4. Custom — type your own
-   >
-   > Reply with a number or your own term:"
+   >   1. `wsp`  *(default)*  → e.g. wsp-casehub, wsp-casehub-engine
+   >   2. `ws`                → e.g. ws-casehub, ws-casehub-engine
+   >   3. `wrk`               → e.g. wrk-casehub, wrk-casehub-engine
+   >   4. Custom — type your own"
 
-   Once confirmed, ask position:
+   **Question B — Position (ask immediately after tag, do not skip):**
+   > "Use the tag as a prefix or postfix?
+   >   1. **prefix** *(default)* → tag first: `wsp-casehub`, `wsp-casehub-work`
+   >   2. **postfix**            → tag last:  `casehub-wsp`, `casehub-work-wsp`
+   >                               (tag always at the very end, after the full name)"
 
-   > "Use `<TAG>` as a prefix or postfix?
-   >   **prefix** → `<TAG>-<name>`        e.g. `wsp-casehub`, `wsp-casehub-work`  *(default)*
-   >   **postfix** → `<name>-<TAG>`       e.g. `casehub-wsp`, `casehub-work-wsp`
-   >                                       (tag always at the very end)"
-
-   Set `REPO_NAME` for each workspace:
+   Both questions must be answered before moving on. Set `REPO_NAME` for each workspace:
    - Prefix: `<TAG>-<family>` for root, `<TAG>-<family>-<child>` for children
    - Postfix: `<family>-<TAG>` for root, `<family>-<child>-<TAG>` for children
 
