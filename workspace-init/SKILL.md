@@ -210,6 +210,29 @@ mkdir -p "$FAMILY_ROOT/adr" "$FAMILY_ROOT/snapshots" "$FAMILY_ROOT/blog" \
          "$FAMILY_ROOT/specs" "$FAMILY_ROOT/plans"
 ```
 
+Write the family root `.gitignore` — ignores all child workspace directories so
+the family repo tracks only family-level artifacts, not the nested repos:
+
+```bash
+# Collect all sibling repo names (the same list used in the member repos table)
+SIBLING_NAMES=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
+  [ -d "$d/.git" ] && basename "$d"
+done | sort)
+
+cat > "$FAMILY_ROOT/.gitignore" << EOF
+# Child workspace repos — each has its own git history
+$(echo "$SIBLING_NAMES" | sed 's|^|/|')
+
+# OS / editor noise
+.DS_Store
+*.swp
+EOF
+```
+
+This prevents git from seeing child workspace directories as untracked content
+or accidentally registering them as submodules. Each child repo commits to its
+own history independently.
+
 **If `FAMILY_CLAUDE` already exists — update the member repos table:**
 
 Add the new repo to the table if not already listed. Show the proposed change and
@@ -603,6 +626,7 @@ If n → skip. Do not ask again this session.
 - [ ] Project family detection ran (Step 1a): existing family folder checked, sibling repos checked
 - [ ] `BASE` path is correct: flat (`~/claude/<privacy>/<project>/`) or nested (`~/claude/<privacy>/<parent>/<project>/`) per user choice
 - [ ] Family root CLAUDE.md created or updated (Step 1b) if nested path chosen: member repos table includes new repo, artifact dirs exist at family root
+- [ ] Family root `.gitignore` written with all sibling repo names — child workspaces excluded from family repo tracking
 - [ ] Directory exists at correct path with all subdirs
 - [ ] `CLAUDE.md` contains session-start `add-dir` instruction and artifact locations table
 - [ ] `HANDOFF.md` and `IDEAS.md` exist as stubs
