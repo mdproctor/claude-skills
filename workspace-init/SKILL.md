@@ -100,6 +100,47 @@ gh repo view <owner>/<REPO_NAME> --json name,description 2>/dev/null && echo "ex
 - Exists + workspace markers → offer to clone and reuse
 - Exists + NOT workspace → offer delete+recreate or exit
 
+### Step 1 — Third AskUserQuestion batch (CLAUDE.md handling per repo)
+
+**Use a third single `AskUserQuestion` call for this question.**
+
+**Q7 — CLAUDE.md handling:**
+
+For each repo in scope, detect its CLAUDE.md status:
+```bash
+for repo in $ALL_REPOS; do
+  if git -C "$repo" ls-files --error-unmatch CLAUDE.md 2>/dev/null; then
+    echo "$repo: committed"
+  elif [ -f "$repo/CLAUDE.md" ]; then
+    echo "$repo: untracked"
+  else
+    echo "$repo: missing"
+  fi
+done
+```
+
+Present one question showing all repos and their status, asking for the handling
+decision. The user can set one default for all, or override per repo:
+
+> "How should existing CLAUDE.md files be handled?
+>
+> | Repo     | Status    | Default decision |
+> |----------|-----------|-----------------|
+> | engine   | committed | A — migrate to workspace + symlink back |
+> | work     | committed | A — migrate to workspace + symlink back |
+> | ledger   | untracked | C — symlink only |
+> | qhorus   | missing   | init — create with /init first |
+>
+> A = migrate content to workspace CLAUDE.md, git rm from project, symlink back
+> B = keep in project, workspace CLAUDE.md @includes it
+> C = untracked — create workspace CLAUDE.md, symlink project→workspace
+> init = missing — run /init to create, then treat as A or B
+>
+> Accept defaults, or specify overrides (e.g. 'engine=B, work=B, rest=A'):"
+
+Record the decision per repo as `CLAUDE_MD_DECISION[repo]`. These decisions
+are used during execution — no further confirmation needed per repo.
+
 ### Step 1a — Detect project family
 
 Run immediately after Step 1 context detection. The detection already has
@@ -230,37 +271,17 @@ CHILD WORKSPACES  (one git repo each)
   ~/claude/<privacy>/<INFERRED_PARENT>/ledger/
   ...
 
-WORKSPACE CLAUDE.md DRAFTS  ← content shown and approved here, not later
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-For EACH repo, draft the full workspace CLAUDE.md content and show it
-in the plan. YES approves the specific content shown — there are no
-further per-file confirmations during execution.
-
-Format per repo:
-
-  ── engine  (project CLAUDE.md: committed → action A: migrate + symlink) ──
-  <full proposed workspace CLAUDE.md content for engine>
-  ────────────────────────────────────────────────────────────────
-
-  ── work  (project CLAUDE.md: committed → action A: migrate + symlink) ──
-  <full proposed workspace CLAUDE.md content for work>
-  ────────────────────────────────────────────────────────────────
-
-  ── ledger  (project CLAUDE.md: untracked → action C: symlink only) ──
-  <full proposed workspace CLAUDE.md content for ledger>
-  ────────────────────────────────────────────────────────────────
-
-  ...one block per repo...
-
-Actions:
-  A = project content migrated into workspace CLAUDE.md, git rm from project, symlink back
-  B = keep in project, workspace CLAUDE.md gets @<project-path>/CLAUDE.md
-  C = untracked — workspace CLAUDE.md created fresh, symlink project→workspace
-  init = no CLAUDE.md exists — /init runs first, then content is drafted
-
-"adjust" can change any repo's action or edit any draft before YES.
-**YES approves every draft shown. Nothing will be written that isn't
-shown here.**
+CLAUDE.md HANDLING  (decisions collected in Q7 — shown here for confirmation)
+┌──────────┬───────────────┬──────────────────────────────────────────────┐
+│ Repo     │ Status        │ Decision (from Q7)                            │
+├──────────┼───────────────┼──────────────────────────────────────────────┤
+│ engine   │ committed     │ A — migrate to workspace + symlink back       │
+│ work     │ committed     │ A — migrate to workspace + symlink back       │
+│ ledger   │ untracked     │ C — symlink project→workspace                 │
+│ qhorus   │ missing       │ init — run /init first, then A               │
+│ ...      │ ...           │ ...                                           │
+└──────────┴───────────────┴──────────────────────────────────────────────┘
+  These decisions were set in Q7. "adjust" can change any row before YES.
 
 FILE MOVES  (copied to workspace, then git rm'd and committed in project)
 ┌──────────┬──────────────────────────────────┬──────────────────────────────┬────────┐
@@ -286,9 +307,9 @@ Total: <N> workspaces · <M> file moves · <K> git commits across <J> repos
 Proceed with this plan? (YES / adjust / no)
 ```
 
-- **YES** → execute exactly what is shown above. Every workspace CLAUDE.md
-  written will match the draft shown in this plan. No additional confirmations
-  during execution — approval is given here.
+- **YES** → execute per the decisions collected in Q7 and confirmed here.
+  No additional per-repo confirmations during execution — all decisions
+  were made in Q7.
 - **adjust** → user edits any draft or changes any action. Re-show updated plan, ask again.
 - **no** → abort, nothing written.
 
@@ -296,8 +317,9 @@ Proceed with this plan? (YES / adjust / no)
 or create any GitHub repos (`gh repo create`) until the user confirms with YES.**
 Nothing touches the filesystem or GitHub until the plan is approved.
 
-**During execution: write each workspace CLAUDE.md exactly as shown in the
-approved plan. Do not re-draft or re-confirm — the content was already approved.**
+**During execution: implement `CLAUDE_MD_DECISION[repo]` for each repo exactly
+as recorded in Q7. Do not re-ask or re-confirm — decisions were made in Q7
+and confirmed in the plan.**
 
 ### Step 1b — Create or update family workspace root
 
