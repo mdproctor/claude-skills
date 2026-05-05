@@ -79,14 +79,29 @@ if [ -d "$FAMILY_PATH" ]; then
 fi
 ```
 
-If `$FAMILY_MEMBERS` is non-empty (the family folder already exists with at least one member), present:
+If `$FAMILY_MEMBERS` is non-empty (the family folder already exists with at least one member):
+
+Find repos in the family directory that don't yet have a child workspace:
+```bash
+MISSING=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
+  name=$(basename "$d")
+  [ -d "$d/.git" ] && [ ! -d "$FAMILY_PATH/$name" ] && echo "$name"
+done | sort)
+```
+
+Present:
 
 > "Found an existing family workspace at `~/claude/<privacy>/<INFERRED_PARENT>/` containing: `<FAMILY_MEMBERS>`.
 >
-> Place this workspace there as `~/claude/<privacy>/<INFERRED_PARENT>/<project>/`? **(YES / no)**"
+> Repos without a workspace yet: `<MISSING>` (or "all accounted for" if none)
+>
+> 1. **All missing** — create workspaces for all repos not yet set up
+> 2. **Just this one** — add `<project>/` to the family
+> 3. **Flat** — no family grouping"
 
-If YES → set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 2.
-If no → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
+If 1 → set `BATCH_REPOS=<MISSING repos>`, set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`, run batch.
+If 2 → set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 1b.
+If 3 → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
 
 **Check B — Sibling git repos in same parent directory (no existing family workspace):**
 
@@ -96,14 +111,38 @@ Only run Check B if Check A did not trigger (no existing family folder found).
 SIBLING_COUNT=$(find "$PROJECT_PARENT_DIR" -maxdepth 2 -mindepth 2 -name ".git" -type d 2>/dev/null | wc -l | tr -d ' ')
 ```
 
-If `$SIBLING_COUNT` is greater than 1, present:
+If `$SIBLING_COUNT` is greater than 1, list the sibling repos:
 
-> "Your project lives in `<PROJECT_PARENT_DIR>` alongside `<SIBLING_COUNT>` other git repos — this looks like a project family named `<INFERRED_PARENT>`.
+```bash
+SIBLINGS=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
+  [ -d "$d/.git" ] && basename "$d"
+done | sort)
+```
+
+Present:
+
+> "Your project lives in `<PROJECT_PARENT_DIR>` alongside `<SIBLING_COUNT>` other git repos — this looks like a project family named `<INFERRED_PARENT>`:
 >
-> Create a family workspace at `~/claude/<privacy>/<INFERRED_PARENT>/<project>/` to group related projects together? **(YES / no)**"
+> `<SIBLINGS listed one per line>`
+>
+> How would you like to set up workspaces?
+>
+> 1. **All** — create workspaces for every repo in the family (runs this workflow for each in sequence)
+> 2. **Select** — choose which repos to include now; others can be added later
+> 3. **Just this one** — create only `<project>/`, nest it under the family folder
+> 4. **Flat** — no family grouping, use `~/claude/<privacy>/<project>/`"
 
-If YES → set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 2.
-If no → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
+**If 1 (All):**
+Set `BATCH_REPOS=<all siblings including current project>`. Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`. Run Step 1b to create the family root, then run the full workspace-init workflow (Steps 2–10) for each repo in `BATCH_REPOS` in sequence. Skip any repo that already has a workspace.
+
+**If 2 (Select):**
+Show numbered list of siblings, user picks. Set `BATCH_REPOS=<selected + current project>`. Proceed as per option 1 for the selected set.
+
+**If 3 (Just this one):**
+Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 1b then Step 2.
+
+**If 4 (Flat):**
+Use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
 
 **If neither check triggers:** proceed directly to Step 2 with `BASE=~/claude/<privacy>/<project>`.
 
