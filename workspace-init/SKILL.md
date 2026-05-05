@@ -1,10 +1,10 @@
 ---
 name: workspace-init
 description: >
-  Use when a project has no companion workspace yet — user says "init
-  workspace", "set up workspace", "create workspace for <project>", or
-  invokes /workspace-init. NOT for day-to-day workspace use — one-time
-  only, each machine independently.
+  Use only when explicitly creating a new companion workspace from scratch —
+  user invokes /workspace-init or says "init workspace for [project]" or
+  "create workspace for [project]". NOT for questions about workspaces, NOT
+  for ongoing use, NOT for modifying existing workspaces. One-time setup only.
 ---
 
 # Workspace Init
@@ -651,6 +651,9 @@ more recent file as `workspace/HANDOFF.md` and discard the older one.
 >
 > **Symlink status:** CLAUDE.md in the project points to this workspace CLAUDE.md.
 > Opening Claude in the project by mistake will still load full config.
+>
+> **Tip:** This skill is large and one-off. Run `/clear` now to free up context
+> before starting real work.
 
 ### Step 10b — Offer issue tracking setup
 
