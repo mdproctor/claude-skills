@@ -1,7 +1,7 @@
 ---
 name: workspace-init
 description: >
-  Use only when explicitly creating a new companion workspace from scratch —
+  Use when explicitly creating a new companion workspace from scratch —
   user invokes /workspace-init or says "init workspace for [project]" or
   "create workspace for [project]". NOT for questions about workspaces, NOT
   for ongoing use, NOT for modifying existing workspaces. One-time setup only.
