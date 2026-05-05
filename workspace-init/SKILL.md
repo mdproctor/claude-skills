@@ -506,9 +506,10 @@ Scan for existing methodology artifacts across the project:
 
 ```bash
 FOUND=()
-# Root-level handovers
+# Root-level handovers and ideas
 [ -f "<project-path>/HANDOFF.md" ]  && git -C "<project-path>" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOFF.md")
 [ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOFF.md")
+[ -f "<project-path>/IDEAS.md" ]    && git -C "<project-path>" ls-files --error-unmatch IDEAS.md    2>/dev/null && FOUND+=("IDEAS.md → IDEAS.md")
 
 # Root-level artifact directories (common in repos that predate docs/ convention)
 # Note: adr/ is intentionally excluded — ADRs are project knowledge (like DESIGN.md)
@@ -525,6 +526,7 @@ FOUND=()
 [ -d "<project-path>/docs/_posts" ]            && FOUND+=("docs/_posts/ → blog/")
 [ -d "<project-path>/docs/handoffs" ]          && FOUND+=("docs/handoffs/ → handoffs/")
 [ -f "<project-path>/docs/ideas/IDEAS.md" ]    && FOUND+=("docs/ideas/IDEAS.md → IDEAS.md")
+[ -d "<project-path>/docs/specs" ]             && FOUND+=("docs/specs/ → specs/")
 [ -d "<project-path>/docs/superpowers/specs" ] && FOUND+=("docs/superpowers/specs/ → specs/")
 [ -d "<project-path>/docs/superpowers/plans" ] && FOUND+=("docs/superpowers/plans/ → plans/")
 
