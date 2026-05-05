@@ -79,12 +79,15 @@ Then ask:
    Once confirmed, ask position:
 
    > "Use `<TAG>` as a prefix or postfix?
-   >   **prefix** → `<TAG>-<name>`  e.g. `wsp-casehub`  *(default)*
-   >   **postfix** → `<name>-<TAG>`  e.g. `casehub-wsp`"
+   >   **prefix** → `<TAG>-<name>`        e.g. `wsp-casehub`, `wsp-casehub-work`  *(default)*
+   >   **postfix** → `<name>-<TAG>`       e.g. `casehub-wsp`, `casehub-work-wsp`
+   >                                       (tag always at the very end)"
 
-   Set `REPO_NAME` = `<TAG>-<workspace-name>` or `<workspace-name>-<TAG>` per choice.
-   Use `REPO_NAME` consistently for all workspace repos in this family
-   (family root and all children).
+   Set `REPO_NAME` for each workspace:
+   - Prefix: `<TAG>-<family>` for root, `<TAG>-<family>-<child>` for children
+   - Postfix: `<family>-<TAG>` for root, `<family>-<child>-<TAG>` for children
+
+   Tag is always the outermost element — never inserted between family and child name.
 
 3. **GitHub remote URL** for the workspace repo — optional.
    Show the suggested default using the resolved `REPO_NAME`:
