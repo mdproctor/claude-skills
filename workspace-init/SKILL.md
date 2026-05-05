@@ -152,33 +152,47 @@ If 3 → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2
 
 Only run Check B if Check A did not trigger (no existing family folder found).
 
-```bash
-SIBLING_COUNT=$(find "$PROJECT_PARENT_DIR" -maxdepth 2 -mindepth 2 -name ".git" -type d 2>/dev/null | wc -l | tr -d ' ')
-```
-
-If `$SIBLING_COUNT` is greater than 1, list the sibling repos:
+List what's already cloned locally AND check GitHub for repos in the family that
+haven't been cloned yet. The goal is always "clone missing peers" — whether that's
+all of them or just a few.
 
 ```bash
-SIBLINGS=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
+# Local siblings already present
+LOCAL_SIBLINGS=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
   [ -d "$d/.git" ] && basename "$d"
 done | sort)
+LOCAL_COUNT=$(echo "$LOCAL_SIBLINGS" | grep -c .)
+
+# GitHub repos in the family not yet cloned locally
+# Derive family pattern from INFERRED_PARENT (e.g. "casehub" → match "casehub-*" and exact "casehub")
+GITHUB_REPOS=$(gh repo list "$GITHUB_OWNER" --json name --jq '.[].name' 2>/dev/null \
+  | grep -E "^${INFERRED_PARENT}(-|$)|^${INFERRED_PARENT}$" | sort)
+UNCLONED=$(comm -23 <(echo "$GITHUB_REPOS") <(echo "$LOCAL_SIBLINGS") | grep -v "^$")
+UNCLONED_COUNT=$(echo "$UNCLONED" | grep -c .)
 ```
 
-Present:
+If `$LOCAL_COUNT` is greater than 1 OR `$UNCLONED_COUNT` is greater than 0, present:
 
-> "Your project lives in `<PROJECT_PARENT_DIR>` alongside `<SIBLING_COUNT>` other git repos — this looks like a project family named `<INFERRED_PARENT>`:
+> "Found family `<INFERRED_PARENT>` in `<PROJECT_PARENT_DIR>`:
 >
-> `<SIBLINGS listed one per line>`
+> **Already cloned locally:** `<LOCAL_SIBLINGS listed>`
+> **On GitHub, not yet cloned:** `<UNCLONED listed>` (or "none" if all present)
 >
 > How would you like to set up workspaces?
 >
-> 1. **All** — create workspaces for every repo in the family (runs this workflow for each in sequence)
-> 2. **Select** — choose which repos to include now; others can be added later
+> 1. **All** — clone any missing peers + create workspaces for the whole family
+> 2. **Select** — choose which repos to include (cloning as needed)
 > 3. **Just this one** — create only `<project>/`, nest it under the family folder
 > 4. **Flat** — no family grouping, use `~/claude/<privacy>/<project>/`"
 
 **If 1 (All):**
-Set `BATCH_REPOS=<all siblings including current project>`. Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`. Run Step 1b to create the family root, then run the full workspace-init workflow (Steps 2–10) for each repo in `BATCH_REPOS` in sequence. Skip any repo that already has a workspace.
+Clone any uncloned repos first:
+```bash
+for repo in $UNCLONED; do
+  git clone git@github.com:$GITHUB_OWNER/$repo.git "$PROJECT_PARENT_DIR/$repo"
+done
+```
+Then set `BATCH_REPOS=<all local siblings including current project>`. Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`. Run Step 1b to create the family root, then run the full workspace-init workflow (Steps 2–10) for each repo in `BATCH_REPOS` in sequence. Skip any repo that already has a workspace.
 
 **If 2 (Select):**
 Show numbered list of siblings, user picks. Set `BATCH_REPOS=<selected + current project>`. Proceed as per option 1 for the selected set.
