@@ -21,80 +21,94 @@ After running, open Claude in the workspace — CLAUDE.md instructs Claude to
 
 ## Workflow
 
-### Step 1 — Detect context before asking anything
+### Step 1 — Detect context (no questions yet)
 
-**Run detection first, then ask only what's needed.** Never ask for inputs
-before understanding the project structure.
+Run all detection silently first. Do not ask the user anything in this step.
 
 ```bash
-PROJECT_PATH=$(pwd)   # or from invocation argument if provided
+PROJECT_PATH=$(pwd)
 PROJECT_NAME=$(basename "$PROJECT_PATH")
 PROJECT_PARENT_DIR=$(dirname "$PROJECT_PATH")
 INFERRED_PARENT=$(basename "$PROJECT_PARENT_DIR")
 
-# Detect if the folder name is a Maven structural convention, not a real project name
 case "$PROJECT_NAME" in
-  parent|bom|build|root|aggregator)
-    MAVEN_STRUCTURAL_NAME=true
-    ;;
+  parent|bom|build|root|aggregator) MAVEN_STRUCTURAL_NAME=true ;;
 esac
 
-# Ignore generic/system parent directory names
 case "$INFERRED_PARENT" in
   src|projects|code|repos|dev|home|Users|claude|private|public|workspace|workspaces|".")
-    INFERRED_PARENT=""
-    ;;
+    INFERRED_PARENT="" ;;
 esac
 
-# Infer GitHub owner from existing project remote
 GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
   | sed 's|.*github.com[:/]\([^/]*\)/.*|\1|')
 ```
 
-**If `MAVEN_STRUCTURAL_NAME=true`** (folder is `parent`, `bom`, etc.):
-> "This project folder is named `<name>` which looks like a Maven structural
-> convention, not the real project name. The workspace should be named after
-> the family — inferred as `<INFERRED_PARENT>` from the parent directory.
->
-> Confirm workspace name: **`<INFERRED_PARENT>`**? (YES / different name)"
+### Step 1 Q1 — Workspace name
 
-**Otherwise** confirm the inferred name:
-> "Workspace name: **`<PROJECT_NAME>`** — confirm? (YES / different name)"
+**Ask this as a single standalone question. Wait for the answer before asking anything else.**
 
-Then ask:
-1. **Privacy** — `private` or `public`?
-   Set `PRIVACY_FLAG=--private` or `PRIVACY_FLAG=--public` accordingly.
-   Use `$PRIVACY_FLAG` in ALL `gh repo create` calls — never hardcode `--private`.
-2. **Workspace repo tag** — ask tag and position together as two separate questions
-   in the same prompt. Both are required before proceeding.
+If `MAVEN_STRUCTURAL_NAME=true`:
+> "This folder is named `<name>` — a Maven structural convention. Inferred workspace name: **`<INFERRED_PARENT>`**
+> Confirm, or type a different name:"
 
-   **Question A — Tag:**
-   > "Workspace repos use a tag to distinguish them from project repos.
-   > Default: **`wsp`**
-   >
-   >   1. `wsp`  *(default)*  → e.g. wsp-casehub, wsp-casehub-engine
-   >   2. `ws`                → e.g. ws-casehub, ws-casehub-engine
-   >   3. `wrk`               → e.g. wrk-casehub, wrk-casehub-engine
-   >   4. Custom — type your own"
+Otherwise:
+> "Workspace name: **`<PROJECT_NAME>`** — confirm, or type a different name:"
 
-   **Question B — Position (ask immediately after tag, do not skip):**
-   > "Use the tag as a prefix or postfix?
-   >   1. **prefix** *(default)* → tag first: `wsp-casehub`, `wsp-casehub-work`
-   >   2. **postfix**            → tag last:  `casehub-wsp`, `casehub-work-wsp`
-   >                               (tag always at the very end, after the full name)"
+Wait for response. Set `WORKSPACE_NAME`. Then proceed to Q2.
 
-   Both questions must be answered before moving on. Set `REPO_NAME` for each workspace:
-   - Prefix: `<TAG>-<family>` for root, `<TAG>-<family>-<child>` for children
-   - Postfix: `<family>-<TAG>` for root, `<family>-<child>-<TAG>` for children
+### Step 1 Q2 — Privacy
 
-   Tag is always the outermost element — never inserted between family and child name.
+**Single question. Wait for answer before continuing.**
 
-3. **GitHub remote URL** for the workspace repo — optional.
-   Show the suggested default using the resolved `REPO_NAME`:
-   `github.com/<GITHUB_OWNER>/<REPO_NAME>`
-   > "(YES to use this, or provide a different URL, or leave blank to add later)"
+> "Privacy — **private** or **public**?"
 
-**If a GitHub URL is provided or confirmed**, check whether the repo already exists:
+Wait for response. Set `PRIVACY_FLAG=--private` or `PRIVACY_FLAG=--public`.
+Use `$PRIVACY_FLAG` in ALL `gh repo create` calls — never hardcode `--private`.
+Then proceed to Q3 (family grouping detection).
+
+### Step 1 Q3 — Family grouping
+
+Run detection, then ask as a single question. Wait for answer before continuing.
+
+_(Detection logic is in Step 1a below — run it here, then present the result as Q3.)_
+
+### Step 1 Q4 — Workspace repo tag
+
+**Single question. Wait for answer before continuing.**
+
+> "Workspace repo tag — distinguishes workspace repos from project repos on GitHub.
+> Default: **wsp** (e.g. wsp-casehub, wsp-casehub-engine)
+>   1. wsp *(default)*
+>   2. ws
+>   3. wrk
+>   4. Custom — type your own"
+
+Wait for response. Set `TAG`. Then proceed to Q5.
+
+### Step 1 Q5 — Tag position
+
+**Single question. Wait for answer before continuing.**
+
+> "Use `<TAG>` as prefix or postfix?
+>   1. **prefix** *(default)* → `<TAG>-casehub`, `<TAG>-casehub-work`
+>   2. **postfix**            → `casehub-<TAG>`, `casehub-work-<TAG>` (tag always last)"
+
+Wait for response. Set `REPO_NAME` pattern:
+- Prefix: `<TAG>-<family>` for root, `<TAG>-<family>-<child>` for children
+- Postfix: `<family>-<TAG>` for root, `<family>-<child>-<TAG>` for children
+
+Then proceed to Q6.
+
+### Step 1 Q6 — GitHub remote URL
+
+**Single question. Wait for answer before continuing.**
+
+> "GitHub remote URL for the workspace repo (optional).
+> Suggested: `github.com/<GITHUB_OWNER>/<REPO_NAME>`
+> YES to accept · different URL · blank to skip"
+
+Wait for response. If URL provided or confirmed, check whether the repo exists:
 
 ```bash
 gh repo view <owner>/<REPO_NAME> --json name,description 2>/dev/null && echo "exists" || echo "not found"
@@ -103,20 +117,10 @@ gh repo view <owner>/<REPO_NAME> --json name,description 2>/dev/null && echo "ex
 Handle each case:
 
 - **Repo doesn't exist** → create it at Step 8 as normal.
+- **Repo exists and looks like a workspace** → offer to clone and reuse.
+- **Repo exists but NOT a workspace** → offer delete+recreate or exit.
 
-- **Repo exists and looks like a workspace** (has CLAUDE.md, HANDOFF.md, or
-  workspace-style description) → offer to clone and use it:
-  > "Found existing repo `wsp-<workspace-name>` on GitHub. Clone and use it
-  > as the workspace? This skips creation and resumes from the existing state.
-  > (YES / no — create fresh instead)"
-  If YES: `git clone git@github.com:<owner>/wsp-<workspace-name> <LOCAL_PATH>` then skip Steps 2–8.
-
-- **Repo exists but is NOT a workspace** (no workspace markers found) → offer:
-  > "⚠️ `wsp-<workspace-name>` already exists on GitHub but doesn't look like
-  > a workspace repo. Options:
-  > 1. **Delete and recreate** — `gh repo delete <owner>/wsp-<workspace-name> --yes` then continue
-  > 2. **Exit** — abort and resolve manually"
-  Wait for choice. If 2, stop immediately.
+Then proceed to Step 1a (family detection for Q3 if not already run).
 
 ### Step 1a — Detect project family
 
