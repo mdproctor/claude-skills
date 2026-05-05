@@ -144,7 +144,77 @@ Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>` and proceed to Step 1b
 **If 4 (Flat):**
 Use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 2.
 
-**If neither check triggers:** proceed directly to Step 2 with `BASE=~/claude/<privacy>/<project>`.
+**If neither check triggers:** proceed directly to Step 1.5 with `BASE=~/claude/<privacy>/<project>`.
+
+### Step 1.5 — Show plan and confirm before executing anything
+
+**This step always runs before any files are created, moved, or committed.**
+
+Scan each repo in `BATCH_REPOS` (or just the current project if no batch) for
+methodology artifacts using the Step 9 detection logic — but do NOT execute
+anything yet. Build the full plan and present it to the user.
+
+Present the plan in this format:
+
+```
+WORKSPACE INIT PLAN
+══════════════════════════════════════════════════════════════════
+
+FAMILY ROOT  ~/claude/<privacy>/<INFERRED_PARENT>/    (new git repo)
+  CLAUDE.md      family workspace hub
+  .gitignore     excludes child workspace dirs
+  adr/  blog/  snapshots/  specs/  plans/
+
+CHILD WORKSPACES  (one git repo each)
+  ~/claude/<privacy>/<INFERRED_PARENT>/engine/
+  ~/claude/<privacy>/<INFERRED_PARENT>/work/
+  ~/claude/<privacy>/<INFERRED_PARENT>/ledger/
+  ...
+
+CLAUDE.md HANDLING
+┌──────────┬─────────────────────────────────────────────────────┐
+│ Repo     │ Action                                              │
+├──────────┼─────────────────────────────────────────────────────┤
+│ engine   │ Migrate → workspace (git rm from project, symlink)  │
+│ work     │ Migrate → workspace (git rm from project, symlink)  │
+│ ledger   │ Migrate → workspace (git rm from project, symlink)  │
+│ ...      │ ...                                                 │
+└──────────┴─────────────────────────────────────────────────────┘
+  Note: if you prefer to keep CLAUDE.md committed in any repo,
+  say so and it will be skipped for that repo.
+
+FILE MOVES  (copied to workspace, then git rm'd and committed in project)
+┌──────────┬──────────────────────────────────┬──────────────────────────────┬────────┐
+│ Repo     │ Source (project)                 │ Destination (workspace)      │ Files  │
+├──────────┼──────────────────────────────────┼──────────────────────────────┼────────┤
+│ work     │ HANDOFF.md                       │ work/HANDOFF.md              │ 1      │
+│ work     │ blog/                            │ work/blog/                   │ 17     │
+│ work     │ docs/superpowers/specs/          │ work/specs/                  │ 10     │
+│ work     │ docs/superpowers/plans/          │ work/plans/                  │ 13     │
+│ ledger   │ HANDOFF.md                       │ ledger/HANDOFF.md            │ 1      │
+│ ledger   │ IDEAS.md                         │ ledger/IDEAS.md              │ 1      │
+│ ledger   │ blog/                            │ ledger/blog/                 │ 20     │
+│ ...      │ ...                              │ ...                          │ ...    │
+└──────────┴──────────────────────────────────┴──────────────────────────────┴────────┘
+  Each move: git rm in project → commit "chore: migrate methodology artifacts to workspace"
+
+SESSION HISTORY MIGRATION
+  ~/.claude/projects/<old-project-path>/ → ~/.claude/projects/<new-workspace-path>/
+  (one migration per repo)
+
+══════════════════════════════════════════════════════════════════
+Total: <N> workspaces · <M> file moves · <K> git commits across <J> repos
+
+Proceed with this plan? (YES / adjust / no)
+```
+
+- **YES** → execute everything as shown
+- **adjust** → user specifies changes (e.g. "don't migrate engine CLAUDE.md", "skip connectors")
+  Apply adjustments, re-show the updated plan, ask again
+- **no** → abort, nothing written
+
+**Do not create any directories, move any files, or run any git commands
+until the user confirms with YES.**
 
 ### Step 1b — Create or update family workspace root
 
