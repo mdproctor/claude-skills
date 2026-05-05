@@ -275,8 +275,9 @@ Proceed with this plan? (YES / adjust / no)
   Apply adjustments, re-show the updated plan, ask again
 - **no** → abort, nothing written
 
-**Do not create any directories, move any files, or run any git commands
-until the user confirms with YES.**
+**Do not create any directories, move any files, run any git commands,
+or create any GitHub repos (`gh repo create`) until the user confirms with YES.**
+Nothing touches the filesystem or GitHub until the plan is approved.
 
 ### Step 1b — Create or update family workspace root
 
