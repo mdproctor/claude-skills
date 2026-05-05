@@ -510,6 +510,13 @@ FOUND=()
 [ -f "<project-path>/HANDOFF.md" ]  && git -C "<project-path>" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOFF.md")
 [ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOFF.md")
 
+# Root-level artifact directories (common in repos that predate docs/ convention)
+[ -d "<project-path>/adr" ]         && FOUND+=("adr/ → adr/")
+[ -d "<project-path>/blog" ]        && FOUND+=("blog/ → blog/")
+[ -d "<project-path>/specs" ]       && FOUND+=("specs/ → specs/")
+[ -d "<project-path>/plans" ]       && FOUND+=("plans/ → plans/")
+[ -d "<project-path>/snapshots" ]   && FOUND+=("snapshots/ → snapshots/")
+
 # docs/ artifacts
 [ -d "<project-path>/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
 [ -d "<project-path>/docs/adr" ]               && FOUND+=("docs/adr/ → adr/")
@@ -532,15 +539,25 @@ If any found, present the list and ask:
 > remove it from the project repo with `git rm`, and commit the deletion.
 > (YES / no / select)"
 
+**Merge warning:** If both a root-level and a `docs/` location map to the same
+workspace destination (e.g. `adr/` AND `docs/adr/` both → `adr/`), flag this
+before copying:
+> "⚠️ Both `adr/` and `docs/adr/` exist and both map to `adr/` in the workspace.
+> Files with the same name will be overwritten by the second copy.
+> Review for filename collisions before proceeding? (YES / no)"
+
+Copy root-level first, then `docs/` so that `docs/` content takes precedence
+in any collision. After copying, report any files that were overwritten.
+
 If YES (or after selection is confirmed), for each item:
 ```bash
-# 1. Copy to workspace (example for adr/)
-cp -r "<project-path>/docs/adr/." "$BASE/adr/"
+# 1. Copy to workspace (merges into destination dir)
+cp -r "<project-path>/adr/." "$BASE/adr/"
 
 # 2. Remove from project
-git -C "<project-path>" rm -r docs/adr
+git -C "<project-path>" rm -r adr
 
-# ... repeat for each selected item
+# ... repeat for each selected item, root-level before docs/
 ```
 
 Then commit all removals in one go:
