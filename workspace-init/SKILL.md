@@ -44,83 +44,61 @@ GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
   | sed 's|.*github.com[:/]\([^/]*\)/.*|\1|')
 ```
 
-### Step 1 Q1 — Workspace name
+### Step 1 — Input collection (single AskUserQuestion batch)
 
-**Ask this as a single standalone question. Wait for the answer before asking anything else.**
+**Use a SINGLE `AskUserQuestion` tool call with all four questions below.**
+This produces the step-wizard header UI (e.g. `☒ Name  ☒ Privacy  ☒ Tag  ☐ Position`).
+Do NOT ask questions one at a time — that loses the wizard UI.
 
-If `MAVEN_STRUCTURAL_NAME=true`:
-> "This folder is named `<name>` — a Maven structural convention. Inferred workspace name: **`<INFERRED_PARENT>`**
-> Confirm, or type a different name:"
+Also run the family detection bash (Step 1a) before this call so the family
+grouping question can be included if a family is detected.
 
-Otherwise:
-> "Workspace name: **`<PROJECT_NAME>`** — confirm, or type a different name:"
+**The four questions to batch:**
 
-Wait for response. Set `WORKSPACE_NAME`. Then proceed to Q2.
+**Q1 — Workspace name:**
+- If `MAVEN_STRUCTURAL_NAME=true`: "This folder is named `<name>` — a Maven convention. Inferred workspace name: `<INFERRED_PARENT>`. Confirm or type a different name."
+- Otherwise: "Workspace name: `<PROJECT_NAME>` — confirm or type a different name."
+- Options: `<INFERRED_NAME>` (Recommended), Other
 
-### Step 1 Q2 — Privacy
+**Q2 — Privacy:**
+- "Where should the workspace live?"
+- Options: private, public
 
-**Single question. Wait for answer before continuing.**
+**Q3 — Workspace repo tag:**
+- "Tag to distinguish workspace repos from project repos on GitHub (e.g. wsp-casehub vs casehub)."
+- Options: wsp (Recommended), ws, wrk, Custom
 
-> "Privacy — **private** or **public**?"
+**Q4 — Tag position:**
+- "Prefix or postfix?"
+- Options: prefix → wsp-casehub / wsp-casehub-work (Recommended), postfix → casehub-wsp / casehub-work-wsp
 
-Wait for response. Set `PRIVACY_FLAG=--private` or `PRIVACY_FLAG=--public`.
-Use `$PRIVACY_FLAG` in ALL `gh repo create` calls — never hardcode `--private`.
-Then proceed to Q3 (family grouping detection).
+After collecting all four answers, set:
+- `WORKSPACE_NAME` from Q1
+- `PRIVACY_FLAG=--private` or `PRIVACY_FLAG=--public` from Q2 — use in ALL `gh repo create` calls
+- `TAG` from Q3, position from Q4
+- `REPO_NAME` pattern: prefix → `<TAG>-<family>` / `<TAG>-<family>-<child>`; postfix → `<family>-<TAG>` / `<family>-<child>-<TAG>`
 
-### Step 1 Q3 — Family grouping
+Then run Step 1a (family detection) if not already done, then ask the second batch below.
 
-Run detection, then ask as a single question. Wait for answer before continuing.
+### Step 1 — Second AskUserQuestion batch (family scope + GitHub URL)
 
-_(Detection logic is in Step 1a below — run it here, then present the result as Q3.)_
+**Use a second single `AskUserQuestion` call with these two questions.**
 
-### Step 1 Q4 — Workspace repo tag
+**Q5 — Family grouping** (only if family detected in Step 1a):
+- Show the sibling list and ask scope.
+- Options: All repos, Select repos, Just this one, Flat (no family grouping)
 
-**Single question. Wait for answer before continuing.**
+**Q6 — GitHub remote URL:**
+- "GitHub remote URL for the workspace repo (optional). Suggested: `github.com/<GITHUB_OWNER>/<REPO_NAME>`"
+- Options: Yes use suggested URL, Skip — add later, Custom URL
 
-> "Workspace repo tag — distinguishes workspace repos from project repos on GitHub.
-> Default: **wsp** (e.g. wsp-casehub, wsp-casehub-engine)
->   1. wsp *(default)*
->   2. ws
->   3. wrk
->   4. Custom — type your own"
-
-Wait for response. Set `TAG`. Then proceed to Q5.
-
-### Step 1 Q5 — Tag position
-
-**Single question. Wait for answer before continuing.**
-
-> "Use `<TAG>` as prefix or postfix?
->   1. **prefix** *(default)* → `<TAG>-casehub`, `<TAG>-casehub-work`
->   2. **postfix**            → `casehub-<TAG>`, `casehub-work-<TAG>` (tag always last)"
-
-Wait for response. Set `REPO_NAME` pattern:
-- Prefix: `<TAG>-<family>` for root, `<TAG>-<family>-<child>` for children
-- Postfix: `<family>-<TAG>` for root, `<family>-<child>-<TAG>` for children
-
-Then proceed to Q6.
-
-### Step 1 Q6 — GitHub remote URL
-
-**Single question. Wait for answer before continuing.**
-
-> "GitHub remote URL for the workspace repo (optional).
-> Suggested: `github.com/<GITHUB_OWNER>/<REPO_NAME>`
-> YES to accept · different URL · blank to skip"
-
-Wait for response. If URL provided or confirmed, check whether the repo exists:
-
+After Q6: if URL confirmed or provided, check whether the GitHub repo already exists:
 ```bash
 gh repo view <owner>/<REPO_NAME> --json name,description 2>/dev/null && echo "exists" || echo "not found"
 ```
-
-Handle each case:
-
-- **Repo doesn't exist** → create it at Step 8 as normal.
-- **Repo exists and looks like a workspace** → offer to clone and reuse.
-- **Repo exists but NOT a workspace** → offer delete+recreate or exit.
-
-Then proceed to Step 1a (family detection for Q3 if not already run).
+- Doesn't exist → create at Step 8
+- Exists + workspace markers → offer to clone and reuse
+- Exists + NOT workspace → offer delete+recreate or exit
 
 ### Step 1a — Detect project family
 
