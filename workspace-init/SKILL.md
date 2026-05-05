@@ -21,50 +21,63 @@ After running, open Claude in the workspace — CLAUDE.md instructs Claude to
 
 ## Workflow
 
-### Step 1 — Gather inputs
+### Step 1 — Detect context before asking anything
 
-Ask the user for:
-1. **Project name** — workspace directory name (e.g. `cc-praxis`)
-2. **Privacy** — `private` or `public`
-3. **Absolute path to project** — where it lives or will live
-4. **GitHub remote URL** for the workspace repo — optional; can add later
-
-Check the project path state:
+**Run detection first, then ask only what's needed.** Never ask for inputs
+before understanding the project structure.
 
 ```bash
-if [ -d "<project-path>" ]; then
-  echo "Project directory exists"
-  if [ -d "<project-path>/.git" ]; then
-    echo "Git repo: yes"
-  else
-    echo "Git repo: no (fine — workspace-init does not require one)"
-  fi
-else
-  echo "Project directory does not exist yet — recording intended path only"
-fi
-```
-
-Confirm with the user before proceeding. The workspace can be created
-regardless of whether the project directory or git repo exists.
-
-### Step 1a — Detect project family
-
-Run this detection **immediately after Step 1**, before creating anything.
-The goal: infer whether this project belongs to a family and offer a nested
-workspace path if so.
-
-**Infer the potential parent name from the project path:**
-
-```bash
-PROJECT_PARENT_DIR=$(dirname "<project-path>")
+PROJECT_PATH=$(pwd)   # or from invocation argument if provided
+PROJECT_NAME=$(basename "$PROJECT_PATH")
+PROJECT_PARENT_DIR=$(dirname "$PROJECT_PATH")
 INFERRED_PARENT=$(basename "$PROJECT_PARENT_DIR")
 
-# Ignore generic/system directory names that don't signal a family
+# Detect if the folder name is a Maven structural convention, not a real project name
+case "$PROJECT_NAME" in
+  parent|bom|build|root|aggregator)
+    MAVEN_STRUCTURAL_NAME=true
+    ;;
+esac
+
+# Ignore generic/system parent directory names
 case "$INFERRED_PARENT" in
   src|projects|code|repos|dev|home|Users|claude|private|public|workspace|workspaces|".")
     INFERRED_PARENT=""
     ;;
 esac
+
+# Infer GitHub owner from existing project remote
+GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
+  | sed 's|.*github.com[:/]\([^/]*\)/.*|\1|')
+```
+
+**If `MAVEN_STRUCTURAL_NAME=true`** (folder is `parent`, `bom`, etc.):
+> "This project folder is named `<name>` which looks like a Maven structural
+> convention, not the real project name. The workspace should be named after
+> the family — inferred as `<INFERRED_PARENT>` from the parent directory.
+>
+> Confirm workspace name: **`<INFERRED_PARENT>`**? (YES / different name)"
+
+**Otherwise** confirm the inferred name:
+> "Workspace name: **`<PROJECT_NAME>`** — confirm? (YES / different name)"
+
+Then ask:
+1. **Privacy** — `private` or `public`?
+2. **GitHub remote URL** for the workspace repo — optional.
+   Show a suggested default based on the inferred owner:
+   `github.com/<GITHUB_OWNER>/<workspace-name>-workspace`
+   > "(YES to use this, or provide a different URL, or leave blank to add later)"
+
+### Step 1a — Detect project family
+
+Run immediately after Step 1 context detection. The detection already has
+`PROJECT_PARENT_DIR` and `INFERRED_PARENT` from Step 1.
+
+**Infer the potential parent name from the project path:**
+
+```bash
+# Already computed in Step 1:
+# PROJECT_PARENT_DIR, INFERRED_PARENT
 ```
 
 If `INFERRED_PARENT` is non-empty, run two checks in order:
