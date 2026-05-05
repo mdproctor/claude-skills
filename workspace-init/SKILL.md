@@ -532,31 +532,58 @@ not imply accepting others.
 
 ### Step 6 — Handle CLAUDE.md in project
 
+**This step has three distinct cases. Identify which applies and handle it —
+do not skip or collapse this step.**
+
 If the project directory does not exist yet, skip this step and tell the user:
 > "Symlink skipped — project directory doesn't exist yet. Re-run
 > `/workspace-init` after creating the project to add the symlink."
 
-Otherwise, check whether CLAUDE.md is committed to git:
+Otherwise, run two checks:
 
 ```bash
+# Check 1: does CLAUDE.md exist at all?
+[ -f "<project-path>/CLAUDE.md" ] && echo "exists" || echo "missing"
+
+# Check 2: if it exists, is it committed?
 git -C "<project-path>" ls-files --error-unmatch CLAUDE.md 2>/dev/null && echo "committed" || echo "not committed"
 ```
 
-**If CLAUDE.md is committed**, present both options clearly:
+---
+
+**CASE 1 — CLAUDE.md does not exist in the project**
+
+The project has no CLAUDE.md. It must be initialised before a placement
+decision can be made.
+
+Tell the user:
+> "No CLAUDE.md found in `<project-path>`. It needs to be created first.
+> Run `/init` in the project directory to initialise it, then re-run
+> `/workspace-init` to complete the setup — or reply **init** now and
+> I will invoke `/init` for you before continuing."
+
+If user replies **init**: invoke the `init` skill for the project, wait for
+it to create CLAUDE.md, then continue to Case 2 or 3 as appropriate.
+
+---
+
+**CASE 2 — CLAUDE.md exists and is committed to git**
+
+This is the main decision. Present both options — **this question must be
+asked and answered before proceeding**:
 
 > "CLAUDE.md is committed to git (`<size>` bytes). Where should it live?
 >
 > **A — Migrate to workspace** *(recommended)*
->    Content moves to workspace CLAUDE.md. Removed from project repo with `git rm`.
+>    Content moves to workspace CLAUDE.md. Removed from project with `git rm`.
 >    Symlink created: `project/CLAUDE.md → workspace/CLAUDE.md`
 >    Opening Claude anywhere loads the same config.
 >
 > **B — Keep in project repo**
->    CLAUDE.md stays committed in the project. The workspace CLAUDE.md will
->    `@include` it explicitly so both directions load the full config.
->    Link direction: `workspace/CLAUDE.md` includes `@<project-path>/CLAUDE.md`
+>    CLAUDE.md stays committed in the project. Workspace CLAUDE.md gets
+>    `@<project-path>/CLAUDE.md` so both locations load the full config.
 >
-> Reply **A** or **B**:"
+> Reply **A** or **B** — this cannot be skipped:"
 
 **If A (migrate to workspace):**
 ```bash
@@ -584,7 +611,12 @@ Tell the user:
 > it via `@<project-path>/CLAUDE.md` — opening Claude in either location
 > loads the full config."
 
-**If CLAUDE.md is not committed**, create the symlink as normal:
+---
+
+**CASE 3 — CLAUDE.md exists but is not committed (untracked)**
+
+Create the symlink pointing to the workspace CLAUDE.md so config is shared,
+and exclude the symlink from git tracking:
 ```bash
 ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
 echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
