@@ -412,12 +412,13 @@ Run `add-dir <absolute-path-to-project>` before any other work.
 
 Per-artifact routing destinations (optional). If absent, all artifacts route to the project repo.
 
-| Artifact   | Destination |
-|------------|-------------|
-| adr        | project     |
-| blog       | project     |
-| design     | project     |
-| snapshots  | project     |
+| Artifact   | Destination | Notes |
+|------------|-------------|-------|
+| adr        | project     | lands in `docs/adr/` |
+| blog       | project     | |
+| design     | project     | |
+| snapshots  | project     | |
+| specs      | project     | lands in `docs/specs/` — design specs are project knowledge |
 
 Valid destinations: `project` · `workspace` · `alternative ~/path/to/repo/`
 
