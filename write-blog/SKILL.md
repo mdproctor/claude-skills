@@ -251,7 +251,12 @@ Tags (optional):
 Set frontmatter from the response:
 - `entry_type: article` or `entry_type: note`
 - `subtype: diary` (if note — the only subtype currently; omit for articles)
-- `projects: [...]` — pre-populate from the project's `Name:` field in CLAUDE.md; user may extend
+- `projects: [...]` — pre-populate from the `**Name:**` field in CLAUDE.md; user may extend.
+  **If no `**Name:**` field exists in CLAUDE.md, stop and tell the user:**
+  > "I can't find a `**Name:**` field in CLAUDE.md — this is needed to tag the blog entry
+  > with the correct project. Run `/update-claude-md` to add it automatically, then
+  > retry. Or tell me the project name now and I'll use it for this entry only."
+  Wait for the user to provide a name or run `/update-claude-md` before continuing.
 - `tags: [...]` — if provided; omit field entirely if no tags given
 
 **Part B — Narrative type (notes only; skip for articles)**

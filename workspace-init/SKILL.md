@@ -481,6 +481,7 @@ Draft:
 ```
 # <project> Workspace
 
+**Name:** <project>
 **Project repo:** <absolute-path-to-project>
 **Workspace type:** <private|public>
 

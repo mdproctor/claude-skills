@@ -168,6 +168,37 @@ If `blog/` exists **and** the requirement is absent from CLAUDE.md, propose addi
 
 This is a one-time addition per project — once present, this check passes silently.
 
+### Step 4d: Check for missing Name field (workspace CLAUDE.md)
+
+Check whether this is a workspace CLAUDE.md (has `## Session Start` with `add-dir`):
+
+```bash
+grep -l "add-dir" CLAUDE.md 2>/dev/null
+```
+
+If it is a workspace CLAUDE.md, check whether a `**Name:**` field exists:
+
+```bash
+grep -l "\*\*Name:\*\*" CLAUDE.md 2>/dev/null
+```
+
+If the `**Name:**` field is **absent**, derive it from the H1 heading:
+
+```bash
+head -3 CLAUDE.md | grep "^# " | sed 's/^# //' | sed 's/ Workspace$//'
+```
+
+Propose adding immediately after the H1 heading:
+
+```markdown
+**Name:** <derived-name>
+```
+
+This field is required by `write-blog` to auto-populate the `projects:` frontmatter
+field in blog entries. Without it, write-blog will stop and prompt the user.
+
+This is a one-time addition per workspace — once present, this check passes silently.
+
 ### Step 5: Propose updates
 
 **For single-file CLAUDE.md:**
