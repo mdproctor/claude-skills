@@ -63,6 +63,8 @@ GITHUB_OWNER=$(git -C "$PROJECT_PATH" remote get-url origin 2>/dev/null \
 
 Then ask:
 1. **Privacy** — `private` or `public`?
+   Set `PRIVACY_FLAG=--private` or `PRIVACY_FLAG=--public` accordingly.
+   Use `$PRIVACY_FLAG` in ALL `gh repo create` calls — never hardcode `--private`.
 2. **Workspace repo tag** — ask tag and position together as two separate questions
    in the same prompt. Both are required before proceeding.
 
@@ -607,7 +609,7 @@ git commit -m "init: workspace for <project>"
 If the user provided a GitHub remote URL, create the repo and push:
 
 ```bash
-gh repo create <owner>/<REPO_NAME> --private --description "Workspace for <workspace-name>" 2>/dev/null || true
+gh repo create <owner>/<REPO_NAME> $PRIVACY_FLAG --description "Workspace for <workspace-name>" 2>/dev/null || true
 git remote add origin git@github.com:<owner>/<REPO_NAME>.git
 git push -u origin main
 ```
@@ -615,7 +617,7 @@ git push -u origin main
 If no remote URL provided, tell the user:
 > Remote not configured. When ready (using your chosen tag `<REPO_NAME>`):
 > ```bash
-> gh repo create <owner>/<REPO_NAME> --private
+> gh repo create <owner>/<REPO_NAME> $PRIVACY_FLAG
 > git remote add origin git@github.com:<owner>/<REPO_NAME>.git
 > git push -u origin main
 > ```
