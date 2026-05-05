@@ -192,7 +192,7 @@ for repo in $UNCLONED; do
   git clone git@github.com:$GITHUB_OWNER/$repo.git "$PROJECT_PARENT_DIR/$repo"
 done
 ```
-Then set `BATCH_REPOS=<all local siblings including current project>`. Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`. Run Step 1b to create the family root, then run the full workspace-init workflow (Steps 2–10) for each repo in `BATCH_REPOS` in sequence. Skip any repo that already has a workspace.
+Then set `BATCH_REPOS=<all local siblings including current project>`. Set `BASE=~/claude/<privacy>/<INFERRED_PARENT>/<project>`. Run Step 1b to create the family root, then run the full workspace-init workflow (Steps 2–10) for each repo in `BATCH_REPOS` **one repo at a time, in strict sequence**. Complete all steps (including Step 5 CLAUDE.md gate and Step 6 CLAUDE.md decision) for one repo before starting the next. Never parallelise across repos — each repo's CLAUDE.md decision must be individually confirmed. Skip any repo that already has a workspace.
 
 **If 2 (Select):**
 Show numbered list of siblings, user picks. Set `BATCH_REPOS=<selected + current project>`. Proceed as per option 1 for the selected set.
@@ -230,17 +230,23 @@ CHILD WORKSPACES  (one git repo each)
   ~/claude/<privacy>/<INFERRED_PARENT>/ledger/
   ...
 
-CLAUDE.md HANDLING
-┌──────────┬─────────────────────────────────────────────────────┐
-│ Repo     │ Action                                              │
-├──────────┼─────────────────────────────────────────────────────┤
-│ engine   │ Migrate → workspace (git rm from project, symlink)  │
-│ work     │ Migrate → workspace (git rm from project, symlink)  │
-│ ledger   │ Migrate → workspace (git rm from project, symlink)  │
-│ ...      │ ...                                                 │
-└──────────┴─────────────────────────────────────────────────────┘
-  Note: if you prefer to keep CLAUDE.md committed in any repo,
-  say so and it will be skipped for that repo.
+CLAUDE.md HANDLING  ← decision required per repo before YES
+┌──────────┬───────────────┬──────────────────────────────────────────────┐
+│ Repo     │ Status        │ Planned action — confirm or override          │
+├──────────┼───────────────┼──────────────────────────────────────────────┤
+│ engine   │ committed     │ A — migrate to workspace + symlink back       │
+│ work     │ committed     │ A — migrate to workspace + symlink back       │
+│ ledger   │ untracked     │ C — symlink project→workspace (Case 3)        │
+│ qhorus   │ missing       │ init — run /init first, then decide           │
+│ ...      │ ...           │ ...                                           │
+└──────────┴───────────────┴──────────────────────────────────────────────┘
+  A = migrate content to workspace, git rm, symlink project→workspace
+  B = keep in project, workspace @includes it
+  C = untracked — symlink project→workspace
+  init = no CLAUDE.md exists — /init must run first
+
+  **The user must confirm or override each row before YES is accepted.**
+  "adjust" responses can change individual rows (e.g. "keep ledger as B").
 
 FILE MOVES  (copied to workspace, then git rm'd and committed in project)
 ┌──────────┬──────────────────────────────────┬──────────────────────────────┬────────┐
@@ -423,6 +429,11 @@ EOF
 ```
 
 ### Step 5 — Create workspace CLAUDE.md (routing hub)
+
+⛔ **GATE — do not proceed past this point until:**
+- The workspace directory exists (Step 2 complete)
+- The CLAUDE.md decision for this repo is recorded in the approved plan (A / B / C / init)
+- No other step for this repo or any other repo is running concurrently
 
 Draft the base CLAUDE.md content, then **show it to the user and ask for
 acceptance before writing**. Never write CLAUDE.md without confirmation.
