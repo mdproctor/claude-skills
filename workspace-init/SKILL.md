@@ -511,15 +511,16 @@ FOUND=()
 [ -f "<project-path>/HANDOVER.md" ] && git -C "<project-path>" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOFF.md")
 
 # Root-level artifact directories (common in repos that predate docs/ convention)
-[ -d "<project-path>/adr" ]         && FOUND+=("adr/ → adr/")
+# Note: adr/ is intentionally excluded — ADRs are project knowledge (like DESIGN.md)
+# and must stay in the project repo, visible to all contributors.
 [ -d "<project-path>/blog" ]        && FOUND+=("blog/ → blog/")
 [ -d "<project-path>/specs" ]       && FOUND+=("specs/ → specs/")
 [ -d "<project-path>/plans" ]       && FOUND+=("plans/ → plans/")
 [ -d "<project-path>/snapshots" ]   && FOUND+=("snapshots/ → snapshots/")
 
 # docs/ artifacts
+# Note: docs/adr/ excluded for the same reason — ADRs stay in the project.
 [ -d "<project-path>/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
-[ -d "<project-path>/docs/adr" ]               && FOUND+=("docs/adr/ → adr/")
 [ -d "<project-path>/docs/blog" ]              && FOUND+=("docs/blog/ → blog/")
 [ -d "<project-path>/docs/_posts" ]            && FOUND+=("docs/_posts/ → blog/")
 [ -d "<project-path>/docs/handoffs" ]          && FOUND+=("docs/handoffs/ → handoffs/")

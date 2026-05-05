@@ -72,8 +72,7 @@ FOUND=()
 [ -f "$PROJECT/HANDOFF.md" ]  && git -C "$PROJECT" ls-files --error-unmatch HANDOFF.md  2>/dev/null && FOUND+=("HANDOFF.md → HANDOFF.md")
 [ -f "$PROJECT/HANDOVER.md" ] && git -C "$PROJECT" ls-files --error-unmatch HANDOVER.md 2>/dev/null && FOUND+=("HANDOVER.md → HANDOFF.md")
 
-# Root-level artifact directories
-[ -d "$PROJECT/adr" ]         && FOUND+=("adr/ → adr/")
+# Root-level artifact directories — adr/ excluded (project knowledge, stays in repo)
 [ -d "$PROJECT/blog" ]        && FOUND+=("blog/ → blog/")
 [ -d "$PROJECT/specs" ]       && FOUND+=("specs/ → specs/")
 [ -d "$PROJECT/plans" ]       && FOUND+=("plans/ → plans/")
@@ -81,7 +80,7 @@ FOUND=()
 
 # docs/ artifacts
 [ -d "$PROJECT/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
-[ -d "$PROJECT/docs/adr" ]               && FOUND+=("docs/adr/ → adr/")
+# docs/adr/ excluded — ADRs are project knowledge, not workspace artifacts
 [ -d "$PROJECT/docs/blog" ]              && FOUND+=("docs/blog/ → blog/")
 [ -d "$PROJECT/docs/_posts" ]            && FOUND+=("docs/_posts/ → blog/")
 [ -d "$PROJECT/docs/superpowers/specs" ] && FOUND+=("docs/superpowers/specs/ → specs/")
@@ -92,17 +91,13 @@ FOUND=()
 found_str="${FOUND[*]}"
 
 check "Detects root-level HANDOFF.md"           "yes" "$(echo "$found_str" | grep -q 'HANDOFF.md → HANDOFF.md' && echo yes || echo no)"
-check "Detects root-level adr/"                 "yes" "$(echo "$found_str" | grep -q 'adr/ → adr/' && echo yes || echo no)"
+check "Does NOT migrate root-level adr/ (stays in project)" "no"  "$(echo "$found_str" | grep -q 'adr/ → adr/' && echo yes || echo no)"
+check "Does NOT migrate docs/adr/ (stays in project)"       "no"  "$(echo "$found_str" | grep -q 'docs/adr/ → adr/' && echo yes || echo no)"
 check "Detects root-level blog/"                "yes" "$(echo "$found_str" | grep -q 'blog/ → blog/' && echo yes || echo no)"
-check "Detects docs/adr/"                       "yes" "$(echo "$found_str" | grep -q 'docs/adr/ → adr/' && echo yes || echo no)"
 check "Detects docs/blog/"                      "yes" "$(echo "$found_str" | grep -q 'docs/blog/ → blog/' && echo yes || echo no)"
 check "Detects docs/_posts/"                    "yes" "$(echo "$found_str" | grep -q 'docs/_posts/ → blog/' && echo yes || echo no)"
 check "Detects docs/superpowers/specs/"         "yes" "$(echo "$found_str" | grep -q 'docs/superpowers/specs/ → specs/' && echo yes || echo no)"
 check "Detects docs/superpowers/plans/"         "yes" "$(echo "$found_str" | grep -q 'docs/superpowers/plans/ → plans/' && echo yes || echo no)"
-
-# Verify split layout (both root AND docs/) both detected — the claudony case
-check "Detects BOTH root adr/ AND docs/adr/ (claudony pattern)" "yes" \
-  "$(echo "$found_str" | grep -q 'adr/ → adr/' && echo "$found_str" | grep -q 'docs/adr/ → adr/' && echo yes || echo no)"
 check "Detects BOTH root blog/ AND docs/blog/ (split pattern)" "yes" \
   "$(echo "$found_str" | grep -q 'blog/ → blog/' && echo "$found_str" | grep -q 'docs/blog/ → blog/' && echo yes || echo no)"
 
