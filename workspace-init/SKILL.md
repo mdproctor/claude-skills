@@ -107,6 +107,76 @@ If no → use flat path `BASE=~/claude/<privacy>/<project>` and proceed to Step 
 
 **If neither check triggers:** proceed directly to Step 2 with `BASE=~/claude/<privacy>/<project>`.
 
+### Step 1b — Create or update family workspace root
+
+**Only runs when Step 1a resolved to a nested path (user said YES to family grouping).**
+
+The family root `~/claude/<privacy>/<INFERRED_PARENT>/` is itself a workspace — opening
+Claude there gives cross-repo context. It has its own CLAUDE.md distinct from the
+per-repo child workspaces.
+
+```bash
+FAMILY_ROOT=~/claude/<privacy>/<INFERRED_PARENT>
+FAMILY_CLAUDE="$FAMILY_ROOT/CLAUDE.md"
+```
+
+**If `FAMILY_CLAUDE` does not exist — create it:**
+
+Scan for all sibling git repos in the same parent directory:
+```bash
+SIBLINGS=$(find "$PROJECT_PARENT_DIR" -maxdepth 1 -mindepth 1 -type d | while read d; do
+  [ -d "$d/.git" ] && basename "$d"
+done | sort | tr '\n' ' ')
+```
+
+Draft the family CLAUDE.md and show to user for acceptance before writing:
+
+```
+# <INFERRED_PARENT> Family Workspace
+
+**Workspace type:** <private|public>
+
+## Member Repos
+
+| Repo | Local path | Child workspace |
+|------|-----------|-----------------|
+| <project> | <project-path> | `<INFERRED_PARENT>/<project>/` |
+<one row per sibling found, marking those without a child workspace as "—">
+
+Note: repos without a child workspace can still be loaded with add-dir on demand.
+
+## Session Start
+
+Open Claude here for cross-repo work. Load the repos relevant to your session:
+  add-dir <path-to-repo-1>
+  add-dir <path-to-repo-2>
+
+## Shared Artifacts
+
+Family-level artifacts (cross-repo ADRs, plans, design docs) accumulate here.
+Per-repo artifacts live in each child workspace.
+
+| Skill | Writes to |
+|-------|-----------|
+| adr | `adr/` |
+| design-snapshot | `snapshots/` |
+| write-blog | `blog/` |
+| handover | `HANDOFF.md` |
+| idea-log | `IDEAS.md` |
+```
+
+Create the standard artifact directories at the family root too:
+```bash
+mkdir -p "$FAMILY_ROOT/adr" "$FAMILY_ROOT/snapshots" "$FAMILY_ROOT/blog" \
+         "$FAMILY_ROOT/specs" "$FAMILY_ROOT/plans"
+```
+
+**If `FAMILY_CLAUDE` already exists — update the member repos table:**
+
+Add the new repo to the table if not already listed. Show the proposed change and
+ask for acceptance before writing. Never overwrite the whole file — only update the
+member repos table row.
+
 ### Step 2 — Create directory structure
 
 ```bash
@@ -493,6 +563,7 @@ If n → skip. Do not ask again this session.
 
 - [ ] Project family detection ran (Step 1a): existing family folder checked, sibling repos checked
 - [ ] `BASE` path is correct: flat (`~/claude/<privacy>/<project>/`) or nested (`~/claude/<privacy>/<parent>/<project>/`) per user choice
+- [ ] Family root CLAUDE.md created or updated (Step 1b) if nested path chosen: member repos table includes new repo, artifact dirs exist at family root
 - [ ] Directory exists at correct path with all subdirs
 - [ ] `CLAUDE.md` contains session-start `add-dir` instruction and artifact locations table
 - [ ] `HANDOFF.md` and `IDEAS.md` exist as stubs
