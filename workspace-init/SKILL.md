@@ -189,7 +189,6 @@ FILE MOVES  (copied to workspace, then git rm'd and committed in project)
 ├──────────┼──────────────────────────────────┼──────────────────────────────┼────────┤
 │ work     │ HANDOFF.md                       │ work/HANDOFF.md              │ 1      │
 │ work     │ blog/                            │ work/blog/                   │ 17     │
-│ work     │ docs/superpowers/specs/          │ work/specs/                  │ 10     │
 │ work     │ docs/superpowers/plans/          │ work/plans/                  │ 13     │
 │ ledger   │ HANDOFF.md                       │ ledger/HANDOFF.md            │ 1      │
 │ ledger   │ IDEAS.md                         │ ledger/IDEAS.md              │ 1      │
@@ -582,22 +581,22 @@ FOUND=()
 [ -f "<project-path>/IDEAS.md" ]    && git -C "<project-path>" ls-files --error-unmatch IDEAS.md    2>/dev/null && FOUND+=("IDEAS.md → IDEAS.md")
 
 # Root-level artifact directories (common in repos that predate docs/ convention)
-# Note: adr/ is intentionally excluded — ADRs are project knowledge (like DESIGN.md)
-# and must stay in the project repo, visible to all contributors.
+# Note: adr/ excluded — project knowledge, stays in repo.
+# Note: specs/ excluded — design specs are project knowledge; they explain why the
+#   code is shaped the way it is and are useful for future contributors. New specs
+#   are written to the workspace during active work, then merged to the project repo
+#   via epic-close when the work ships.
 [ -d "<project-path>/blog" ]        && FOUND+=("blog/ → blog/")
-[ -d "<project-path>/specs" ]       && FOUND+=("specs/ → specs/")
 [ -d "<project-path>/plans" ]       && FOUND+=("plans/ → plans/")
 [ -d "<project-path>/snapshots" ]   && FOUND+=("snapshots/ → snapshots/")
 
 # docs/ artifacts
-# Note: docs/adr/ excluded for the same reason — ADRs stay in the project.
+# Note: docs/adr/ and docs/specs/ excluded — both are project knowledge, not workspace artifacts.
 [ -d "<project-path>/docs/design-snapshots" ]  && FOUND+=("docs/design-snapshots/ → snapshots/")
 [ -d "<project-path>/docs/blog" ]              && FOUND+=("docs/blog/ → blog/")
 [ -d "<project-path>/docs/_posts" ]            && FOUND+=("docs/_posts/ → blog/")
 [ -d "<project-path>/docs/handoffs" ]          && FOUND+=("docs/handoffs/ → handoffs/")
 [ -f "<project-path>/docs/ideas/IDEAS.md" ]    && FOUND+=("docs/ideas/IDEAS.md → IDEAS.md")
-[ -d "<project-path>/docs/specs" ]             && FOUND+=("docs/specs/ → specs/")
-[ -d "<project-path>/docs/superpowers/specs" ] && FOUND+=("docs/superpowers/specs/ → specs/")
 [ -d "<project-path>/docs/superpowers/plans" ] && FOUND+=("docs/superpowers/plans/ → plans/")
 
 # Hidden directories
