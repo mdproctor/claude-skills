@@ -17,7 +17,7 @@ The full policy is in `squash-policy.md` alongside this skill.
 
 **Two modes:**
 - **On-demand** (`/git-squash`): full workflow with branch isolation, filter-repo,
-  review gate, and branch swap. Can handle pushed commits safely.
+  intelligent classification, review gate, and branch swap. Can handle pushed commits safely.
 - **Pre-push hook**: in-place squash on unpushed commits only. Fast, no branch
   creation, no force-push. Never runs filter-repo.
 
@@ -29,14 +29,13 @@ The full policy is in `squash-policy.md` alongside this skill.
   The pre-push hook operates on unpushed commits only — in-place, no force-push needed.
 - **On demand:** clean up any commit range at any point (`/git-squash`).
   All work happens on an isolated working branch — pushed commits can be included safely.
-- **After the hook fires:** the pre-push hook detected squash candidates; run this
-  to resolve them.
+- **After the hook fires:** the pre-push hook detected squash candidates; run this to resolve them.
 - **Pre-PR review:** branch is pushed but no PR exists yet. On-demand mode handles
   this with branch isolation and a review gate before the swap.
 
 ---
 
-## On-Demand Workflow (full — includes pushed commits)
+## On-Demand Workflow
 
 ### Step 0 — Create working branch
 
@@ -48,10 +47,9 @@ WORK_BRANCH="squash/wip-${ORIG_BRANCH}-$(date +%Y%m%d-%H%M%S)"
 git checkout -b "$WORK_BRANCH"
 ```
 
-Record both names — needed for the swap in Step 8.
-
-All filter-repo and rebase operations run on `$WORK_BRANCH`. The original branch
-is untouched until the author explicitly approves the swap.
+Record both names — needed for the swap in Step 8. All filter-repo and rebase
+operations run on `$WORK_BRANCH`. The original branch is untouched until the
+author explicitly approves the swap.
 
 ---
 
@@ -91,8 +89,7 @@ After the user responds, offer:
 Add a ## Project Artifacts section to CLAUDE.md with these selections? (YES / n)
 ```
 
-If YES, write the section to the original branch's CLAUDE.md (not the working branch —
-this is a project configuration change, not history rewriting).
+If YES, write the section to the original branch's CLAUDE.md (not the working branch).
 
 #### 1b — Scan and filter
 
@@ -101,11 +98,9 @@ Scan the commit range for files that could be filtered:
 git log --name-only --format="" <range> | sort -u
 ```
 
-**Important limitation:** `git filter-repo` operates on whole file paths — it cannot
-strip sections within a file. Only offer filtering for whole files. Never offer to
-filter "personal methodology sections of CLAUDE.md" — that's not possible. For
-CLAUDE.md commits, the squash pass (Step 4) will handle them as SQUASH candidates
-instead.
+**Important limitation:** `git filter-repo` operates on whole file paths only — it
+cannot strip sections within a file. Only offer filtering for whole files. For
+CLAUDE.md commits, the squash pass (Step 3) handles them as SQUASH candidates instead.
 
 Filter only paths that are NOT in Project Artifacts and match known whole-file
 workspace patterns (HANDOFF.md, docs/_posts/ entries in non-blog repos, etc.).
@@ -128,11 +123,7 @@ git filter-repo --path <path> --invert-paths --prune-empty always \
   --refs "refs/heads/$WORK_BRANCH"
 ```
 
-The `--refs` flag limits filter-repo to the working branch only — it does not rewrite
-any other branches or tags.
-
 Show the Phase 0 report:
-
 ```
 Phase 0 — filter-repo
   Stripped paths: HANDOFF.md (3 commits)
@@ -146,42 +137,137 @@ On **"skip":** proceed directly to Step 2.
 
 ### Step 2 — Resolve commit range
 
-**Resolve the range AFTER filter-repo completes** — filter-repo rewrites all SHAs.
-Any range resolved before Phase 0 is invalid after it runs.
+**Resolve AFTER filter-repo completes** — filter-repo rewrites all SHAs.
 
 ```bash
 git log --oneline @{u}..HEAD 2>/dev/null || git log --oneline origin/HEAD..HEAD 2>/dev/null
 ```
 
-If no upstream is configured:
-> "No upstream found. Squash commits since which point?
-> (e.g. `main`, `origin/main`, a SHA, or `HEAD~N`)"
+If no upstream is configured, ask for the base point. Record the resolved range.
 
-Record the resolved range for all subsequent steps.
+**Check for pushed commits in range:**
+```bash
+git log --oneline <range> | while read sha rest; do
+  git branch -r --contains "$sha" 2>/dev/null | grep -v HEAD | head -1
+done
+```
+
+If pushed commits are in range, warn and require YES before continuing.
 
 ---
 
-### Step 3 — Classify commits per policy
+### Step 3 — Classify commits
 
-Read `squash-policy.md`.
+Read `squash-policy.md`. Run all analysis passes in order, then synthesise into a
+final classification for each commit.
 
-For each commit in the range, classify as:
-- **KEEP** — carries standalone information; leave as-is
-- **SQUASH** — artifact/noise; squash into preceding KEEP commit
-- **MERGE** — two commits tell the same story more cleanly as one
-- **DROP** — truly empty commit; confirm with `git show --stat` that zero files changed
+#### 3a — Gather raw data
 
-For SQUASH and MERGE, identify the target, the proposed combined message (MERGE only),
-and what the KEEP commit will absorb (for annotation in the report).
-
-**Cross-author check:** After classifying, extract author emails:
+For every commit in the range, collect:
 ```bash
-git log --format="%H %ae" <range>
+# Message, author, timestamp, file set
+git log --format="%H %ae %ai %s" <range>
+git show --name-only --format="" <sha>   # per commit
+git show --stat <sha>                    # line counts for small-commit detection
 ```
+
+#### 3b — Detect conventional commits
+
+Scan recent history (last 20 commits outside the range) to determine if the repo
+uses conventional commits:
+```bash
+git log --oneline -20 @{u} | grep -cE "^[a-f0-9]+ (feat|fix|chore|docs|test|refactor|perf|style)[:(]"
+```
+If ≥ 80% match, record `CONVENTIONAL=true` — used in Step 6 to enforce format
+on MERGE messages.
+
+#### 3c — PR/issue body integration
+
+If `gh` is available, fetch the PR for the current branch:
+```bash
+gh pr view --json body,title,number,baseRefName 2>/dev/null
+```
+
+If a PR exists:
+- **Protected-branch merge target** (`main`, `master`, `release/*`): note this for
+  merge commit classification (Step 3d)
+- **Commits mentioned by SHA** in the PR description → KEEP regardless of size
+- **PR task list** where each task maps 1:1 to a commit → treat all as KEEP
+  (they document the work breakdown; squashing loses the traceability)
+- **PR description says "fix typo in X"** → corresponding commit is SQUASH regardless
+  of message pattern
+
+#### 3d — Pattern classification
+
+For each commit, apply the KEEP / SQUASH / MERGE / DROP rules from `squash-policy.md`
+in priority order. Pay particular attention to the refined merge commit rules (rows
+2a–2e): inspect branch names in the merge message before classifying.
+
+Only classify a commit as DROP if `git show --stat` confirms **zero files changed**.
+
+#### 3e — Temporal grouping
+
+Extract timestamps and cluster commits from the same author within 30-minute windows:
+```bash
+git log --format="%H %ae %ai" <range>
+```
+
+Within a temporal cluster, be more aggressive about MERGE: different-message commits
+from the same author touching overlapping files within 30 minutes are almost always
+one logical change committed incrementally. Flag them as MERGE candidates even if
+message-pattern classification would KEEP them separately.
+
+Surface temporal clusters as hints in the plan:
+```
+⏱ Temporal cluster — 3 commits from alice@example.com within 18 minutes:
+   Treating as same-session candidates for MERGE consideration.
+```
+
+#### 3f — File-overlap MERGE detection
+
+For each pair of KEEP commits in the range, compute Jaccard similarity of their
+file sets:
+```
+similarity = |files(A) ∩ files(B)| / |files(A) ∪ files(B)|
+```
+
+If similarity ≥ 0.7, flag as a MERGE candidate — both commits are likely addressing
+the same capability regardless of message wording. Surface as:
+```
+📁 File-overlap MERGE candidate — these commits share 4/5 files:
+   abc1234  feat(api): add UserRepository SPI
+   def5678  feat(api): wire UserRepository into ServiceLocator
+   Overlap: UserRepository.java, UserRepositoryImpl.java, UserRepositoryTest.java, ...
+```
+
+Do not merge commits from different features/scopes just because files overlap.
+Confirm that the overlap makes semantic sense (same module, same capability).
+
+#### 3g — Cross-author check
+
 For any KEEP or MERGE candidate that would be absorbed into a commit from a different
-author — reclassify it as KEEP and flag it in the plan. Cross-author squash is only
-permitted when the absorbed commit is already classified SQUASH (formatting, CI,
-spelling, mechanical noise — no design insight, no attribution loss).
+author — reclassify as KEEP and flag it. Cross-author squash is only permitted when
+the absorbed commit is already classified SQUASH (formatting, CI, spelling).
+
+#### 3h — Cherry-pick detection
+
+For commits classified SQUASH or MERGE, check if any appear on other branches:
+```bash
+# Get patch-id for the commit
+git show <sha> | git patch-id --stable
+
+# Compare against all other branches
+git log --all --format="%H" -- | \
+  grep -v $(git rev-list <range>) | \
+  xargs -I{} sh -c 'git show {} | git patch-id --stable' 2>/dev/null
+```
+
+If a commit being squashed has a matching patch-id on another branch, warn:
+```
+⚠️  Cherry-pick detected: abc1234 appears on branch release/2.1
+    Squashing this commit rewrites its identity — the cherry-pick will conflict on
+    future merges. Confirm? (YES to proceed, n to keep standalone)
+```
 
 ---
 
@@ -199,16 +285,34 @@ Commit squash analysis — <N> commits in range
     Test hardening:                    <n>
   MERGE candidates: <n>
     Same scope/feature pairs:          <n>
+    File-overlap detected:             <n>
+    Temporal clusters:                 <n>
   DROP (truly empty, zero files): <n>
 
   Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
-
-View full plan? (YES / n)
 ```
+
+**Large-range handling (> 50 commits):** skip straight to a group view:
+
+```
+<N> commits is a large range. How would you like to review?
+
+  group   — show one capability group at a time (recommended)
+  bulk    — show summary only; accept/refuse by pattern category
+  full    — show the complete plan (may be very long)
+```
+
+For **"group"**: present one squash group at a time, get YES/n per group, then move
+to the next. Show progress: "Group 3 of 12."
+
+For **"bulk"**: list pattern categories with counts and let the user accept/refuse
+each category en masse before reviewing individual exceptions.
+
+For **"full"** or for ranges ≤ 50 commits, continue to Step 5a.
 
 ---
 
-### Step 5a — Full plan (if user says YES)
+### Step 5a — Full plan (if user says YES or range ≤ 50)
 
 #### Already-clean callout
 
@@ -234,7 +338,17 @@ One group per KEEP target. Indented layout shows what folds into what.
    ← <sha> <original message 1>
    ← <sha> <original message 2>
    → <proposed unified message>
-   Richer than either alone? <YES — what the combined message captures>
+   Richer than either alone? <YES — what combining adds>
+```
+
+**File-overlap MERGE hint (when not yet classified as MERGE):**
+```
+📁 <sha> <message>   [shares files with abc1234 — possible MERGE?]
+```
+
+**Temporal cluster annotation:**
+```
+⏱ <sha> <message>   [same session as abc1234 — 12 min apart]
 ```
 
 **DROP:**
@@ -248,7 +362,7 @@ One group per KEEP target. Indented layout shows what folds into what.
    ⚠️  cross-author: committed by <other-author> — not squashed (contains design content)
 ```
 
-**AFTER block — formatted as git log output for easy terminal comparison:**
+**AFTER block:**
 ```
 AFTER — what git log will show:
 ────────────────────────────────────────────────────────────────
@@ -267,13 +381,7 @@ Refuse any group? Enter group numbers or commit SHAs,
 "all" to accept all, or "none" to refuse all:
 ```
 
-Show confirmation:
-```
-  Accepted: <n> changes
-  Refused:  <n> kept standalone
-
-Apply <n> changes? (YES / n)
-```
+Show confirmation and wait for final YES.
 
 ---
 
@@ -281,9 +389,6 @@ Apply <n> changes? (YES / n)
 
 ```
 Apply all <N> squash/merge candidates? (YES / n / custom)
-  YES    — apply all
-  n      — abort
-  custom — show the full plan to pick individually
 ```
 
 ---
@@ -297,9 +402,8 @@ Apply all <N> squash/merge candidates? (YES / n / custom)
 git reset --soft HEAD~1 && git commit --amend --no-edit
 ```
 
-**Multi-commit squashes:** build the rebase todo and execute non-interactively:
+**Multi-commit squashes:** write the todo and execute non-interactively:
 ```bash
-# Write the todo file
 PLAN=$(mktemp)
 cat > "$PLAN" <<'PLAN_EOF'
 pick abc1234 feat(api): add UserRepository SPI
@@ -307,26 +411,32 @@ squash ghi9012 docs(api): align findByKey Javadoc wording
 pick jkl0123 feat(engine): add CaseRepository
 PLAN_EOF
 
-# Execute without opening an editor
 GIT_SEQUENCE_EDITOR="cp $PLAN" git rebase -i <base-sha>
 rm -f "$PLAN"
 ```
 
-For **MERGE** operations: write the combined message to a temp file and amend
-immediately after the rebase:
-```bash
-git commit --amend -m "feat(blackboard): PlanItem strict lifecycle with ..."
-```
+**MERGE messages — conventional commit enforcement:**
 
-After execution, show the result in the same group format with real post-rebase SHAs:
-```
-✅ <N> → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
+For each MERGE operation, before finalising the unified message:
 
-AFTER — what git log will show:
-────────────────────────────────────────────────────────────────
-<new-sha>  <message>
-<new-sha>  <message>
-```
+1. **Format check** (if `CONVENTIONAL=true`): the proposed message must follow
+   `type(scope): description`. If it doesn't, suggest a corrected form before
+   showing it to the user.
+
+2. **Scope drift check**: if the two commits being merged have different scopes
+   (`feat(auth)` and `feat(payment)`), flag it:
+   ```
+   ⚠️  Scope drift: merging (auth) and (payment) — different concerns.
+       Merging may violate single-responsibility.
+       Recommend KEEP instead? (YES / n to merge anyway)
+   ```
+
+3. Apply the message via:
+   ```bash
+   git commit --amend -m "<unified message>"
+   ```
+
+Show the result in group format with real post-rebase SHAs.
 
 ---
 
@@ -351,20 +461,11 @@ Wait for explicit YES before proceeding to Step 8.
 
 ### Step 8 — Swap branches
 
-When the author (and any reviewers) are satisfied:
-
 ```bash
-# Rename original to backup
 BACKUP="backup/pre-squash-${ORIG_BRANCH}-$(date +%Y%m%d)"
 git branch -m "$ORIG_BRANCH" "$BACKUP"
-
-# Rename working branch to original
 git branch -m "$WORK_BRANCH" "$ORIG_BRANCH"
-
-# Restore tracking
 git branch --set-upstream-to="origin/$ORIG_BRANCH" "$ORIG_BRANCH" 2>/dev/null || true
-
-# Force-push the squashed history
 git push --force-with-lease origin "$ORIG_BRANCH"
 ```
 
@@ -374,10 +475,10 @@ Confirm:
   Active branch:  <orig-branch> (squashed history)
   Backup branch:  backup/pre-squash-<orig-branch>-<YYYYMMDD> (original history)
 
-The backup is local only. To push it for off-machine safety:
+To push backup for off-machine safety:
   git push origin backup/pre-squash-<orig-branch>-<YYYYMMDD>
 
-To undo entirely (before gc):
+To undo entirely:
   git checkout backup/pre-squash-<orig-branch>-<YYYYMMDD>
   git branch -m <orig-branch> squash/wip-<orig-branch>-<timestamp>
   git branch -m backup/pre-squash-<orig-branch>-<YYYYMMDD> <orig-branch>
@@ -402,21 +503,23 @@ Old squash backups found:
 Delete any? Enter branch names, "all", or "none" to skip:
 ```
 
-Only delete on explicit user confirmation. Deletion is permanent once past git gc.
+Only delete on explicit user confirmation.
 
 ---
 
 ## Pre-Push Workflow (fast — unpushed commits only)
 
 When invoked in response to the pre-push hook, skip Steps 0, 1, 7, 8, and 9.
-Commits are unpushed — in-place squash is safe, no force-push or branch swap needed.
+In-place squash is safe — history hasn't been shared yet.
 
 1. **Step 2:** Resolve unpushed range (`@{u}..HEAD`)
-2. **Step 3:** Classify per policy
+2. **Step 3:** Classify per policy (run all analysis passes, including temporal
+   grouping, file-overlap, and conventional commit detection — skip cherry-pick
+   detection and PR integration as they add friction to the fast path)
 3. **Step 4:** Show summary
 4. **Step 5:** Show plan and get approval
 5. **Step 6:** Execute in-place
-6. **Push:** `git push` (no force needed — history wasn't shared yet)
+6. **Push:** `git push` (no force needed)
 
 ---
 
@@ -456,6 +559,8 @@ Bypass with `git push --no-verify` after manually confirming history is clean.
 | Running filter-repo from pre-push hook | Destructive rewrite must be deliberate | filter-repo on-demand only, never automatic |
 | Skipping Project Artifacts check | May filter project history | Always resolve Project Artifacts before scanning |
 | Using `git rebase -i` without GIT_SEQUENCE_EDITOR | Opens interactive editor; blocks | Always use `GIT_SEQUENCE_EDITOR="cp $PLAN"` |
+| Merging commits with different scopes without warning | Violates single-responsibility | Scope drift check on all MERGE operations |
+| Squashing commits cherry-picked to other branches | Future merges will conflict | Cherry-pick detection before squashing |
 | Using `--force` instead of `--force-with-lease` | Overwrites concurrent pushes | Always use `--force-with-lease` |
 | Squashing commits with issue references | Loses traceability | Issue references are always KEEP — see policy |
 

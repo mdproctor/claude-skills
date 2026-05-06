@@ -68,7 +68,11 @@ Process rows in order — first match wins.
 | Priority | Pattern | Action |
 |----------|---------|--------|
 | 1 | `wip:` / `WIP` / `checkpoint:` / `savepoint:` / `temp:` | Always squash — save-state artifacts |
-| 2 | `Merge branch '...'` / `Merge pull request #...` | Always squash — workflow noise |
+| 2a | `Merge pull request #N from ...` merging into a protected branch (`main`, `master`, `release/*`) | KEEP — records when a capability landed; PR number is traceability |
+| 2b | `Merge pull request #N from ...` merging into a feature branch | SQUASH — intermediate integration, not a landing event |
+| 2c | `Merge branch 'main' into feature/...` / `Merge branch 'origin/main' into ...` | SQUASH — trivial upstream sync, no information value |
+| 2d | `Merge branch '...' of https://github.com/...` | SQUASH — remote tracking sync noise |
+| 2e | Any other `Merge branch '...'` — if merging a named feature/fix branch → KEEP; if merging main/master/develop into current branch → SQUASH | Inspect branch names before classifying |
 | 3 | `Revert "..."` followed within 3 commits by a replacement | Squash all three into the final working commit |
 | 4 | `build: wire ...` with a `Revert "build: wire ..."` following it | Both noise — squash into the eventual working state |
 | 5 | `style: ...` / `chore: apply spotless` / `chore: fix formatting` | Always squash — cosmetic only |
@@ -99,6 +103,8 @@ message tells the story more cleanly.
 - Two `test:` commits for the same scenario (setup + assertion split across commits)
 - Two `feat:` commits that are clearly part one and part two of the same capability
 - A rename commit followed immediately by import/reference fixup commits
+- **File-overlap:** Jaccard similarity ≥ 0.7 between file sets (`|A∩B| / |A∪B|`) — both commits touching the same files are likely the same capability regardless of message wording
+- **Temporal proximity:** commits within 30 minutes of each other from the same author are likely the same working session — flag as MERGE candidates even without message similarity
 
 **How to write the unified message:**
 - Use the broader of the two scopes
@@ -151,6 +157,12 @@ by trailing fixup commits. MERGE all trailing fixups into the rename commit — 
 inseparable parts of the same change.
 
 **No preceding KEEP target:** Squash forward into the next KEEP commit instead.
+
+**Temporal grouping:** When two or more commits from the same author fall within a
+30-minute window, treat them as a single working session regardless of message
+patterns. Within the window, apply normal KEEP/SQUASH/MERGE rules, but be more
+aggressive about MERGE: different-message commits touching the same files in a
+30-minute burst are almost always one logical change committed incrementally.
 
 **docs(claude): personal methodology:** If a `docs(claude):` commit updates personal
 working-style content (collaboration preferences, session methodology) rather than
