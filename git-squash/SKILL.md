@@ -32,6 +32,16 @@ The full policy is in `squash-policy.md` alongside this skill.
 - **After the hook fires:** the pre-push hook detected squash candidates; run this to resolve them.
 - **Pre-PR review:** branch is pushed but no PR exists yet. On-demand mode handles
   this with branch isolation and a review gate before the swap.
+- **Full branch compaction / reconstruction:** compact an entire feature branch before
+  merging, or reconstruct a squash-merged branch for review.
+  Range syntax: `upstream/main..feat/some-feature` or `origin/main..HEAD`.
+  This is the primary use case for reconstruction work — `/git-squash` handles the
+  full range; do not use ad-hoc git commands outside the skill.
+
+**git-squash is the single entrypoint for all compaction.** Do not reach for
+`git reset --soft HEAD~1 && git commit --amend` or `git rebase -i` directly —
+these are internal implementation details of the skill. All compaction, from a
+single-commit cleanup to a full reconstruction, goes through `/git-squash`.
 
 ---
 
@@ -337,6 +347,17 @@ Commit squash analysis — <N> commits in range
   Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
 ```
 
+**For any range > 10 commits**, offer to write the plan to a file before showing it:
+
+```
+Write the plan to a file for sign-off and review? (YES / n)
+  Default: docs/superpowers/specs/squash-plan-YYYY-MM-DD.md
+  (Check ## Artifact Locations in CLAUDE.md for the correct specs path)
+```
+
+If YES, write to the working branch. The file travels with the branch, can be pushed
+for others to review, and is discarded when the working branch is deleted after swap.
+
 **Large-range handling (> 50 commits):** skip straight to a group view:
 
 ```
@@ -361,69 +382,88 @@ For **"full"** or for ranges ≤ 50 commits, continue to Step 5a.
 
 #### Already-clean callout
 
+Do not list individual commits. Collapse to count and representative sample:
+
 ```
-Already clean — no action needed (<n> commits):
+## Already Clean — <n> commits (no action needed)
+*To see all: `git log --oneline <base>..<HEAD>` excluding the action groups below.*
+
+Representative: feat(supplement), feat(merkle), feat(causality), feat(prov), ...
+```
+
+#### Action groups — compaction format
+
+One group per KEEP target. **The KEEP commit message is the heading.** Group number
+is secondary metadata, used only for refusal commands.
+
+**SQUASH group (plain — KEEP message is the final message, no Final message line):**
+```markdown
+### <KEEP commit message>
+*Group <N> — absorbs <n> commit(s)*
+
+- 🔽 `<sha>` <absorbed message> *(<reason>)*
+- 🔽 `<sha>` <absorbed message> *(<reason>)*
+```
+
+**MERGE group (curated message differs — show Final message line):**
+```markdown
+### <KEEP commit message>
+*Group <N> — MERGE with <n> commit(s)*
+**Final message:** `<proposed unified message>`
+
+- 🔀 `<sha>` <merged message> *(unified — <what combining adds>)*
+```
+
+**File-overlap MERGE hint (surfaced as a question, not auto-classified):**
+```markdown
+### <KEEP commit message>
+*Group <N> — absorbs <n> commit(s)*
+📁 *Shares files with group <M> — possible MERGE? (confirm or leave separate)*
+
+- 🔽 `<sha>` <absorbed message> *(<reason>)*
+```
+
+**Temporal scrutiny annotation (inline on the affected commit):**
+```
+- ⏱ `<sha>` <message> *[<N> min after <sha2> — confirm this is genuinely distinct]*
+```
+
+**DROP (truly empty):**
+```
+- ❌ `<sha>` <message> *(dropped — zero file changes confirmed)*
+```
+
+**Cross-author retention (inline flag):**
+```
+- ⚠️ `<sha>` <message> *(kept standalone — cross-author KEEP, not squashed)*
+```
+
+#### AFTER block
+
+Show count arithmetic and a git-log-formatted sample so users can compare directly
+with their terminal:
+
+```
+## AFTER — what `git log --oneline` will show
+
+  <N>  commits (original)
+  -<n>  pruned by filter-repo
+  -<n>  absorbed by squash
+  ──────────────────────────────────────────────
+  <M>  commits — no content lost
+
+Sample (first 10 of <M>):
+  <sha>  <message>
   <sha>  <message>
   ...
+  (run `git log --oneline <work-branch>` to see all <M>)
 ```
 
-#### Action groups
+#### Refusal prompt
 
-One group per KEEP target. Indented layout shows what folds into what.
-
-**KEEP with absorbed commits:**
 ```
-✅ <sha> <message>   →  [absorbs: <what was squashed in>]
-   🔽 <sha> <absorbed message>  → absorbed *(reason)*
-```
-
-**MERGE:**
-```
-🔀 MERGE — <reason>:
-   ← <sha> <original message 1>
-   ← <sha> <original message 2>
-   → <proposed unified message>
-   Richer than either alone? <YES — what combining adds>
-```
-
-**File-overlap MERGE hint (when not yet classified as MERGE):**
-```
-📁 <sha> <message>   [shares files with abc1234 — possible MERGE?]
-```
-
-**Temporal scrutiny annotation:**
-```
-⏱ <sha> <message>   [12 min after abc1234 — confirm this is genuinely distinct]
-```
-
-**DROP:**
-```
-❌ <sha> <message>  → dropped (zero file changes confirmed)
-```
-
-**Cross-author retention:**
-```
-✅ <sha> <message>  → kept standalone
-   ⚠️  cross-author: committed by <other-author> — not squashed (contains design content)
-```
-
-**AFTER block:**
-```
-AFTER — what git log will show:
-────────────────────────────────────────────────────────────────
-<sha>  <message>
-<sha>  <message>
-```
-
-**Impact line:**
-```
-Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
-```
-
-Then ask:
-```
-Refuse any group? Enter group numbers or commit SHAs,
-"all" to accept all, or "none" to refuse all:
+Refuse any group? Enter group numbers (e.g. "12 35"), "all" to accept all,
+or "none" to refuse all:
 ```
 
 Show confirmation and wait for final YES.
