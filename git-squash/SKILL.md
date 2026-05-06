@@ -391,51 +391,107 @@ Do not list individual commits. Collapse to count and representative sample:
 Representative: feat(supplement), feat(merkle), feat(causality), feat(prov), ...
 ```
 
-#### Action groups — compaction format
+#### Grouping intelligence — before building groups
 
-One group per KEEP target. **The KEEP commit message is the heading.** Group number
-is secondary metadata, used only for refusal commands.
+**Semantic grouping for spec/plan commits:** Before assigning any commit to a group,
+identify design spec and implementation plan commits (`docs: design spec — X`,
+`docs: implementation plan for X`). Scan **forward** chronologically for the
+`feat:`/`refactor:` commit that implements topic X. Absorb the spec/plan into
+that implementing commit's group, not the nearest preceding KEEP.
 
-**SQUASH group (plain — KEEP message is the final message, no Final message line):**
+If no implementing commit is found within the range: flag the spec/plan with ⚠️
+rather than silently absorbing it into an unrelated KEEP.
+
+**Session handover detection:** A commit whose subject contains "session handover"
+or "session wrap" must never be used as a group KEEP. When filter-repo leaves one
+behind (mixed-content commit with other files), flag it explicitly — see format below.
+
+**Title fitness assessment:** After grouping, assess whether the KEEP commit's message
+adequately represents the group:
+- All absorbed commits in same scope/feature → KEEP title is fine, use as-is
+- Absorbed commits from different concerns, OR KEEP is a minor doc/chore carrying significant absorbed work → flag ⚠️ and propose synthesized title
+- Synthesized title: a genuine summary of the group — not concatenation, a real subject line
+
+#### Action groups — compaction format (three-column table)
+
+Use a three-column table per group matching the engine reconstruction plan style.
+The heading is the semantic group title (KEEP message or synthesized), group number
+is secondary metadata for refusal commands only.
+
+**Plain SQUASH group:**
 ```markdown
-### <KEEP commit message>
-*Group <N> — absorbs <n> commit(s)*
+## <semantic group title>
+*Compaction group — <N> commits → 1*
 
-- 🔽 `<sha>` <absorbed message> *(<reason>)*
-- 🔽 `<sha>` <absorbed message> *(<reason>)*
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `<sha>` <KEEP message> | ✅ KEEP | `<KEEP message>` |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+
+> **Result:** 1 commit.
 ```
 
-**MERGE group (curated message differs — show Final message line):**
+**MERGE group (show Final message explicitly):**
 ```markdown
-### <KEEP commit message>
-*Group <N> — MERGE with <n> commit(s)*
+## <semantic group title>
+*Compaction group — <N> commits → 1*
 **Final message:** `<proposed unified message>`
 
-- 🔀 `<sha>` <merged message> *(unified — <what combining adds>)*
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `<sha>` <KEEP message> | ✅ KEEP | *(see Final message above)* |
+| `<sha>` <merged message> | 🔀 MERGE ↑ | *(unified — <what combining adds>)* |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+
+> **Result:** 1 commit.
 ```
 
-**File-overlap MERGE hint (surfaced as a question, not auto-classified):**
+**Title fitness flag (when KEEP message doesn't represent the group):**
 ```markdown
-### <KEEP commit message>
-*Group <N> — absorbs <n> commit(s)*
-📁 *Shares files with group <M> — possible MERGE? (confirm or leave separate)*
+## <KEEP message>
+*Compaction group — <N> commits → 1*
+⚠️ **Proposed title:** `<synthesized title>`
+*(<reason the KEEP title is inadequate>)*
 
-- 🔽 `<sha>` <absorbed message> *(<reason>)*
-```
-
-**Temporal scrutiny annotation (inline on the affected commit):**
-```
-- ⏱ `<sha>` <message> *[<N> min after <sha2> — confirm this is genuinely distinct]*
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+...
 ```
 
-**DROP (truly empty):**
+**Session handover survived filter-repo:**
+```markdown
+## ⚠️ <session handover message>
+*Compaction group — <N> commits → 1*
+⚠️ **KEEP commit is a session handover** — filter-repo left this because the commit
+contains mixed content. Consider splitting manually before compacting, or accept as-is.
+
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `<sha>` <handover message> | ⚠️ KEEP (handover survived filter) | `<message>` — *flag for manual review* |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+
+> **Result:** 1 commit (handover message preserved — review recommended).
 ```
-- ❌ `<sha>` <message> *(dropped — zero file changes confirmed)*
+
+**File-overlap MERGE hint (question, not auto-classified):**
+```
+📁 *Group <N> shares significant file overlap with group <M> — possible MERGE?*
+```
+
+**Temporal scrutiny (inline annotation):**
+```
+| `<sha>` <message> | ✅ KEEP ⏱ | *[<N> min after <sha2> — confirm genuinely distinct]* |
+```
+
+**Drop (truly empty):**
+```
+| `<sha>` <message> | ❌ DROP | *(zero file changes confirmed)* |
 ```
 
 **Cross-author retention (inline flag):**
 ```
-- ⚠️ `<sha>` <message> *(kept standalone — cross-author KEEP, not squashed)*
+| `<sha>` <message> | ✅ KEEP ⚠️ | *(kept standalone — cross-author; contains design content)* |
 ```
 
 #### AFTER block

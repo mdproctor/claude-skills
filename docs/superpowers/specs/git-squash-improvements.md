@@ -8,92 +8,146 @@
 
 ## Gap 1 — Plan document format
 
-### Problem
+### Reference
 
-The current plan output has four format deficiencies identified in the engine Claude brief:
+The engine reconstruction plan at `https://raw.githubusercontent.com/mdproctor/casehub/main/docs/superpowers/specs/engine-reconstruction-plan.md` is the quality baseline. The compaction-format plan must be at least as good, with the additional improvements listed below.
 
-1. **Group headings use numbers** ("Group 35:") — the KEEP commit message should be the heading; group number is secondary metadata used only for refusal commands
-2. **Already Clean lists every commit** — for large ranges (186 commits in ledger) this drowns the signal; should collapse to count + representative sample
-3. **AFTER block has no sample** — shows the arithmetic but not a preview of what git log will actually look like
-4. **No offer to write a markdown file** — for significant operations the plan should be persistable; currently exists only in the chat window and is lost to context compaction
+### Problems identified in v2 ledger report
 
-### Required changes to SKILL.md Step 4 / 5a
+The v2 report (`/tmp/ledger-squash-plan-v2.md`, 2026-05-06) had six deficiencies:
 
-#### Already Clean section
+1. **Blind KEEP title as group heading** — the KEEP commit's message is used as-is, even when it doesn't describe what the group collectively represents after absorption
+2. **Proximity grouping creates semantic mismatches** — spec/plan docs are absorbed into the nearest preceding KEEP even when they belong with the implementing feat: commit further ahead in the history
+3. **Session handovers survive as KEEP commits** — when a mixed-content commit (session handover + other files) isn't fully stripped by filter-repo, the session handover message becomes a group heading
+4. **No curated result column** — absorbed commits don't show their final disposition explicitly; the reader must infer
+5. **Already Clean lists every commit** — 186 individual SHAs drown the signal
+6. **No offer to write the plan to a file** — lost to context compaction
 
-Replace full listing with count + representative sample:
+### Required grouping logic
+
+#### Semantic grouping — spec/plan docs find their implementing commit
+
+Design spec and implementation plan commits should be absorbed into their implementing `feat:` commit, not the nearest preceding KEEP. The skill must scan **forward** from the spec/plan to find the implementing commit:
+
+1. Extract the topic from the spec/plan message (e.g. "LedgerSupplement architecture", "trust score forgiveness", "EU AI Act Art.12")
+2. Scan forward chronologically for a feat:/refactor: commit whose subject or scope matches that topic
+3. If found within a reasonable window (e.g. 30 commits ahead): add the spec/plan to that commit's group
+4. If not found (implementing commit outside range or unidentifiable): flag the spec/plan commit with ⚠️ rather than silently absorbing into an unrelated KEEP
+
+Examples of correct semantic grouping:
+- `docs: design spec — LedgerSupplement architecture` → absorbed into `feat(supplement): add LedgerSupplement base + three concrete supplements`
+- `docs: implementation plan — trust score forgiveness mechanism` → absorbed into `feat(forgiveness):` commits
+- `docs: design spec — EU AI Act Art.12 compliance surface` → absorbed into `feat(art12):` commits
+- `docs: design spec — causality query API` → absorbed into `feat(causality): findCausedBy`
+- `docs: implementation plan for DESIGN.md split` → absorbed into `docs: split DESIGN.md into core and capabilities`
+
+#### Session handover as KEEP — detect and flag
+
+A session handover commit (subject contains "session handover" or "session wrap") should never be used as a group KEEP. When filter-repo leaves one behind (because the commit also touched other files), flag it explicitly:
+
+```markdown
+### ⚠️ docs: session handover 2026-04-17
+*Group N — absorbs 1 commit*
+⚠️ **KEEP commit is a session handover** — filter-repo left this behind because it contains mixed content (other files alongside the handover text). Consider splitting this commit manually before compacting, or accept it as-is knowing the handover message will persist in history.
+
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `40d0d0b` docs: session handover 2026-04-17 | ⚠️ KEEP (handover survived filter) | `docs: session handover 2026-04-17` — *flag for manual review* |
+| `bdbc822` chore: add .worktrees/ to .gitignore | 🔽 SQUASH ↑ | *(absorbed — chore cleanup)* |
+```
+
+#### Title fitness assessment
+
+After grouping, assess whether the KEEP commit's message adequately represents the group:
+
+- **Fit**: all absorbed commits are in the same scope/feature as the KEEP → use KEEP message as heading unchanged
+- **Questionable**: absorbed commits span different concerns, or the KEEP is a minor doc/chore carrying significant absorbed work → flag with ⚠️ and propose a synthesized title
+- **Wrong**: the KEEP message describes something completely unrelated to what's being absorbed → ⚠️ required, synthesized title required
+
+Synthesized title generation: summarise what the group collectively represents — not concatenation of messages, but a genuine subject line. Show as a proposed alternative:
+
+```markdown
+### feat: examples/order-processing — runnable Quarkus app with 8 integration tests
+*Group 1 — absorbs 1 commit*
+⚠️ **Proposed title:** `feat: examples/order-processing + LedgerConfig @ConfigRoot fix`
+*(absorbed commit registers LedgerConfig — worth reflecting as it fixes a config bug, not just a test)*
+```
+
+When the absorbed commits are clearly noise (Javadoc fixes, CI one-liners, style) and don't change the semantic meaning of the KEEP — no flag needed, KEEP title stands.
+
+### Required table format (compaction format)
+
+Use a three-column table per group, matching the engine reconstruction plan style. The heading is the semantic group title (KEEP message or synthesized title), group number is secondary metadata.
+
+```markdown
+## feat(supplement): add LedgerSupplement base + three concrete supplements
+*Compaction group — 4 commits → 1*
+
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `1f330be` feat(supplement): add LedgerSupplement base + three concrete supplements | ✅ KEEP | `feat(supplement): add LedgerSupplement base + three concrete supplements` |
+| `a240831` docs: design spec — LedgerSupplement architecture + ComplianceSupplement | 🔽 SQUASH ↑ | *(absorbed — pre-implementation spec; no standalone value once implemented)* |
+| `7d4c5dc` docs: implementation plan — LedgerSupplement architecture | 🔽 SQUASH ↑ | *(absorbed — pre-implementation plan; no standalone value once implemented)* |
+| `90c349a` fix(supplement): assert rationale field round-trips in LedgerSupplementIT | 🔽 SQUASH ↑ | *(absorbed — 1L test assertion, same test class)* |
+
+> **Result:** 1 commit.
+```
+
+**MERGE groups** — show Final message explicitly:
+
+```markdown
+## refactor: rename to casehub-ledger — groupId io.casehub, package io.casehub.ledger
+*Compaction group — 11 commits → 1*
+**Final message:** `refactor: rename to casehub-ledger — groupId, package, imports, CI updated`
+
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `1e48709` refactor: rename to casehub-ledger ... | ✅ KEEP | *(see Final message above)* |
+| `9613135` refactor: move source directories io/quarkiverse → io/casehub | 🔀 MERGE ↑ | *(unified — same rename scope)* |
+| `5e1d54e` docs: fix stale repo name references post-rename | 🔽 SQUASH ↑ | *(absorbed — stale ref sweep)* |
+...
+
+> **Result:** 1 commit.
+```
+
+### Already Clean section
 
 ```
 ## Already Clean — 186 commits (no action needed)
-*To see all: `git log --oneline <base>..<HEAD>` excluding the 41 action groups below.*
+*To see all: `git log --oneline <base>..<HEAD>` excluding the action groups below.*
 
 Representative: feat(supplement), feat(merkle), feat(causality), feat(prov),
 feat(reactive), feat(trust), feat(privacy), feat(enricher), feat(art12), feat(#62)...
 ```
 
-Do not list individual SHAs. The user can always inspect with git log.
-
-#### Action group headings — compaction format
-
-Use the KEEP commit message as the heading. Group number is shown as secondary metadata only, used for refusal commands ("refuse 35", "refuse 12 35"):
-
-```markdown
-### refactor: rename to casehub-ledger — groupId io.casehub, package io.casehub.ledger
-*Group 35 — absorbs 10 commits*
-
-- 🔽 `2e86342` docs(claude): update CLAUDE.md post-rename *(docs(claude) — follow-on)*
-- 🔽 `9613135` refactor: move source directories io/quarkiverse → io/casehub *(rename sweep)*
-- 🔽 `5e1d54e` docs: fix stale repo name references post-rename *(stale ref sweep)*
-- 🔽 `48dc333` docs: fix stale repo name references post-rename *(stale ref sweep)*
-- 🔽 `fdc75c9` ci: fix SNAPSHOT deploy — avoid 422 on redeployment *(CI noise)*
-- 🔽 `ea0b385` ci: delete stale SNAPSHOT versions before publish *(CI noise)*
-- 🔽 `8788f23` ci: add workflow_dispatch trigger *(CI noise)*
-- 🔽 `17b9ca9` fix(ci): remove delete-SNAPSHOT step causing 422 *(CI noise)*
-- 🔽 `8129172` docs: add retention classes to structure table *(docs follow-on)*
-- 🔽 `1868825` docs: close Quarkiverse submission idea *(docs follow-on)*
-```
-
-**Final message line** — only appears for MERGE operations where the curated unified message differs from the KEEP commit's original message. For plain SQUASH groups it is omitted — the KEEP commit message IS the final message:
-
-```markdown
-### feat(blackboard): add PlanItem strict lifecycle — markRunning/markCompleted
-*Group 7 — MERGE with 1 commit*
-**Final message:** `feat(blackboard): PlanItem strict lifecycle with IllegalStateTransition guard — markRunning/markCompleted enforce valid transitions; concurrent CAS prevents races`
-
-- 🔀 `vwx6789` feat(blackboard): PlanItem lifecycle validation — IllegalStateTransition guard *(unified — two halves of one capability)*
-```
-
-#### AFTER block with sample
+### AFTER block
 
 ```
 ## AFTER — what `git log --oneline` will show
 
   325  commits on main (original)
-   -25  pruned by filter-repo (HANDOFF.md + blog/ became empty)
+   -25  pruned by filter-repo
    -72  absorbed by squash
-  ─────────────────────────────────────────────────────────
+  ──────────────────────────────────
    227  commits — no content lost
 
-Sample (first 10 of 227):
-  a1b2c3d  feat(supplement): LedgerSupplement base + three concrete supplements
-  e4f5g6h  feat(supplement): LedgerSupplementSerializer — explicit per-type JSON
+Sample (most recent 10):
+  <sha>  <message>
   ...
-  (run `git log --oneline <work-branch>` to see the full list)
+  (run `git log --oneline <work-branch>` to see all 227)
 ```
 
-#### Offer to write markdown file
+### Offer to write markdown file
 
-For any range > 10 commits, after showing the summary (Step 4), offer:
+For any range > 10 commits, offer after the summary:
 
 ```
-Write this plan to a file for review and sign-off? (YES / n)
-  Default path: docs/superpowers/specs/squash-plan-YYYY-MM-DD.md
-  (Can be reviewed by others before the swap is approved)
+Write this plan to a file for sign-off? (YES / n)
+  Default: docs/superpowers/specs/squash-plan-YYYY-MM-DD.md
+  (Check ## Artifact Locations in CLAUDE.md for correct specs path)
 ```
 
-If YES, write the full plan document in the format above to that path on the **working branch** (not main). The file travels with the working branch, can be pushed for review, and is discarded when the working branch is deleted after the swap.
-
-The markdown file format is the same as the screen format — the same headings, same group structure, same AFTER block — so it renders cleanly as a GitHub document.
+Write to the working branch. File travels with the branch for review.
 
 ---
 
