@@ -104,7 +104,7 @@ message tells the story more cleanly.
 - Two `feat:` commits that are clearly part one and part two of the same capability
 - A rename commit followed immediately by import/reference fixup commits
 - **File-overlap:** Jaccard similarity ≥ 0.7 between file sets (`|A∩B| / |A∪B|`) — both commits touching the same files are likely the same capability regardless of message wording
-- **Temporal proximity:** commits within 30 minutes of each other from the same author are likely the same working session — flag as MERGE candidates even without message similarity
+- **Temporal proximity:** commits within 30 minutes of each other from the same author warrant closer scrutiny — surface them together in the plan and ask whether they are genuinely distinct. Do not assume they should merge; require the author to confirm the distinction is intentional
 
 **How to write the unified message:**
 - Use the broader of the two scopes
@@ -158,11 +158,11 @@ inseparable parts of the same change.
 
 **No preceding KEEP target:** Squash forward into the next KEEP commit instead.
 
-**Temporal grouping:** When two or more commits from the same author fall within a
-30-minute window, treat them as a single working session regardless of message
-patterns. Within the window, apply normal KEEP/SQUASH/MERGE rules, but be more
-aggressive about MERGE: different-message commits touching the same files in a
-30-minute burst are almost always one logical change committed incrementally.
+**Temporal scrutiny:** When two or more commits from the same author fall within a
+30-minute window, surface them together in the plan and ask whether they are
+genuinely distinct. Do not classify them as MERGE automatically — proximity is a
+signal to look harder, not a merge recommendation. The author must confirm the
+distinction is intentional before they remain as separate KEEP commits.
 
 **docs(claude): personal methodology:** If a `docs(claude):` commit updates personal
 working-style content (collaboration preferences, session methodology) rather than

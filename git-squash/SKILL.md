@@ -205,22 +205,25 @@ in priority order. Pay particular attention to the refined merge commit rules (r
 
 Only classify a commit as DROP if `git show --stat` confirms **zero files changed**.
 
-#### 3e — Temporal grouping
+#### 3e — Temporal scrutiny
 
-Extract timestamps and cluster commits from the same author within 30-minute windows:
+Extract timestamps and identify commits from the same author within 30-minute windows:
 ```bash
 git log --format="%H %ae %ai" <range>
 ```
 
-Within a temporal cluster, be more aggressive about MERGE: different-message commits
-from the same author touching overlapping files within 30 minutes are almost always
-one logical change committed incrementally. Flag them as MERGE candidates even if
-message-pattern classification would KEEP them separately.
+Temporal proximity is not a merge signal — two commits 10 minutes apart may address
+completely different concerns. It is a scrutiny signal: surface them together in the
+plan and ask the author to confirm they are genuinely distinct before leaving them as
+separate KEEP commits.
 
-Surface temporal clusters as hints in the plan:
+Do not reclassify or merge automatically. Show the cluster as a question:
 ```
-⏱ Temporal cluster — 3 commits from alice@example.com within 18 minutes:
-   Treating as same-session candidates for MERGE consideration.
+⏱ Close together — 3 commits from alice@example.com within 18 minutes:
+   abc1234  feat(api): add UserRepository SPI
+   def5678  docs: update CLAUDE.md for new conventions
+   ghi9012  fix(test): correct assertion timing
+   Are these genuinely distinct? (YES to keep separate / n to review for merge)
 ```
 
 #### 3f — File-overlap MERGE detection
@@ -346,9 +349,9 @@ One group per KEEP target. Indented layout shows what folds into what.
 📁 <sha> <message>   [shares files with abc1234 — possible MERGE?]
 ```
 
-**Temporal cluster annotation:**
+**Temporal scrutiny annotation:**
 ```
-⏱ <sha> <message>   [same session as abc1234 — 12 min apart]
+⏱ <sha> <message>   [12 min after abc1234 — confirm this is genuinely distinct]
 ```
 
 **DROP:**
