@@ -350,10 +350,10 @@ Lower than Gaps 1–3. The git-squash Q&A fallback covers the missing-section ca
 
 ## Implementation order
 
-1. **Gap 1** (plan format) — implement now; needed for improved ledger report
-2. **Gap 3** (When to Use, single entrypoint note) — small; do alongside Gap 1
-3. **Gap 2** (PR/branch pre-pass) — implement before engine reconstruction; requires testing against ledger and work first
-4. **Gap 4** (workspace-init/init) — separate session; lower urgency
+1. **Gap 1** (plan format) — ✅ done
+2. **Gap 3** (When to Use, single entrypoint note) — ✅ done
+3. **Gap 4** (workspace-init Project Artifacts) — ✅ done: Step 6b added to workspace-init; derives table from project-knowledge paths after CLAUDE.md handling; skips if section already present; starter-templates.md already updated
+4. **Gap 2** (PR/branch pre-pass) — pending; implement before engine reconstruction
 
 ---
 

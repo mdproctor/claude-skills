@@ -668,6 +668,68 @@ ln -sf "$BASE/CLAUDE.md" "<project-path>/CLAUDE.md"
 echo "CLAUDE.md" >> "<project-path>/.git/info/exclude"
 ```
 
+### Step 6b — Write Project Artifacts to project CLAUDE.md
+
+After CLAUDE.md handling (Step 6) is complete, add a `## Project Artifacts` section
+to the **project** CLAUDE.md if it doesn't already have one. This section tells
+skills like git-squash which paths are project content (not workspace noise), so they
+never filter or drop commits that touch those paths.
+
+**Check first:**
+```bash
+grep -q "^## Project Artifacts" "<project-path>/CLAUDE.md" 2>/dev/null && echo "exists" || echo "missing"
+```
+
+If already present → skip this step silently.
+
+**If missing, derive the table from what's staying in the project:**
+
+Start with standard project-knowledge paths:
+- `CLAUDE.md` — project conventions (build commands, test patterns, naming)
+- `docs/adr/` — architecture decision records (always project knowledge)
+
+Then detect additional project-knowledge paths:
+```bash
+# Check for common project docs
+[ -f "<project-path>/docs/DESIGN.md" ]     && echo "docs/DESIGN.md"
+[ -d "<project-path>/docs/specs/" ]         && echo "docs/specs/"
+[ -f "<project-path>/docs/RESEARCH.md" ]   && echo "docs/RESEARCH.md"
+[ -f "<project-path>/docs/CAPABILITIES.md" ] && echo "docs/CAPABILITIES.md"
+```
+
+**What NOT to include** (these route to workspace or are workspace noise):
+- `HANDOFF.md` — session handovers → workspace
+- `blog/` or `docs/_posts/` — blog entries → workspace or external
+- `plans/`, `snapshots/` — methodology artifacts → workspace
+
+**Check blog-routing.yaml** (at project, workspace, or `~/.claude/` level). If any
+level has external routing for blog entries, blogs are external and must not appear
+in Project Artifacts:
+```bash
+find "<project-path>" -maxdepth 2 -name "blog-routing.yaml" 2>/dev/null
+cat ~/.claude/blog-routing.yaml 2>/dev/null
+```
+
+**Write the section** to the project CLAUDE.md, placed before `## Work Tracking`
+(or at the end if Work Tracking is absent):
+
+```markdown
+## Project Artifacts
+
+Paths that are project content (not workspace noise). Skills use this to avoid
+filtering or dropping commits that touch these paths.
+
+| Path | What it is |
+|------|------------|
+| `CLAUDE.md` | Project conventions (build, test, naming) |
+| `docs/adr/` | Architecture decision records |
+| `docs/DESIGN.md` | Design document |  ← only if file exists
+```
+
+Do not show this section to the user or ask for confirmation — it is derived
+mechanically from what was already decided in Steps 6 and 9. If the user wants
+to customise it later, they can edit the section directly.
+
 ### Step 7 — Create .gitignore for workspace
 
 ```bash
@@ -888,6 +950,7 @@ If n → skip. Do not ask again this session.
 - [ ] `specs/` and `plans/` directories exist
 - [ ] `.gitignore` exists
 - [ ] CLAUDE.md handled: migrated (symlink + .git/info/exclude) or left committed per user choice
+- [ ] `## Project Artifacts` section written to project CLAUDE.md (Step 6b): derived from project-knowledge paths; skipped if section already present
 - [ ] Claude session history and memory migrated to workspace-keyed path (`~/.claude/projects/`)
 - [ ] Existing methodology artifacts offered for migration; selected ones copied and `git rm`'d with single commit
 - [ ] Git repo initialised with initial commit
