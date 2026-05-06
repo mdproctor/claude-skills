@@ -353,7 +353,7 @@ Lower than Gaps 1–3. The git-squash Q&A fallback covers the missing-section ca
 1. **Gap 1** (plan format) — ✅ done
 2. **Gap 3** (When to Use, single entrypoint note) — ✅ done
 3. **Gap 4** (workspace-init Project Artifacts) — ✅ done: Step 6b added to workspace-init; derives table from project-knowledge paths after CLAUDE.md handling; skips if section already present; starter-templates.md already updated
-4. **Gap 2** (PR/branch pre-pass) — pending; implement before engine reconstruction
+4. **Gap 2** (PR/branch pre-pass) — ✅ done: Step 0b added to SKILL.md with five-strategy degradation chain (A: squash-merge SHA match → B: merge commit → C: remote branch tip → D: scope clustering → E: flat); Step 3d pre-groups commits using PR context before pattern classification; Step 5a shows PR-headed compaction or reconstruction format when context is available; graceful degradation to flat compaction when gh unavailable
 
 ---
 

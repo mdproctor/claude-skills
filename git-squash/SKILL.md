@@ -63,6 +63,70 @@ author explicitly approves the swap.
 
 ---
 
+### Step 0b — PR/branch pre-pass (optional enrichment)
+
+Runs after Step 0 (working branch created), before Step 1 (filter-repo). Results
+enrich grouping and headings in the plan. **Fail silently** — if `gh` is unavailable
+or the pre-pass times out, skip it entirely and proceed to Strategy E (flat compaction).
+Never surface the failure to the user.
+
+```bash
+# Hard timeout: 10 seconds total across all commands
+PR_DATA=$(timeout 8 gh pr list --state merged \
+  --json number,title,mergeCommit,headRefName,author,mergedAt \
+  --limit 500 2>/dev/null)
+
+REMOTE_BRANCHES=$(git branch -r 2>/dev/null \
+  | grep -E "origin/(feat|fix|refactor|docs|chore)/")
+
+RANGE_SHAS=$(git log --format="%H" <range>)
+```
+
+Apply strategies in order — stop at the first one that produces groups:
+
+**Strategy A — Direct SHA match (squash-merge):**  
+Compare each PR's `mergeCommit.oid` against `RANGE_SHAS`. If a match is found,
+the PR is represented by that single squash commit. All original commits on
+`headRefName` that were squashed into it are the group members (fetch from the
+remote branch or PR commit list). Use **reconstruction format** for these groups —
+the squash already happened; we are recovering the original commits.
+
+**Strategy B — Merge commit in range:**  
+Scan commits whose subject matches `Merge pull request #N from ...`. Extract N,
+look up from `PR_DATA`. All commits between this merge commit and the previous
+merge commit belong to that PR group. Use **compaction format**.
+
+**Strategy C — Remote branch tip match:**  
+For each remote branch in `REMOTE_BRANCHES`, check if its tip SHA is in
+`RANGE_SHAS`. If so, all commits on that branch (back to where it diverged from
+the base) form one group, headed by the branch name. Use **compaction format**.
+
+**Strategy D — Scope clustering (no API needed):**  
+Group contiguous commits sharing the same conventional commit scope tag
+(`feat(causality)`, `feat(merkle)`). Do NOT group non-contiguous same-scope
+commits — separate clusters of the same scope are separate capabilities.
+Use **compaction format** with scope as the heading.
+
+**Strategy E — Flat (no context):**  
+No groups found. Use KEEP commit message as heading (existing behaviour).
+
+**False grouping guard:** Only form a group if the commits are **contiguous**
+in the range. An intervening commit from a different scope or branch breaks
+the cluster — the commits before and after the break stay in separate groups.
+
+**Store the result** for use in Steps 3 and 5a:
+```
+PR_GROUPS = [
+  { number: 47, title: "feat(causality): findCausedBy", author: "MDPROCTOR",
+    date: "2026-04-18", branch: "feat/causality", commits: [sha1, sha2, sha3],
+    strategy: "A" | "B" | "C" | "D" },
+  ...
+]
+GROUPING_STRATEGY = "A" | "B" | "C" | "D" | "E"
+```
+
+---
+
 ### Step 1 — Filter-repo Q&A (on-demand only)
 
 **Never run filter-repo from the pre-push hook or any automatic trigger.**
@@ -258,7 +322,22 @@ If a PR exists:
 - **PR description says "fix typo in X"** → corresponding commit is SQUASH regardless
   of message pattern
 
-#### 3d — Pattern classification
+#### 3d — Apply PR grouping context (if Step 0b produced groups)
+
+If `PR_GROUPS` is populated from Step 0b, use it to pre-organise commits before
+pattern classification:
+
+- Commits within a PR group are classified together. The group's PR title (or scope
+  label for Strategy D) becomes the heading for that section of the plan.
+- Pattern classification (KEEP / SQUASH / MERGE / DROP) still applies within each
+  group — the pre-pass determines *which* commits belong together, not how to handle
+  individual commits.
+- Commits not covered by any PR group fall back to the nearest-KEEP grouping (Strategy E).
+- For **Strategy A (reconstruction)**: the single squash commit on main is the KEEP;
+  the recovered original branch commits are classified against it. Seed the curated
+  message from the PR title (subject to conventional commit enforcement).
+
+#### 3e — Pattern classification
 
 For each commit, apply the KEEP / SQUASH / MERGE / DROP rules from `squash-policy.md`
 in priority order. Pay particular attention to the refined merge commit rules (rows
@@ -266,7 +345,7 @@ in priority order. Pay particular attention to the refined merge commit rules (r
 
 Only classify a commit as DROP if `git show --stat` confirms **zero files changed**.
 
-#### 3e — Temporal scrutiny
+#### 3f — Temporal scrutiny
 
 Extract timestamps and identify commits from the same author within 30-minute windows:
 ```bash
@@ -287,7 +366,7 @@ Do not reclassify or merge automatically. Show the cluster as a question:
    Are these genuinely distinct? (YES to keep separate / n to review for merge)
 ```
 
-#### 3f — File-overlap MERGE detection
+#### 3g — File-overlap MERGE detection
 
 For each pair of KEEP commits in the range, compute Jaccard similarity of their
 file sets:
@@ -307,13 +386,13 @@ the same capability regardless of message wording. Surface as:
 Do not merge commits from different features/scopes just because files overlap.
 Confirm that the overlap makes semantic sense (same module, same capability).
 
-#### 3g — Cross-author check
+#### 3h — Cross-author check
 
 For any KEEP or MERGE candidate that would be absorbed into a commit from a different
 author — reclassify as KEEP and flag it. Cross-author squash is only permitted when
 the absorbed commit is already classified SQUASH (formatting, CI, spelling).
 
-#### 3h — Cherry-pick detection
+#### 3i — Cherry-pick detection
 
 For commits classified SQUASH or MERGE, check if any appear on other branches:
 ```bash
@@ -421,9 +500,45 @@ adequately represents the group:
 - Absorbed commits from different concerns, OR KEEP is a minor doc/chore carrying significant absorbed work → flag ⚠️ and propose synthesized title
 - Synthesized title: a genuine summary of the group — not concatenation, a real subject line
 
-#### Action groups — compaction format (three-column table)
+#### Action groups
 
-Use a three-column table per group matching the engine reconstruction plan style.
+Use the output format that matches the available context.
+
+**When PR/branch context is available (Strategies A–D from Step 0b):**
+
+Use PR or scope headings. Group number is secondary metadata for refusal commands.
+
+*Compaction format (Strategies B, C, D — all original commits present):*
+```markdown
+### PR #47 — feat(causality): findCausedBy — causal chain traversal (2026-04-18) [MDPROCTOR]
+*Compaction group 8 — 3 commits → 1*
+
+| Commit | Action | Curated result |
+|--------|--------|----------------|
+| `3717757` feat(causality): findCausedBy — SPI + JPA + 6 @QuarkusTest IT tests | ✅ KEEP | *(message adequate — unchanged)* |
+| `26fe313` docs: design spec — causality query API | 🔽 SQUASH ↑ | *(absorbed — pre-implementation planning doc; message adequate)* |
+
+> **Result:** 1 commit.
+```
+
+*Reconstruction format (Strategy A — squash-merged PRs, recovering original commits):*
+```markdown
+### PR #38 — refactor(api): rename DispatchRule → Binding (2026-04-14) [MDPROCTOR]
+**Branch:** `feat/rename-binding-casedefinition`
+**Final message:** `refactor(api): rename DispatchRule → Binding — unified with schema rename`
+
+| Original commit | Action | Curated result |
+|----------------|--------|----------------|
+| `2ca7bfb` refactor(api): rename DispatchRule → Binding | ✅ KEEP | *(see Final message above)* |
+| `5ac72ea` refactor(schema): rename CaseHubDefinition.yaml | 🔀 MERGE ↑ | *(unified — same rename scope)* |
+| `441213d` chore: remove .claude/ from tracking | 🔽 SQUASH ↑ | *(absorbed — < 5 lines, no issue ref)* |
+
+> **Result:** 1 commit.
+```
+
+**When no PR/branch context is available (Strategy E — flat compaction):**
+
+Use three-column table per group matching the engine reconstruction plan style.
 The heading is the semantic group title (KEEP message or synthesized), group number
 is secondary metadata for refusal commands only.
 
