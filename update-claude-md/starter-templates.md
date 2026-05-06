@@ -41,6 +41,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 [List of important skills and their purposes]
 
+## Project Artifacts
+
+Paths that are project content (not workspace noise). Skills use this to avoid
+filtering or dropping commits that touch these paths.
+
+| Path | What it is |
+|------|------------|
+| `docs/adr/` | Architecture decision records |
+| `CLAUDE.md` | Project conventions (build, test, naming) |
+
 ## Work Tracking
 
 **Issue tracking:** enabled
@@ -99,6 +109,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Configuration
 
 [Environment variables, config files, setup requirements]
+
+## Project Artifacts
+
+Paths that are project content (not workspace noise). Skills use this to avoid
+filtering or dropping commits that touch these paths.
+
+| Path | What it is |
+|------|------------|
+| `docs/adr/` | Architecture decision records |
+| `CLAUDE.md` | Project conventions (build, test, naming) |
 
 ## Work Tracking
 

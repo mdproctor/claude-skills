@@ -15,237 +15,416 @@ history. Author approves every change — nothing is applied automatically.
 
 The full policy is in `squash-policy.md` alongside this skill.
 
+**Two modes:**
+- **On-demand** (`/git-squash`): full workflow with branch isolation, filter-repo,
+  review gate, and branch swap. Can handle pushed commits safely.
+- **Pre-push hook**: in-place squash on unpushed commits only. Fast, no branch
+  creation, no force-push. Never runs filter-repo.
+
 ---
 
 ## When to Use
 
-- **Before pushing:** run on unpushed commits to clean history before it's shared
-- **On demand:** clean up a branch at any point (`/git-squash`)
-- **After the hook fires:** the pre-push hook detected squash candidates; run this to resolve them
-- **Pre-PR review:** branch is pushed but no PR exists yet — final review before opening the PR;
-  squashing requires `git push --force-with-lease` but is safe on a personal fork branch.
-  In practice the history should already be clean from the pre-push run — this is a safety
-  net, not a primary step. Verify rather than redo.
-- **On pushed commits:** specify a range explicitly for any other pushed-branch cleanup
+- **Before pushing:** run on unpushed commits to clean history before it's shared.
+  The pre-push hook operates on unpushed commits only — in-place, no force-push needed.
+- **On demand:** clean up any commit range at any point (`/git-squash`).
+  All work happens on an isolated working branch — pushed commits can be included safely.
+- **After the hook fires:** the pre-push hook detected squash candidates; run this
+  to resolve them.
+- **Pre-PR review:** branch is pushed but no PR exists yet. On-demand mode handles
+  this with branch isolation and a review gate before the swap.
 
 ---
 
-## Step 1 — Determine the commit range
+## On-Demand Workflow (full — includes pushed commits)
 
-**Default (no argument):** unpushed commits on the current branch:
+### Step 0 — Create working branch
+
+Before any destructive operation, create an isolated working branch:
+
+```bash
+ORIG_BRANCH=$(git branch --show-current)
+WORK_BRANCH="squash/wip-${ORIG_BRANCH}-$(date +%Y%m%d-%H%M%S)"
+git checkout -b "$WORK_BRANCH"
+```
+
+Record both names — needed for the swap in Step 8.
+
+All filter-repo and rebase operations run on `$WORK_BRANCH`. The original branch
+is untouched until the author explicitly approves the swap.
+
+---
+
+### Step 1 — Filter-repo Q&A (on-demand only)
+
+**Never run filter-repo from the pre-push hook or any automatic trigger.**
+**Always runs on the working branch, never on the original.**
+
+#### 1a — Resolve project artifacts
+
+Check CLAUDE.md for a `## Project Artifacts` section:
+```bash
+grep -A 50 "^## Project Artifacts" CLAUDE.md 2>/dev/null
+```
+
+**If `## Project Artifacts` exists:** paths listed there are project content — never
+filter them by default.
+
+**If `## Project Artifacts` is absent:** ask the user about common workspace artifact
+paths found in the commit range, then offer to write the section:
+
+```
+CLAUDE.md has no ## Project Artifacts section.
+
+Which of these paths in the commit range are project content (not workspace noise)?
+
+  [x] docs/adr/       — architecture decision records
+  [x] CLAUDE.md       — project conventions (build, test, naming)
+  [ ] HANDOFF.md      — session handovers (workspace noise by default)
+  [ ] docs/_posts/    — blog entries (workspace noise unless type: blog)
+
+Type numbers to toggle, "go" to proceed:
+```
+
+After the user responds, offer:
+```
+Add a ## Project Artifacts section to CLAUDE.md with these selections? (YES / n)
+```
+
+If YES, write the section to the original branch's CLAUDE.md (not the working branch —
+this is a project configuration change, not history rewriting).
+
+#### 1b — Scan and filter
+
+Scan the commit range for files that could be filtered:
+```bash
+git log --name-only --format="" <range> | sort -u
+```
+
+**Important limitation:** `git filter-repo` operates on whole file paths — it cannot
+strip sections within a file. Only offer filtering for whole files. Never offer to
+filter "personal methodology sections of CLAUDE.md" — that's not possible. For
+CLAUDE.md commits, the squash pass (Step 4) will handle them as SQUASH candidates
+instead.
+
+Filter only paths that are NOT in Project Artifacts and match known whole-file
+workspace patterns (HANDOFF.md, docs/_posts/ entries in non-blog repos, etc.).
+
+If filterable paths are found, present a checkbox Q&A:
+
+```
+Filter workspace artifact files from history before compacting?
+
+Detected in commit range:
+[x] HANDOFF.md (session handovers — 3 commits)
+[ ] docs/_posts/*.md — deselected: declared as Project Artifact in CLAUDE.md
+
+Type numbers to toggle, "go" to proceed, or "skip" to skip filtering:
+```
+
+On **"go":** run filter-repo on the working branch only:
+```bash
+git filter-repo --path <path> --invert-paths --prune-empty always \
+  --refs "refs/heads/$WORK_BRANCH"
+```
+
+The `--refs` flag limits filter-repo to the working branch only — it does not rewrite
+any other branches or tags.
+
+Show the Phase 0 report:
+
+```
+Phase 0 — filter-repo
+  Stripped paths: HANDOFF.md (3 commits)
+  Commits pruned after strip (became empty): 3
+  Commits remaining for compaction: 11
+```
+
+On **"skip":** proceed directly to Step 2.
+
+---
+
+### Step 2 — Resolve commit range
+
+**Resolve the range AFTER filter-repo completes** — filter-repo rewrites all SHAs.
+Any range resolved before Phase 0 is invalid after it runs.
+
 ```bash
 git log --oneline @{u}..HEAD 2>/dev/null || git log --oneline origin/HEAD..HEAD 2>/dev/null
 ```
 
-If invoked with a range argument (e.g. `/git-squash HEAD~10..HEAD` or
-`/git-squash abc123..def456`), use that range instead.
-
-If no upstream is configured and no range given, ask:
+If no upstream is configured:
 > "No upstream found. Squash commits since which point?
 > (e.g. `main`, `origin/main`, a SHA, or `HEAD~N`)"
 
 Record the resolved range for all subsequent steps.
 
-**Check for pushed commits in range:**
-```bash
-git log --oneline <range> | while read sha rest; do
-  git branch -r --contains "$sha" 2>/dev/null | grep -v HEAD | head -1
-done
-```
-
-If any commits in the range are already pushed, warn before proceeding:
-> ⚠️ Some commits in this range are already on the remote. Squashing them
-> requires a force-push. Continue? (YES / n)
-
 ---
 
-## Step 2 — Classify commits per policy
+### Step 3 — Classify commits per policy
 
-Read `squash-policy.md` (in this skill directory at
-`~/.claude/skills/git-squash/squash-policy.md`).
+Read `squash-policy.md`.
 
 For each commit in the range, classify as:
 - **KEEP** — carries standalone information; leave as-is
 - **SQUASH** — artifact/noise; squash into preceding KEEP commit
 - **MERGE** — two commits tell the same story more cleanly as one
+- **DROP** — truly empty commit; confirm with `git show --stat` that zero files changed
 
-For SQUASH and MERGE, identify:
-- Which commit to squash into (the target)
-- A proposed combined message (for MERGE only)
+For SQUASH and MERGE, identify the target, the proposed combined message (MERGE only),
+and what the KEEP commit will absorb (for annotation in the report).
 
-Apply the special-case rules: revert chains, test hardening runs, CI fixups.
+**Cross-author check:** After classifying, extract author emails:
+```bash
+git log --format="%H %ae" <range>
+```
+For any KEEP or MERGE candidate that would be absorbed into a commit from a different
+author — reclassify it as KEEP and flag it in the plan. Cross-author squash is only
+permitted when the absorbed commit is already classified SQUASH (formatting, CI,
+spelling, mechanical noise — no design insight, no attribution loss).
 
 ---
 
-## Step 3 — Show summary
-
-Present a concise summary before showing any table:
+### Step 4 — Show summary
 
 ```
 Commit squash analysis — <N> commits in range
 
-  SQUASH candidates (<count>):
+  Already clean (KEEP, no action): <n>
+  SQUASH candidates: <n>
     Docs follow-on (Javadoc/wording):  <n>
     Formatting/cleanup (chore):        <n>
     Revert chains:                     <n>
     Small fixups (< 5 lines):          <n>
     Test hardening:                    <n>
-
-  MERGE candidates (<count>):
+  MERGE candidates: <n>
     Same scope/feature pairs:          <n>
+  DROP (truly empty, zero files): <n>
 
-  KEEP: <n> commits unchanged
+  Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
 
-View full comparison table? (YES / n)
+View full plan? (YES / n)
 ```
 
 ---
 
-## Step 4a — Full table (if user says YES)
+### Step 5a — Full plan (if user says YES)
 
-Show the squash plan as a grouped diff table. Use emoji icons for immediate
-scannability, inline `*(reason)*` annotations explaining WHY, a result column
-showing the final message for each KEEP/MERGE commit, and dashed separators
-between squash groups.
+#### Already-clean callout
 
 ```
-SQUASH PLAN — <N> commits → <M> commits
-
-| SHA     | Message                                          | Action       | Result / Reason                                                        |
-|---------|--------------------------------------------------|--------------|------------------------------------------------------------------------|
-| abc1234 | feat(api): add UserRepository SPI                | ✅ KEEP      | `feat(api): add UserRepository SPI and wire into locator` (+ def5678) |
-| def5678 | feat(api): wire UserRepository into ServiceLocator | 🔀 MERGE ↑  | *(unified — two halves of same capability)*                            |
-| ghi9012 | docs(api): align findByKey Javadoc wording       | 🔽 SQUASH ↑  | *(absorbed — docs follow feature)*                                     |
-|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
-| jkl0123 | feat(engine): add CaseRepository                 | ✅ KEEP      | `feat(engine): add CaseRepository` (unchanged)                         |
-| mno4567 | chore: remove dead buildContext() call            | 🔽 SQUASH ↑  | *(absorbed — cleanup after feature)*                                   |
-| pqr8901 | fix(test): correct assertion in same test        | 🔽 SQUASH ↑  | *(absorbed — same test being hardened)*                                |
-|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
-| stu2345 | wip: halfway through blackboard refactor          | 🔽 SQUASH ↓  | *(absorbed — WIP save-state artifact)*                                 |
-| vwx6789 | refactor(blackboard): extract PlanItemFactory    | ✅ KEEP      | `refactor(blackboard): extract PlanItemFactory` (unchanged)            |
-|─────────|──────────────────────────────────────────────────|──────────────|───────────────────────────────────────────────────────────────────────|
-| ci12345 | ci: trigger CI for PR                            | ❌ DROP      | *(dropped — mechanical CI artifact, no information value)*             |
-
-> **Result:** <M> commits. <one-line narrative of what remains>.
-
-AFTER
-────────────────────────────────────────────────────────────────────────────
-abc1234  feat(api): add UserRepository SPI and wire into ServiceLocator
-jkl0123  feat(engine): add CaseRepository
-vwx6789  refactor(blackboard): extract PlanItemFactory
+Already clean — no action needed (<n> commits):
+  <sha>  <message>
+  ...
 ```
 
-**Icon guide:**
-- ✅ `KEEP` — standalone commit, stays as-is (or reworded if MERGE target)
-- 🔽 `SQUASH ↑` — absorbed into the preceding KEEP commit
-- 🔽 `SQUASH ↓` — absorbed into the following KEEP commit (when WIP precedes its target)
-- 🔀 `MERGE ↑` — merged into the preceding KEEP; unified message written
-- ❌ `DROP` — discarded entirely; purely mechanical, zero information value
+#### Action groups
 
-**Table rules:**
-- Dashed separators between squash groups — one group per KEEP target
-- Reason annotation on every non-KEEP row — always say WHY
-- Result column on KEEP/MERGE rows shows the final committed message
-- Result summary line gives a one-line narrative of what survives
-- AFTER block shows the clean final list for easy review
+One group per KEEP target. Indented layout shows what folds into what.
+
+**KEEP with absorbed commits:**
+```
+✅ <sha> <message>   →  [absorbs: <what was squashed in>]
+   🔽 <sha> <absorbed message>  → absorbed *(reason)*
+```
+
+**MERGE:**
+```
+🔀 MERGE — <reason>:
+   ← <sha> <original message 1>
+   ← <sha> <original message 2>
+   → <proposed unified message>
+   Richer than either alone? <YES — what the combined message captures>
+```
+
+**DROP:**
+```
+❌ <sha> <message>  → dropped (zero file changes confirmed)
+```
+
+**Cross-author retention:**
+```
+✅ <sha> <message>  → kept standalone
+   ⚠️  cross-author: committed by <other-author> — not squashed (contains design content)
+```
+
+**AFTER block — formatted as git log output for easy terminal comparison:**
+```
+AFTER — what git log will show:
+────────────────────────────────────────────────────────────────
+<sha>  <message>
+<sha>  <message>
+```
+
+**Impact line:**
+```
+Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
+```
 
 Then ask:
 ```
-Refuse any changes? Type SHAs or row numbers (e.g. "def5678 pqr8901"),
+Refuse any group? Enter group numbers or commit SHAs,
 "all" to accept all, or "none" to refuse all:
 ```
 
-Wait for response. Parse as refusals; everything else remains accepted.
-
 Show confirmation:
 ```
-  Accepted: <n> changes  (abc1234←def5678 merged, abc1234←ghi9012 squashed ...)
-  Refused:  <n> kept standalone  (pqr8901)
+  Accepted: <n> changes
+  Refused:  <n> kept standalone
 
 Apply <n> changes? (YES / n)
 ```
 
 ---
 
-## Step 4b — Skip table (if user says n)
+### Step 5b — Skip plan (if user says n)
 
 ```
 Apply all <N> squash/merge candidates? (YES / n / custom)
-  YES    — apply all candidates shown in the summary
-  n      — abort, make no changes
-  custom — show the full table to pick individually
+  YES    — apply all
+  n      — abort
+  custom — show the full plan to pick individually
 ```
 
 ---
 
-## Step 5 — Execute
+### Step 6 — Execute
 
-**If nothing to do (all refused or N=0):** confirm and exit.
+**If nothing to do:** confirm and exit. Offer to delete the working branch.
 
-**If applying squashes:**
-
-Build the rebase instruction list. For each squash group:
+**Single-commit squash** (fast path — only when squashing HEAD~1 into HEAD):
 ```bash
-# Example: squash commits 2 and 3 into commit 1
-git rebase -i <base-sha>
-# In the todo list:
-#   pick  abc1234  feat(api): add UserRepository SPI
-#   squash def5678  docs(api): align findByKey Javadoc wording
-#   squash ghi9012  feat(api): wire UserRepository into locator
+git reset --soft HEAD~1 && git commit --amend --no-edit
 ```
 
-For **MERGE** operations, use `reword` on the target and `squash` the others,
-then set the proposed combined message.
-
-Execute the rebase non-interactively by writing the instruction file directly:
+**Multi-commit squashes:** build the rebase todo and execute non-interactively:
 ```bash
-git rebase -i --autosquash <base-sha>
+# Write the todo file
+PLAN=$(mktemp)
+cat > "$PLAN" <<'PLAN_EOF'
+pick abc1234 feat(api): add UserRepository SPI
+squash ghi9012 docs(api): align findByKey Javadoc wording
+pick jkl0123 feat(engine): add CaseRepository
+PLAN_EOF
+
+# Execute without opening an editor
+GIT_SEQUENCE_EDITOR="cp $PLAN" git rebase -i <base-sha>
+rm -f "$PLAN"
 ```
 
-Or construct the todo file explicitly if autosquash doesn't cover the plan.
-
-After rebase completes:
+For **MERGE** operations: write the combined message to a temp file and amend
+immediately after the rebase:
 ```bash
-git log --oneline <original-range-equivalent>
+git commit --amend -m "feat(blackboard): PlanItem strict lifecycle with ..."
 ```
 
-Show the same table format used in the plan, now as a completed record:
-
+After execution, show the result in the same group format with real post-rebase SHAs:
 ```
-SQUASH RESULT — <N> → <M> commits
+✅ <N> → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
 
-| SHA     | Message                                          | Action      | Result / Reason                                                        |
-|---------|--------------------------------------------------|-------------|------------------------------------------------------------------------|
-| abc1234 | feat(api): add UserRepository SPI                | ✅ KEEP     | `feat(api): add UserRepository SPI and wire into locator` (+ def5678) |
-| def5678 | feat(api): wire UserRepository into ServiceLocator | 🔀 MERGE ↑ | *(unified — two halves of same capability)*                            |
-| ghi9012 | docs(api): align findByKey Javadoc wording       | 🔽 SQUASH ↑ | *(absorbed — docs follow feature)*                                     |
-...
-
-> **Result:** <M> commits. <one-line narrative>.
-
-✅ <N> → <M> commits  (<squashed> squashed, <merged> merged, <dropped> dropped, <kept> unchanged)
+AFTER — what git log will show:
+────────────────────────────────────────────────────────────────
+<new-sha>  <message>
+<new-sha>  <message>
 ```
 
 ---
 
-## Step 6 — Push advice
+### Step 7 — Review gate
 
-If commits were originally pushed:
-> "Force-push required. Run: `git push --force-with-lease`
-> (--force-with-lease is safer than --force — it aborts if someone else pushed)"
+```
+Working branch: squash/wip-<branch>-<timestamp>
 
-If commits were unpushed:
-> "Ready to push: `git push`"
+Compare against original:
+  git diff <orig-branch>...squash/wip-<branch>-<timestamp>
+  git log --oneline <orig-branch>..squash/wip-<branch>-<timestamp>
+
+Push working branch for review by others? (YES / n)
+  YES — git push -u origin squash/wip-<branch>-<timestamp>
+
+Ready to swap? (YES / n / push-first)
+```
+
+Wait for explicit YES before proceeding to Step 8.
+
+---
+
+### Step 8 — Swap branches
+
+When the author (and any reviewers) are satisfied:
+
+```bash
+# Rename original to backup
+BACKUP="backup/pre-squash-${ORIG_BRANCH}-$(date +%Y%m%d)"
+git branch -m "$ORIG_BRANCH" "$BACKUP"
+
+# Rename working branch to original
+git branch -m "$WORK_BRANCH" "$ORIG_BRANCH"
+
+# Restore tracking
+git branch --set-upstream-to="origin/$ORIG_BRANCH" "$ORIG_BRANCH" 2>/dev/null || true
+
+# Force-push the squashed history
+git push --force-with-lease origin "$ORIG_BRANCH"
+```
+
+Confirm:
+```
+✅ Swap complete.
+  Active branch:  <orig-branch> (squashed history)
+  Backup branch:  backup/pre-squash-<orig-branch>-<YYYYMMDD> (original history)
+
+The backup is local only. To push it for off-machine safety:
+  git push origin backup/pre-squash-<orig-branch>-<YYYYMMDD>
+
+To undo entirely (before gc):
+  git checkout backup/pre-squash-<orig-branch>-<YYYYMMDD>
+  git branch -m <orig-branch> squash/wip-<orig-branch>-<timestamp>
+  git branch -m backup/pre-squash-<orig-branch>-<YYYYMMDD> <orig-branch>
+  git push --force-with-lease origin <orig-branch>
+```
+
+---
+
+### Step 9 — Backup cleanup (offered on future runs)
+
+On any subsequent `/git-squash` invocation, check for old backup branches:
+```bash
+git branch | grep "backup/pre-squash-"
+```
+
+If any exist, surface them before starting new work:
+```
+Old squash backups found:
+  backup/pre-squash-main-20260415    (21 days ago)
+  backup/pre-squash-feat-auth-20260502    (4 days ago)
+
+Delete any? Enter branch names, "all", or "none" to skip:
+```
+
+Only delete on explicit user confirmation. Deletion is permanent once past git gc.
+
+---
+
+## Pre-Push Workflow (fast — unpushed commits only)
+
+When invoked in response to the pre-push hook, skip Steps 0, 1, 7, 8, and 9.
+Commits are unpushed — in-place squash is safe, no force-push or branch swap needed.
+
+1. **Step 2:** Resolve unpushed range (`@{u}..HEAD`)
+2. **Step 3:** Classify per policy
+3. **Step 4:** Show summary
+4. **Step 5:** Show plan and get approval
+5. **Step 6:** Execute in-place
+6. **Push:** `git push` (no force needed — history wasn't shared yet)
 
 ---
 
 ## Installing the pre-push hook
 
-The pre-push hook blocks obvious squash candidates before they reach the remote.
-It performs a mechanical pattern check — not the full AI analysis — and exits 1
-if patterns are found, prompting the user to run `/git-squash` first.
+The pre-push hook checks unpushed commits for obvious squash candidates and exits 1
+if found, prompting the user to run `/git-squash` first. It never runs filter-repo.
 
-**Install:**
 ```bash
 HOOK_SRC="$HOME/.claude/skills/git-squash/hooks/pre-push"
 HOOK_DEST="$(git rev-parse --git-dir)/hooks/pre-push"
@@ -259,8 +438,7 @@ else
 fi
 ```
 
-Run this once per repository. The hook stays in `.git/hooks/` (not committed).
-Bypass with `git push --no-verify` after manually confirming the history is clean.
+Bypass with `git push --no-verify` after manually confirming history is clean.
 
 ---
 
@@ -268,9 +446,17 @@ Bypass with `git push --no-verify` after manually confirming the history is clea
 
 | Mistake | Why It's Wrong | Fix |
 |---------|----------------|-----|
-| Squashing pushed commits without warning | Rewrites shared history | Always warn and require explicit confirmation |
-| Auto-applying without showing summary | Author loses visibility | Always show summary first |
-| Using `--force` instead of `--force-with-lease` | Overwrites concurrent pushes | Always recommend `--force-with-lease` |
+| Resolving commit range before filter-repo | filter-repo rewrites all SHAs; range is stale | Always resolve range after Phase 0 completes |
+| Running filter-repo without `--refs` | Rewrites entire repo history, not just working branch | Always pass `--refs refs/heads/$WORK_BRANCH` |
+| Claiming to filter CLAUDE.md sections | filter-repo operates on whole file paths only | Offer whole-file filtering only; handle CLAUDE.md commits via squash pass |
+| Swapping branches without review gate | No chance for second opinion on pushed history | Always show review gate before swap |
+| Dropping commits with file changes | Silent data loss | Use Phase 1 filter-repo to strip files first; only drop truly empty commits |
+| Squashing a KEEP/MERGE commit from a different author | Rewrites attribution | Cross-author squash only for SQUASH-classified noise |
+| Using fast-path reset for non-HEAD squash pairs | Amends the wrong commit | Fast path only when squash pair is HEAD←HEAD~1 |
+| Running filter-repo from pre-push hook | Destructive rewrite must be deliberate | filter-repo on-demand only, never automatic |
+| Skipping Project Artifacts check | May filter project history | Always resolve Project Artifacts before scanning |
+| Using `git rebase -i` without GIT_SEQUENCE_EDITOR | Opens interactive editor; blocks | Always use `GIT_SEQUENCE_EDITOR="cp $PLAN"` |
+| Using `--force` instead of `--force-with-lease` | Overwrites concurrent pushes | Always use `--force-with-lease` |
 | Squashing commits with issue references | Loses traceability | Issue references are always KEEP — see policy |
 
 ---

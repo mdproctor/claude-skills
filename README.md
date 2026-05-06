@@ -189,6 +189,7 @@ For the layered architecture showing how skills relate to each other: [**Skills 
 - ✅ **Automatic CLAUDE.md sync** - Workflow docs stay current with convention changes
 - ✅ **Automatic README.md sync** - Skill catalog stays current (skills repos only)
 - ✅ **Universal document validation** - Automatic corruption detection prevents sync regressions across all project types
+- ✅ **Branch-isolated history compaction** - `git-squash` rewrites on a working branch with review gate and named backup before swap; never drops commits with file changes
 - ✅ **Modular documentation support** - Split large docs into focused modules, sync all files together, validate cross-file integrity
 - ✅ **Quarkus/Vert.x specialized** - Event loop awareness, BOM patterns, reactive patterns
 - ✅ **RED-GREEN-REFACTOR validated** - Tested under pressure, prevents resource leaks

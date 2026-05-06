@@ -12,19 +12,36 @@ the rest into it.
 
 ---
 
-## Always DROP — workspace operational artifacts
+## Phase 0 — Filter-repo (on-demand only)
 
-These commits record methodology and process, not code history. They belong in
-the workspace, not in the project's `git log`. Always drop regardless of size
-or content.
+**Never run automatically. Never run from the pre-push hook.**
 
-| Pattern | Reason |
-|---------|--------|
-| `docs: session handover ...` / `docs: session wrap ...` | Operational handoff — pure process noise |
-| `docs: add blog entry ...` / `docs: add project blog entry ...` | Workspace diary — not code history |
-| `docs(claude): ...` / `docs: ... in CLAUDE.md` / `chore: ... in CLAUDE.md` | Workspace methodology updates |
-| `chore: retroactive issue linkage ...` | Commit metadata update — no code change |
-| `ci: retrigger` / `ci: trigger CI for PR` | Mechanical CI artifact — zero information |
+Filter-repo strips workspace artifact files from history before any compaction
+runs. `--prune-empty` then removes commits that become empty. The KEEP/SQUASH/MERGE
+pass runs only on commits with remaining project file changes.
+
+**When to run:** Only during on-demand `/git-squash` when workspace artifact
+commits are found in the range. The Q&A UI (see SKILL.md Step 0) asks the
+author what to filter before proceeding.
+
+**What counts as a workspace artifact path** (default candidates for filtering):
+- `HANDOFF.md` — session handover files
+- `docs/_posts/*.md` in non-blog repos — personal diary entries
+
+**Important:** filter-repo operates on whole file paths only — it cannot strip
+sections within a file. Never offer to filter "personal methodology sections of
+CLAUDE.md". Instead, `docs(claude):` commits with personal methodology content
+are handled by the squash pass (row 11) or flagged as candidates there.
+
+**What is NOT a workspace artifact** (never filter by default):
+- Any path declared in `## Project Artifacts` in CLAUDE.md
+- `docs/_posts/` in a `type: blog` project — the blog IS the project
+- `docs/adr/` — architecture decisions are project history
+- `CLAUDE.md` project-useful content (build commands, naming conventions, test patterns)
+
+**Exception — truly empty commits:** A commit with zero file changes
+(e.g. a bare `ci: retrigger` that touched nothing) can be dropped directly
+in the squash pass. No filter step needed — there are no files to strip.
 
 ---
 
@@ -40,7 +57,7 @@ or content.
 | `perf(scope): ...` with ≥ 10 lines changed | Performance change — the tradeoff matters |
 | `adr: ...` | Architecture decision record — always standalone |
 | `docs: <filename>.md` introducing a new document | New reference material — standalone if substantive |
-| Any commit with code changes referencing an issue number (`Closes #N`, `Refs #N`) | Traceability — standalone regardless of size |
+| Any commit with code changes referencing an issue number (`Closes #N`, `Refs #N`) | Traceability — standalone regardless of size. **Exception:** a pure docs commit sharing the same issue ref as the immediately preceding feat commit is a MERGE candidate (row 10 below) — that case is a documentation follow-on, not a standalone contribution. |
 
 ---
 
@@ -60,13 +77,14 @@ Process rows in order — first match wins.
 | 8 | `docs(scope): align Javadoc ...` / `docs(scope): fix wording` / `docs(scope): add missing ...` | Squash into the feature commit it follows |
 | 9 | `docs: fix stale ... references post-rename` / `docs: fix stale ... references` (multiple trailing fixups after a rename commit) | MERGE all into the rename commit — they are part of the same sweep |
 | 10 | `docs: ...` with issue reference immediately following `feat: ...` with the same issue reference | MERGE into the feat — same issue, same sitting |
-| 11 | `fix(test): ...` where the same test class was fixed in the previous commit | Squash — same test being hardened |
-| 12 | `fix(test): ...` adjusting timing, bounds, or parameters with no scenario change | Squash — test mechanical adjustment, not new scenario |
-| 13 | `ci: use GH_PAT for ...` / `ci: standardise publish workflow` / `ci: add workflow_dispatch` / `ci: fix ...` | Squash into preceding commit, or DROP if no meaningful target |
-| 14 | `fix(ci): ...` / `build: bump` when a feature commit follows | Squash into the feature it unblocked |
-| 15 | `fix(ci): ...` / `ci: retrigger` / `build: bump` when no feature follows | ❌ DROP — see Always DROP table |
-| 16 | Any commit with `< 5 lines changed` (excluding blank lines and imports) and no issue reference | Squash into preceding commit |
-| 17 | Multiple commits with near-identical messages on the same class/file | Identify the most complete, integrate unique content, squash the rest |
+| 11 | `docs(claude): ...` updating project-useful content (build commands, test patterns, naming conventions, architecture) | SQUASH into the related feature or chore commit it follows |
+| 12 | `fix(test): ...` where the same test class was fixed in the previous commit | Squash — same test being hardened |
+| 13 | `fix(test): ...` adjusting timing, bounds, or parameters with no scenario change | Squash — test mechanical adjustment, not new scenario |
+| 14 | `ci: use GH_PAT for ...` / `ci: standardise publish workflow` / `ci: add workflow_dispatch` / `ci: fix ...` | Squash into preceding commit, or DROP if truly empty (zero file changes) |
+| 15 | `fix(ci): ...` / `build: bump` when a feature commit follows | Squash into the feature it unblocked |
+| 16 | `fix(ci): ...` / `ci: retrigger` / `build: bump` when no feature follows, **and zero file changes** | ❌ DROP — truly empty, no files to preserve |
+| 17 | Any commit with `< 5 lines changed` (excluding blank lines and imports) and no issue reference | Squash into preceding commit |
+| 18 | Multiple commits with near-identical messages on the same class/file | Identify the most complete, integrate unique content, squash the rest |
 
 ---
 
@@ -134,18 +152,22 @@ inseparable parts of the same change.
 
 **No preceding KEEP target:** Squash forward into the next KEEP commit instead.
 
+**docs(claude): personal methodology:** If a `docs(claude):` commit updates personal
+working-style content (collaboration preferences, session methodology) rather than
+project conventions, it is a Phase 0 filter-repo candidate — not a squash target.
+The skill's Q&A UI will surface it.
+
+**Cross-author squash:** Only squash a commit from a different author when it is
+already classified SQUASH — formatting, CI, spelling, mechanical noise with no design
+insight. Noise has no meaningful attribution regardless of whose name is on it.
+
+If a commit would otherwise be KEEP or MERGE, never squash it across an author
+boundary. Flag it in the plan and leave it standalone. The other author made a real
+contribution; it stays attributed to them.
+
 ---
 
 ## Examples
-
-### Drop — workspace operational artifacts
-```
-❌ DROP  docs: session handover 2026-05-02 — CI fixes and normative layer doc
-❌ DROP  docs: add blog entry 2026-05-01 — three intermittent test failures
-❌ DROP  docs(claude): update CLAUDE.md — fix stale paths post-ecosystem rename
-❌ DROP  chore: retroactive issue linkage for naming consistency sweep
-❌ DROP  ci: retrigger after quarkus-ledger findScore() publish
-```
 
 ### Keep all — each commit tells a distinct story
 ```
@@ -191,6 +213,12 @@ SQUASH ← chore: pin jandex-maven-plugin 3.1.2 in root pluginManagement
 SQUASH ← chore: add jandex-maven-plugin for CDI bean discovery
 ```
 
+### Squash — docs(claude) project-useful content
+```
+KEEP   → feat(engine): add CaseMetaModelRepository
+SQUASH ← docs(claude): update testing patterns — add @QuarkusIntegrationTest convention
+```
+
 ### Merge — feat and its docs commit share same issue
 ```
 MERGE ← feat: add PostgreSQL LISTEN/NOTIFY broadcaster for distributed SSE (#93)
@@ -199,9 +227,13 @@ INTO  → feat: add PostgreSQL LISTEN/NOTIFY broadcaster for distributed SSE —
         with documented configuration and usage (#93)
 ```
 
-### Drop — purely mechanical CI
+### Drop — truly empty commit (zero file changes)
 ```
-❌ DROP  ci: use GH_PAT for cross-repo repository_dispatch
-❌ DROP  ci: add workflow_dispatch trigger to publish workflow
-❌ DROP  ci: standardise publish workflow — consistent build/test/publish/dispatch chain
+❌ DROP  ci: retrigger  ← git show confirms zero files changed
+```
+
+### Filter-repo (Phase 0, on-demand only) — workspace artifact files stripped from history
+```
+FILTER → HANDOFF.md removed from 3 commits (session handovers — no project content)
+         3 commits became empty after strip → pruned automatically by --prune-empty
 ```

@@ -164,6 +164,20 @@ Intelligent commit workflow for custom project types (working groups, research, 
 
 **Triggers:** "commit" in repositories with `type: custom` declared in CLAUDE.md.
 
+#### **git-squash**
+History compaction that cleans commit noise before it reaches the remote:
+- **Branch isolation** — all rewriting happens on a dedicated working branch; original is untouched until the author approves the swap
+- **Two-phase approach** — Phase 1 strips workspace artifact files (HANDOFF.md, blog entries in non-blog repos) via `git filter-repo --prune-empty always`; Phase 2 squashes/merges remaining commits
+- **Project Artifacts awareness** — reads `## Project Artifacts` from CLAUDE.md to avoid filtering project history; if section absent, asks user and offers to write it
+- **Backup naming convention** — original branch renamed to `backup/pre-squash-<branch>-<YYYYMMDD>` before swap; cleanup offered on future runs
+- **Cross-author guard** — refuses to squash KEEP/MERGE commits across author boundaries; cross-author squash only permitted for noise (formatting, CI, spelling)
+- **DROP only for truly empty commits** — commits with file changes are never dropped without filtering first
+- **Pre-push hook** — mechanical pattern check on unpushed commits only; in-place squash, no branch creation, never runs filter-repo
+
+**Features:** Branch swap with undo instructions · Phase 0 filter-repo report · group-first squash plan · MERGE message side-by-side comparison · "already clean" callout · git-log-formatted AFTER block · "no content lost" impact line · backup cleanup on future runs · separate `squash-policy.md` with full classification rules and examples
+
+**Triggers:** `/git-squash`, "squash history", "compact commits", "clean up commits", or pre-push hook flagging squash candidates.
+
 ### Layer 2: Documentation Sync
 
 #### **update-claude-md**
