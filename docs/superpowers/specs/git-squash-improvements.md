@@ -27,19 +27,30 @@ The v2 report (`/tmp/ledger-squash-plan-v2.md`, 2026-05-06) had six deficiencies
 
 #### Semantic grouping — spec/plan docs find their implementing commit
 
-Design spec and implementation plan commits should be absorbed into their implementing `feat:` commit, not the nearest preceding KEEP. The skill must scan **forward** from the spec/plan to find the implementing commit:
+Design spec and implementation plan commits must be absorbed into their implementing `feat:/refactor:` commit, not the nearest preceding KEEP. The skill scans **forward** from the spec/plan to find the implementing commit.
 
-1. Extract the topic from the spec/plan message (e.g. "LedgerSupplement architecture", "trust score forgiveness", "EU AI Act Art.12")
-2. Scan forward chronologically for a feat:/refactor: commit whose subject or scope matches that topic
-3. If found within a reasonable window (e.g. 30 commits ahead): add the spec/plan to that commit's group
-4. If not found (implementing commit outside range or unidentifiable): flag the spec/plan commit with ⚠️ rather than silently absorbing into an unrelated KEEP
+**Matching rules (strict — applied in order):**
 
-Examples of correct semantic grouping:
-- `docs: design spec — LedgerSupplement architecture` → absorbed into `feat(supplement): add LedgerSupplement base + three concrete supplements`
-- `docs: implementation plan — trust score forgiveness mechanism` → absorbed into `feat(forgiveness):` commits
-- `docs: design spec — EU AI Act Art.12 compliance surface` → absorbed into `feat(art12):` commits
-- `docs: design spec — causality query API` → absorbed into `feat(causality): findCausedBy`
-- `docs: implementation plan for DESIGN.md split` → absorbed into `docs: split DESIGN.md into core and capabilities`
+1. **Target type**: only `feat:` and `refactor:` commits are valid targets. Never match to `adr:`, `docs:`, `chore:`, `test:`, or any other type — even if word overlap is high.
+
+2. **Extract topic words**: strip the prefix (`docs: design spec — `, `docs: implementation plan for `, etc.) and tokenise the remainder into words of 4+ characters.
+
+3. **Word overlap scoring**: for each candidate feat:/refactor: commit in the forward window (up to 80 commits ahead), compute intersection size between topic words and commit subject words. A score of 1 (single word match) is sufficient to register — **threshold is 0, any match wins**. Best score wins; ties go to the earliest (first) matching commit.
+
+4. **Match found**: add the spec/plan to `spec_pending[implementing_commit_sha]` — it will join that commit's group as a `spec_pre` entry when the implementing commit is processed.
+
+5. **No match found**: flag the spec/plan with ⚠️ in the output; do NOT silently absorb it into the nearest preceding KEEP (which is always semantically wrong for planning docs).
+
+**Why threshold = 0, not 1:** with `best_score = 1` as the initial value, a single-word match (score = 1) is not strictly greater than the initial, so it fails to register and the spec falls through to unmatched. Topic words like "forgiveness" or "supplement" uniquely identify the implementing commit — a single-word match is sufficient and correct.
+
+**Tie-breaking — earliest match wins:** when two feat: commits have equal overlap, prefer the earlier one. Specs belong to the first implementation, not a later enhancement.
+
+**Examples of correct semantic grouping:**
+- `docs: design spec — LedgerSupplement architecture` → `feat(supplement): add LedgerSupplement base + three concrete supplements` (word: "ledgersupplement")
+- `docs: implementation plan — trust score forgiveness mechanism` → `feat(forgiveness): ForgivenessParams record` (word: "forgiveness")
+- `docs: design spec — EU AI Act Art.12 compliance surface` → `feat(art12):` commits (word: "art12")
+- `docs: design spec — causality query API` → `feat(causality): findCausedBy` (words: "causality", "query")
+- `docs: implementation plan for DESIGN.md split` → `docs: split DESIGN.md into core and capabilities` — NOTE: this is a `docs:` target, which is an exception; only flag if no feat:/refactor: match exists and the implementing commit is clearly identifiable
 
 #### Session handover as KEEP — detect and flag
 
