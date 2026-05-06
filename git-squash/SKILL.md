@@ -68,9 +68,15 @@ grep -A 50 "^## Project Artifacts" CLAUDE.md 2>/dev/null
 **If `## Project Artifacts` exists:** paths listed there are project content — never
 filter them by default.
 
-**Blog routing detection:** Before presenting any Q&A, check for `blog-routing.yaml`:
+**Blog routing detection:** Before presenting any Q&A, check for `blog-routing.yaml`
+in all three locations (most-specific wins):
 ```bash
-find . -name "blog-routing.yaml" -maxdepth 3 2>/dev/null
+# 1. Project-level override
+cat blog-routing.yaml 2>/dev/null
+# 2. Workspace-level override (if workspace path is known)
+cat <workspace>/blog-routing.yaml 2>/dev/null
+# 3. Global default
+cat ~/.claude/blog-routing.yaml 2>/dev/null
 ```
 
 Also detect blog-style paths actually present in the commit range:
@@ -78,26 +84,31 @@ Also detect blog-style paths actually present in the commit range:
 git log --name-only --format="" <range> | grep -E "(^blog/|^docs/_posts/|^diary/)" | sort -u
 ```
 
+If any routing config has external `destinations` (type: git or type: github pointing
+outside this repo), blog paths are external for this project.
+
 Cross-reference routing config, Project Artifacts, and detected paths:
 
-| Routing | Project Artifacts | Action |
-|---------|-------------------|--------|
-| External routing exists | Path listed as artifact | **Contradiction** — ask user to reconcile |
-| External routing exists | Path absent | Consistent — blog path is a filter-repo candidate |
-| No routing | Path listed as artifact | Consistent — blogs are project content, skip filtering |
-| No routing | Path absent | **Ask user**: external or project content? |
+| Routing found | Project Artifacts | Action |
+|--------------|-------------------|--------|
+| External routing (any level) | Path listed as artifact | **Contradiction** — ask user to reconcile |
+| External routing (any level) | Path absent | Consistent — blog path is a filter-repo candidate |
+| No routing found | Path listed as artifact | Consistent — blogs are project content, skip filtering |
+| No routing found | Path absent | **Ask user**: external or project content? |
 
-If the user says **external** but no `blog-routing.yaml` exists, offer to create one:
+If the user says **external** but no routing exists at any level, offer to create one:
 ```
-Blog entries detected in blog/ but no blog-routing.yaml found.
+Blog entries detected in blog/ but no blog-routing.yaml found (checked project,
+workspace, and ~/.claude/blog-routing.yaml).
 Without routing config, blog entries may keep accumulating in this repo.
 
 Set up blog routing now? (YES / n)
-  Destination repo (e.g. mdproctor/my-blog):
+  Add to global ~/.claude/blog-routing.yaml, or create a project-level override? (global / project)
+  Destination path/repo:
 ```
 
-If YES, write a `blog-routing.yaml` stub to the original branch and note it for
-committing separately after the squash is complete.
+If YES, write the routing config and note it for committing separately after the
+squash is complete.
 
 **If `## Project Artifacts` is absent:** ask the user about common workspace artifact
 paths found in the commit range, then offer to write the section:
