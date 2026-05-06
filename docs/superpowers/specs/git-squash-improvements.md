@@ -121,6 +121,24 @@ Use a three-column table per group, matching the engine reconstruction plan styl
 > **Result:** 1 commit.
 ```
 
+### Curated result logic for KEEP rows
+
+**The curated result column must be assessed, not copied.** Copying the original message verbatim is wrong — it tells the reader nothing was evaluated.
+
+For every KEEP row, assess the absorbed commits:
+
+| Absorbed content | Curated result |
+|-----------------|----------------|
+| Pure noise only (Javadoc, style, chore, stale refs, CLAUDE.md, CI no-ops) | `*(message adequate — no change)*` |
+| Spec/plan commits on the same topic as the KEEP | `*(message adequate — planning docs absorbed)*` |
+| Significant follow-ons that add context (CI behavior change, source move, meaningful docs) | Proposed enhanced message incorporating the context |
+| MERGE partner (another feat: at same level) | Always show unified message — never "message adequate" |
+
+For absorbed rows: always show what they contribute (or why they don't), not just "absorbed":
+- `*(absorbed — Javadoc follow-on; message adequate)*`
+- `*(absorbed — same rename scope; reflected in curated message)*`
+- `*(absorbed — pre-implementation planning doc; message adequate)*`
+
 ### Already Clean section
 
 ```
@@ -131,7 +149,18 @@ Representative: feat(supplement), feat(merkle), feat(causality), feat(prov),
 feat(reactive), feat(trust), feat(privacy), feat(enricher), feat(art12), feat(#62)...
 ```
 
-### AFTER block
+### AFTER block — post-squash simulation (not pre-squash)
+
+**Critical:** The AFTER sample must show the simulated post-squash history, not the working branch state before squash is applied. The working branch still has all pre-squash commits — reading from it directly shows noise commits that will be absorbed.
+
+**Correct approach:** collect the KEEP commit from every group (clean and action), sort by original chronological position descending (most recent first — matching git log order), show the top 10:
+
+```python
+all_keeps = sorted([g['keep'] for g in groups], key=lambda c: c['idx'], reverse=True)
+sample = all_keeps[:10]
+```
+
+Display with curated message (not original) where enhanced:
 
 ```
 ## AFTER — what `git log --oneline` will show
@@ -142,10 +171,10 @@ feat(reactive), feat(trust), feat(privacy), feat(enricher), feat(art12), feat(#6
   ──────────────────────────────────
    227  commits — no content lost
 
-Sample (most recent 10):
-  <sha>  <message>
+Sample (most recent 10 of 227 — post-squash simulation):
+  <sha>  <curated message or original if adequate>
   ...
-  (run `git log --oneline <work-branch>` to see all 227)
+  (run `git log --oneline <work-branch>` after squash executes to verify)
 ```
 
 ### Offer to write markdown file
