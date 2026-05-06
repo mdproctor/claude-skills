@@ -1,43 +1,59 @@
-# Handover — 2026-04-14
+# Handover — 2026-05-06
 
-**Branch:** main
-**Head:** ae6c63e
+**Branch:** main  
+**Head:** 81a8e25
+
+*Previous handover (2026-04-14): `git show 5c3c516:HANDOFF.md`*
+
+---
+
+## What Changed Since Last Handover
+
+### New skills
+
+**`git-squash`** — commit squash skill with pre-push hook. Policy trained on casehub work/ledger/qhorus/claudony patterns. Rich diff table UX showing what gets squashed before committing. Pre-PR run is a safety net, not the primary step.
+
+### Major skill work
+
+**`workspace-init`** — extensive rework across ~20 commits:
+- Family detection: detects multi-repo parent/child structures, offers nested workspace paths, batch creates workspaces for all family members, root `.gitignore` excludes child workspace repos
+- Wizard UI: all questions batched into single `AskUserQuestion` calls (restores step-wizard header UI)
+- Naming: `wsp-` tag with prefix/postfix choice; postfix always at the end (`casehub-work-wsp` not `casehub-wsp-work`)
+- CLAUDE.md handling: explicit A/B choice (migrate vs keep in project); decision shown in plan and gated before execution; three explicit cases, none skippable
+- Check B: always diffs local vs GitHub — clones missing peers
+- Privacy: respects user's privacy choice — no longer hardcodes `--private`
+- Specs routing: stays in project under `docs/specs/` — not migrated to workspace
+- Superpowers install offered at Step 10c
+- Dry-run plan shown before execution (Step 1.5)
+- `**Name:**` field enforced — if absent, skill stops and directs user to fix
+
+**`update-claude-md` + `write-blog`** — `**Name:**` field detection and enforcement added. Both skills stop if `Name:` absent from workspace CLAUDE.md.
+
+**`handover` + `install-skills`** — content boundary protection extended beyond `write-blog`. Explicit author override allowed (default is not absolute).
+
+**`issue-workflow`** — commit-msg hook added to hard-block unlinked commits.
+
+**UX sweep** — replaced all "press Enter to proceed" with explicit typed responses (`go`, `YES`, `auto`) throughout all skills. Enter is unusable in chat UI.
+
+**`write-blog`** — mandatory third-party reference review before any entry is saved.
+
+**`adr`** — default location changed to `docs/adr/` (MADR/e-adr community standard).
+
+### Open issues (from previous handover — verify still open)
+
+- `#50` blog pipeline, `#52` publish-blog, `#53` Jekyll pages, `#54` workspace routing epic, `#56` epic-start SHA baseline
 
 ---
 
-## What Changed This Session
+## State
 
-**Blog entry types** — article/note taxonomy shipped. New frontmatter fields (`entry_type`, `subtype`, `projects`, `tags`) on all 14 blog entries. `validate_blog_frontmatter.py` added (now 19 validators). `yaml_utils.py` upgraded from homemade parser to PyYAML.
-
-**Workspace routing design** — three-layer routing config specced and implemented. Targets: `project`, `workspace`, `alternative <path>`. Global default in `~/.claude/CLAUDE.md ## Routing`. `epic-close` reads all three layers with routing preview before execution. Workspace-init template shows routing section. SHA baseline ratchet bug documented: when `design → workspace`, epic-start must record workspace/main HEAD SHA.
-
-**Health sweeps (×2)** — fixed `garden`→`forage` in README (5 sections), web app stats bar (44→48, 17→19, 295→1016), blog INDEX.md (1→14 entries), CLAUDE.md tier list, validator counts across all primary docs.
-
-**Test coverage: 446 → 1016** — 22 new test files across two passes. All 19 registered validators now covered. Key TDD findings captured to forage: `validate_links` uses `requests.get` not `requests.head`; `validate_cross_document` writes to stderr; `validate_examples` silently skips `{...}` JSON as template.
-
-**Forage: 6 entries submitted** — PR [Hortora/garden#43](https://github.com/Hortora/garden/pull/43). Three gotchas (worktree cwd, enum identity, sed comment), one technique (TDD agents read source first), two undocumented (requests.get, json template skip).
-
-**Issues:** `#57` closed (test coverage). Open: `#50` blog pipeline, `#52` publish-blog, `#53` Jekyll pages, `#54` workspace routing epic, `#56` epic-start SHA baseline.
-
----
+Working tree clean. All commits on `main`, pushed.
 
 ## Immediate Next Step
 
-**Smoke tests** (deferred since yesterday):
-1. `/epic` (start) → verify `design/JOURNAL.md` + `design/.meta` created with SHA
-2. `java-update-design` → verify journal entry written (not project DESIGN.md)
-3. `/epic` (close, dry run) → verify three-layer routing preview shown correctly
+Verify open issues are still current:
+```bash
+gh issue list --repo mdproctor/cc-praxis --state open
+```
 
-Then: resume issue/epic creation from yesterday's interrupted flow (we got as far as creating epics #50 and #54 before the workspace routing insight interrupted).
-
----
-
-## References
-
-| Context | Where |
-|---------|-------|
-| Blog entry types spec | `docs/superpowers/specs/2026-04-14-blog-entry-types-design.md` |
-| Workspace routing spec | `docs/superpowers/specs/2026-04-14-workspace-routing-design.md` |
-| Blog entry (this session) | `docs/_posts/2026-04-14-mdp02-closing-gaps.md` |
-| Open epics | GitHub: #50 (blog pipeline), #54 (workspace routing) |
-| Previous handover | `git show HEAD~1:HANDOFF.md` |
+Then check if workspace-init smoke tests are still queued (they were deferred earlier this session pending manual testing).
