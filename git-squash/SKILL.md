@@ -215,13 +215,22 @@ final classification for each commit.
 
 #### 3a — Gather raw data
 
-For every commit in the range, collect:
+For every commit in the range, collect subject **and body**:
 ```bash
-# Message, author, timestamp, file set
-git log --format="%H %ae %ai %s" <range>
-git show --name-only --format="" <sha>   # per commit
+# Subject + body — %b captures the full commit body after the subject line
+git log --format="%H%n%ae%n%ai%n%s%n%b%n---END---" <range>
+git show --name-only --format="" <sha>   # file set per commit
 git show --stat <sha>                    # line counts for small-commit detection
 ```
+
+Parse each commit's body separately from its subject. The body often contains
+the rationale, the constraint, the approach tried first — information that must
+survive into the curated message if not already captured in the subject.
+
+**Non-trivial body content:** a body is non-trivial if it contains more than
+`Co-authored-by:`, `Signed-off-by:`, or blank lines. Non-trivial bodies from
+SQUASH commits must be condensed and appended to the surviving KEEP commit's body
+if the information isn't already captured in the curated subject.
 
 #### 3b — Detect conventional commits
 
@@ -418,6 +427,22 @@ Use a three-column table per group matching the engine reconstruction plan style
 The heading is the semantic group title (KEEP message or synthesized), group number
 is secondary metadata for refusal commands only.
 
+**Curated result for KEEP rows — active assessment required:**
+
+Read all commit messages in the group (subjects **and** bodies). Ask: does the
+KEEP subject line fully describe what this group represents after absorption?
+
+Assessment logic:
+1. Identify what meaningful context absorbed commits contribute — not noise (Javadoc,
+   style, CI retrigger, stale refs), but real capabilities wired in, constraints
+   surfaced, structural changes made, or approaches documented in commit bodies.
+2. If absorbed commits add context not captured in the KEEP subject → **synthesize
+   an enhanced subject** that incorporates it. Keep it concise.
+3. If the KEEP subject genuinely covers the whole group → write
+   `*(message adequate — unchanged)*` to confirm the assessment happened.
+4. **Never silently echo the original KEEP message** in the Curated result column.
+   Either an enhanced subject or an explicit adequacy assessment — nothing else.
+
 **Plain SQUASH group:**
 ```markdown
 ## <semantic group title>
@@ -425,24 +450,27 @@ is secondary metadata for refusal commands only.
 
 | Commit | Action | Curated result |
 |--------|--------|----------------|
-| `<sha>` <KEEP message> | ✅ KEEP | `<KEEP message>` |
-| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
-| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+| `<sha>` <KEEP message> | ✅ KEEP | *(message adequate — unchanged)* |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>; body: <note if non-trivial body>)* |
 
 > **Result:** 1 commit.
 ```
 
-**MERGE group (show Final message explicitly):**
+Or with enhancement:
+```markdown
+| `<sha>` <KEEP message> | ✅ KEEP | `<enhanced subject incorporating absorbed context>` |
+| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>; context reflected in curated subject)* |
+```
+
+**MERGE group:**
 ```markdown
 ## <semantic group title>
 *Compaction group — <N> commits → 1*
-**Final message:** `<proposed unified message>`
 
 | Commit | Action | Curated result |
 |--------|--------|----------------|
-| `<sha>` <KEEP message> | ✅ KEEP | *(see Final message above)* |
-| `<sha>` <merged message> | 🔀 MERGE ↑ | *(unified — <what combining adds>)* |
-| `<sha>` <absorbed message> | 🔽 SQUASH ↑ | *(absorbed — <reason>)* |
+| `<sha>` <KEEP message> | ✅ KEEP | `<unified subject — combines both messages, richer than either alone>` |
+| `<sha>` <merged message> | 🔀 MERGE ↑ | *(unified — <what combining adds that neither message alone captured>)* |
 
 > **Result:** 1 commit.
 ```
