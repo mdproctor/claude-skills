@@ -368,7 +368,9 @@ This is an inherent limit of automated grouping. The skill cannot resolve it wit
 - Semantically related: `*(absorbed — chore cleanup; message adequate)*`
 - Proximity grouped: `*(absorbed — proximity grouped; no semantic match to KEEP — relocatable if desired)*`
 
-**Detection:** compute word overlap between absorbed commit subject and KEEP commit subject. Zero overlap → proximity group annotation. Non-zero → normal absorption note.
+**Detection:** compute word overlap between absorbed commit subject and KEEP commit subject, using a proximity-specific stop list that excludes ubiquitous technical words: `config, code, test, type, file, data, base, core, main, util, impl, changes, update, adds`. Zero meaningful overlap → proximity group annotation.
+
+Words like "config" appearing in both a chore (`session config changes`) and an unrelated fix (`gate config, cleanup`) do not constitute semantic relationship — they are generic enough to appear in any commit. Without the stop list, such false overlaps suppress the proximity annotation.
 
 This makes it easy for reviewers to spot cases that warrant manual relocation without marking them as errors.
 
