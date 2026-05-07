@@ -716,6 +716,28 @@ GIT_SEQUENCE_EDITOR="cp $PLAN" git rebase -i <base-sha>
 rm -f "$PLAN"
 ```
 
+**Multi-issue reference preservation:**
+
+Before finalising any curated message (SQUASH or MERGE groups), collect all issue
+references from every commit in the group — KEEP and all absorbed:
+
+```bash
+# Extract all issue refs from a commit message
+git log -1 --format="%s%n%b" <sha> | grep -oE '(Closes|Refs|Fixes) #[0-9]+'
+```
+
+Deduplicate across the group: `Closes #N` takes precedence over `Refs #N` for the
+same issue number. Append any refs not already in the KEEP commit's message:
+
+```
+feat: add TrustGateService (Closes #33)   ← KEEP
+docs(trust): note capabilityTag (Refs #34) ← absorbed
+
+Curated: feat: add TrustGateService — Closes #33, Refs #34
+```
+
+Both issues get a link in GitHub and both get the commit in their timeline.
+
 **MERGE messages — conventional commit enforcement:**
 
 For each MERGE operation, before finalising the unified message:
@@ -736,6 +758,35 @@ For each MERGE operation, before finalising the unified message:
    ```bash
    git commit --amend -m "<unified message>"
    ```
+
+**Post-squash interval tree verification:**
+
+After rebase completes, verify content integrity at sampled points — not just HEAD.
+HEAD-only verification can miss silent content loss in earlier commits.
+
+Sample ~5 evenly-spaced commits across the compacted range and compare each against
+the corresponding original commit in the backup branch:
+
+```bash
+TOTAL=$(git log --oneline <base>..<work-branch> | wc -l)
+STEP=$(( TOTAL / 5 ))
+git log --format="%H" <base>..<work-branch> | \
+  awk -v step=$STEP 'NR % step == 0 {print}' | while read compacted_sha; do
+  subject=$(git log -1 --format="%s" "$compacted_sha")
+  original_sha=$(git log --format="%H %s" backup/pre-squash-* 2>/dev/null \
+    | grep -F "$subject" | head -1 | awk '{print $1}')
+  if [ -n "$original_sha" ]; then
+    diff_lines=$(git diff "$original_sha" "$compacted_sha" \
+      -- ':!HANDOFF.md' ':!blog/' 2>/dev/null | wc -l | tr -d ' ')
+    echo "$compacted_sha  diff=$diff_lines  ($subject)"
+  else
+    echo "$compacted_sha  original not found  ($subject)"
+  fi
+done
+```
+
+Any non-zero diff at a sample point (excluding stripped workspace artifact paths)
+warrants investigation before proceeding to the review gate. Report results to user.
 
 Show the result in group format with real post-rebase SHAs.
 

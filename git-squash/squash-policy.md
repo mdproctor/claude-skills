@@ -169,6 +169,15 @@ working-style content (collaboration preferences, session methodology) rather th
 project conventions, it is a Phase 0 filter-repo candidate — not a squash target.
 The skill's Q&A UI will surface it.
 
+**Multi-issue reference preservation:** When a group absorbs commits that carry
+issue references different from the KEEP commit's references, all unique refs must
+survive into the curated message. Collect every `Closes #N`, `Refs #N` from every
+commit in the group (KEEP + absorbed). Deduplicate: `Closes` takes precedence over
+`Refs` for the same issue number. Append any refs not already in the KEEP message.
+
+Example: `feat: add TrustGateService (Closes #33)` absorbs `docs(trust): note capabilityTag (Refs #34)` →
+curated message: `feat: add TrustGateService — Closes #33, Refs #34`
+
 **Cross-author squash:** Only squash a commit from a different author when it is
 already classified SQUASH — formatting, CI, spelling, mechanical noise with no design
 insight. Noise has no meaningful attribution regardless of whose name is on it.
