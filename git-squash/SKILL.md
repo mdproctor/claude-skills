@@ -435,16 +435,23 @@ Commit squash analysis — <N> commits in range
   Result: <N> commits → <M> commits — <absorbed> absorbed (no content lost), <dropped> dropped
 ```
 
-**For any range > 10 commits**, offer to write the plan to a file before showing it:
+**The plan is mandatory. Execution never happens without explicit user YES.**
 
-```
-Write the plan to a file for sign-off and review? (YES / n)
-  Default: docs/superpowers/specs/squash-plan-YYYY-MM-DD.md
-  (Check ## Artifact Locations in CLAUDE.md for the correct specs path)
+For any range > 10 commits, always write the full plan to a file on the working
+branch AND present it to the user before asking for approval. Never skip this step.
+Never execute Step 6 without having shown the plan and received YES.
+
+```bash
+# Determine plan path — check ## Artifact Locations in CLAUDE.md first
+PLAN_FILE="docs/superpowers/specs/squash-plan-$(date +%Y-%m-%d).md"
 ```
 
-If YES, write to the working branch. The file travels with the branch, can be pushed
-for others to review, and is discarded when the working branch is deleted after swap.
+Write the complete plan (all groups, three-column tables, curated results, AFTER block)
+to the working branch. Then say: "Plan written to `<path>`. Review it, then reply YES
+to execute, or tell me which groups to change." Wait for explicit YES.
+
+The file travels with the working branch for external review. Never offer a "skip"
+path that bypasses the plan — there is none for ranges > 10 commits.
 
 **Large-range handling (> 50 commits):** skip straight to a group view:
 
@@ -686,11 +693,17 @@ Show confirmation and wait for final YES.
 
 ---
 
-### Step 5b — Skip plan (if user says n)
+### Step 5b — User requests changes to plan
+
+The plan is always written and shown. If the user wants changes rather than
+outright YES:
 
 ```
-Apply all <N> squash/merge candidates? (YES / n / custom)
+Which groups to change? Enter group numbers to refuse, or describe what to adjust.
+Reply YES when the plan reflects what you want.
 ```
+
+Never proceed to Step 6 without YES. Never offer "apply all without reviewing."
 
 ---
 
