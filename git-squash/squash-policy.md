@@ -88,10 +88,10 @@ Process rows in order — first match wins.
 | 16 | `fix(ci): ...` / `ci: retrigger` / `build: bump` when no feature follows, **and zero file changes** | ❌ DROP — truly empty, no files to preserve |
 | 17 | Any commit with `< 5 lines changed` (excluding blank lines and imports) and no issue reference — **with exceptions below** | Squash into preceding commit |
 
-**Row 17 exceptions — never auto-squash by size alone:**
-- **Security-relevant paths:** any file whose path contains `auth`, `security`, `permission`, `secret`, `credential`, or `encryption` — a 2-line change to auth config may be critical
-- **Configuration files:** `application.properties`, `application.yml`, `*.yaml` config, `pom.xml` (when the change is a dependency version or property, not boilerplate)
-- **Zero file overlap with preceding KEEP:** if the small commit shares no files with the commit it would be squashed into, prefer standalone over proximity-forced attachment |
+**Row 17 guard — file overlap prerequisite before size-based auto-squash:**
+Before applying the size heuristic, check whether the small commit shares at least one file with the preceding KEEP commit. Zero file overlap = no semantic relationship = do not auto-squash by size. Prefer standalone KEEP micro-commit over proximity-forced wrong attachment.
+
+The specific path exemptions (security, config) are project-specific and cannot be applied generically. The file overlap requirement catches most false positives without requiring per-project configuration. |
 | 18 | Multiple commits with near-identical messages on the same class/file | Identify the most complete, integrate unique content, squash the rest |
 
 ---

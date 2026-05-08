@@ -104,7 +104,19 @@ Use **compaction format** with scope as the heading.
 **Strategy E — Flat (no context):**  
 No merge commits, no scope clusters. Use KEEP commit message as heading (existing behaviour).
 
-*Note: Strategies A (squash-merge SHA) and C (remote branch tip) are not implemented — they require GitHub API calls with uncertain availability and are specced in git-squash-improvements-v2.md for future work.*
+**Mode detection — reconstruction vs flat compaction:**
+
+Before attempting any strategy, detect which mode applies:
+
+```bash
+# Count merge-commit PRs in the range (row 2a: KEEP)
+git log --oneline <range> | grep -c "^[a-f0-9]* Merge pull request #"
+```
+
+- **≥ 1 PR merge commit found → Reconstruction mode**: run Strategy B. These boundaries are the primary signal; they override commit-message-based grouping.
+- **0 PR merge commits → Flat compaction mode**: skip Strategies A, B, C entirely. Go directly to Strategy D (scope clustering) or E (flat). The `gh pr list` call is skipped — it adds latency and the context it returns doesn't improve grouping for flat histories.
+
+*Strategies A (squash-merge SHA) and C (branch tip) are not implemented — specced in git-squash-improvements-v2.md for future reconstruction-only work.*
 
 **False grouping guard:** Only form a group if the commits are **contiguous**
 in the range. An intervening commit from a different scope or branch breaks
@@ -396,7 +408,7 @@ whatever KEEP precedes them. Instead:
 **Proximity-grouped resolution — scan forward before accepting a wrong attachment:**
 When a SQUASH commit has zero meaningful word overlap with its nearest preceding KEEP
 (PROXIMITY_STOP-filtered), do not immediately absorb it there. Instead:
-1. Scan forward up to 20 commits for a KEEP with overlap > 0
+1. Scan forward up to 5 commits for a KEEP with overlap > 0 (bounded to prevent spurious distant matches)
 2. If a better semantic home is found: re-group there; note in plan "relocated to semantic home"
 3. If no better home exists: promote the commit to KEEP micro-commit — a small standalone
    chore is better history than a wrong attachment
@@ -547,26 +559,32 @@ For **"full"** or for ranges ≤ 50 commits, continue to Step 5a.
 
 ### Step 5a — Full plan (if user says YES or range ≤ 50)
 
-#### Already-clean section — capability narrative
+#### Already-clean section
 
-Do not list individual commits. Group by scope cluster with counts:
+**Default (≤ 100 clean commits):** compact format. Reviewers care about what's changing, not the clean history in detail.
+
+```
+## Already Clean — <n> commits (no action needed)
+*To see all: `git log --oneline <base>..<work-branch>` excluding action groups.*
+
+Representative: feat(supplement), feat(merkle), feat(causality), feat(art12)...
+```
+
+**For > 100 clean commits** (reconstruction scale only): use the capability narrative table so the clean history reads as a project arc, not a dump:
 
 ```markdown
-## Already Clean — <n> commits (no action needed)
+## Already Clean — <n> commits
 
 | Capability | Commits | What was built |
 |------------|---------|----------------|
 | supplement | 14 | LedgerSupplement base, serialiser, V1002 migration, Art.22 example |
 | merkle | 12 | MMR algorithm, verification service, Ed25519 signed checkpoint |
 | causality | 8 | findCausedBy SPI + JPA, correlationId core, e2e tests |
-| ... | ... | ... |
 ```
 
-Group by: extract the scope from conventional commit (`feat(scope):`); cluster commits with the same scope together; write a 1-line summary of what the scope delivered using the most descriptive commit subjects. For commits without a scope, group under their type (feat, fix, test) with a brief summary.
+Group by scope from `feat(scope):` prefix; one summary line per scope from the most descriptive subjects.
 
-This makes the already-clean section readable as a project narrative, not a commit dump.
-
-#### Already-clean callout (legacy format — use narrative above for ranges > 20 clean commits)
+#### Already-clean callout
 
 ```
 ## Already Clean — <n> commits (no action needed)
@@ -661,26 +679,30 @@ Non-trivial body content (rationale, constraints, approach notes) belongs as a
 `📝` annotation line immediately after its table row — NOT inside the Curated result
 cell. This keeps the cell clean and the body visible for review.
 
-**Plain SQUASH group (message adequate — suppressed rows):**
+**Curated column visibility — show only when the result actually differs:**
 
-When all absorbed commits contribute nothing to the curated message (pure noise: style, chore, stale refs, CI one-liners), collapse the table to signal-only:
+The Curated result column is only shown when it adds signal. For KEEP rows:
+- **Result differs from original** (enhanced subject, MERGE synthesis): show full three-column table with Curated result
+- **Result = message adequate** (unchanged): show the KEEP row with only two visible columns — drop the Curated cell entirely. Do not collapse to a count (that loses the "assessed" signal); instead render: `| ✅ KEEP | ` with no third column.
+
+For a group where all absorbed commits are pure noise (style, chore, stale refs, CI one-liners) AND the KEEP message is unchanged, use the compact layout:
 
 ```markdown
 ## <semantic group title>
 *Compaction group — <N> commits → 1*
-**Final message:** *(message adequate — unchanged)*
 
-> Absorbed: <list absorbed subjects in a single line>
+✅ KEEP `<sha>` <subject>
+> Absorbed: <absorbed subjects on one line>
+
 > **Result:** 1 commit.
 ```
 
 Only expand to the full three-column table when:
-- The curated message is enhanced (synthesis happened)
+- The curated message is enhanced (Final message line is present)
 - An absorbed commit has a non-trivial body worth noting (📝)
 - A ⚠️ flag applies (handover, proximity-grouped, no-op pair)
-- The absorbed commit has meaningful content that the reviewer should be aware of
 
-This makes every shown table row carry signal — "message adequate — unchanged" rows are never shown individually.
+This preserves the "was assessed" signal while eliminating visual noise from unchanged rows.
 
 **SQUASH group with enhanced subject (Final message above table):**
 ```markdown
@@ -759,8 +781,21 @@ contains mixed content. Consider splitting manually before compacting, or accept
 
 #### AFTER block
 
-Show count arithmetic and a git-log-formatted sample so users can compare directly
-with their terminal:
+**Critical:** The AFTER sample must be generated from the working branch **after squash executes** (Step 6), not before. SHAs and commit count in the plan's AFTER block are estimates based on the KEEP commits identified in classification — the real values only exist post-execution.
+
+In the plan (pre-execution), show the simulation using KEEP commit SHAs sorted most-recent-first:
+```python
+# Simulate post-squash order: KEEP commits in reverse chronological order
+all_keeps_sorted = sorted([g['keep'] for g in groups], key=lambda c: c['idx'], reverse=True)
+sample = all_keeps_sorted[:10]
+```
+
+After squash executes (Step 6), regenerate the AFTER block from the actual working branch state:
+```bash
+git log --oneline <base>..<work-branch> | head -10
+```
+
+Never use `git log` on main, the backup branch, or any pre-squash state for the AFTER sample — those SHAs are stale and will include commits that were absorbed.
 
 ```
 ## AFTER — what `git log --oneline` will show
@@ -771,11 +806,10 @@ with their terminal:
   ──────────────────────────────────────────────
   <M>  commits — no content lost
 
-Sample (first 10 of <M>):
-  <sha>  <message>
+Sample (most recent 10 — from working branch after squash):
   <sha>  <message>
   ...
-  (run `git log --oneline <work-branch>` to see all <M>)
+  (run `git log --oneline <work-branch>` to verify)
 ```
 
 #### Refusal prompt
@@ -969,9 +1003,18 @@ as a new commit with a descriptive message, mark the original as SQUASH into it.
 
 Offer this resolution after showing the plan but before applying squash operations.
 
-### Step 6c — Post-squash quality gate
+### Step 6c — Post-squash quality check (opt-in)
 
-After squash executes (Step 6) but before the review gate, assess surviving commit quality:
+The quality check is a **companion tool, not an inline gate**. git-squash is about noise reduction; message quality is a separate concern with different triggers. Offer it at the review gate, not automatically:
+
+```
+Squash complete. Run quality check on surviving commits? (YES / n)
+  Checks: subject length vs diff size, missing rationale bodies, non-conventional subjects.
+```
+
+Only run if the user says YES. If they decline, proceed directly to the review gate.
+
+When run, assess surviving commit quality:
 
 ```bash
 # For each KEEP commit in the compacted range
