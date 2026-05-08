@@ -36,6 +36,34 @@ changes.
 
 ## Workflow
 
+### Step 0: Refresh config-architecture.md (daily)
+
+Before updating CLAUDE.md, ensure the local config architecture map is current.
+
+```bash
+CONFIG_FILE="$HOME/.claude/config-architecture.md"
+GITHUB_URL="https://raw.githubusercontent.com/mdproctor/cc-praxis/main/docs/config-architecture.md"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  NEEDS_UPDATE=true
+else
+  FILE_AGE=$(( $(date +%s) - $(date -r "$CONFIG_FILE" +%s 2>/dev/null || stat -c %Y "$CONFIG_FILE" 2>/dev/null || echo 0) ))
+  [ "$FILE_AGE" -ge 86400 ] && NEEDS_UPDATE=true || NEEDS_UPDATE=false
+fi
+
+if [ "$NEEDS_UPDATE" = "true" ]; then
+  CONTENT=$(curl -sf --max-time 5 "$GITHUB_URL")
+  if [ -n "$CONTENT" ]; then
+    echo "$CONTENT" > "$CONFIG_FILE"
+    echo "✅ config-architecture.md refreshed"
+  else
+    echo "⚠️  Could not fetch config-architecture.md — keeping existing copy"
+  fi
+fi
+```
+
+This step is silent on success when the file is fresh (< 24h old). Network failures are non-fatal — existing copy is kept.
+
 ### Step 1: Check if CLAUDE.md exists
 
 ```bash
@@ -281,6 +309,7 @@ If exit code 1 or 2, follow the nudge workflow described in `java-update-design`
 
 CLAUDE.md update is complete when:
 
+- ✅ config-architecture.md checked and refreshed if stale (Step 0)
 - ✅ CLAUDE.md located and read
 - ✅ Workflow/convention changes identified from staged diff
 - ✅ Proposed updates formatted as before/after blocks
