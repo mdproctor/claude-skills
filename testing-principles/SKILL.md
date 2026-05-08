@@ -121,9 +121,17 @@ def test_sort_is_idempotent(xs):
 
 ### 5 — Regression Anchors
 
-For bug fixes: write a failing test reproducing the bug *before* fixing it.
-This test is permanent — it proves the bug is fixed and prevents recurrence.
-A bug fixed without a test will recur.
+### ⛔ Bug Fix Workflow — Mandatory
+
+When investigating a bug:
+
+1. **Write a failing test first.** Before touching the fix, write a test that reproduces the problem. Run it and confirm it fails for the right reason.
+2. **Apply the fix.** Only after seeing the test fail.
+3. **Verify the test passes.** Run the test again. It must go green.
+4. **Verify no regressions.** Run the full test suite.
+5. **Report back only after step 4 passes.** Never claim a fix is complete until the tests confirm it.
+
+A test written after the fix can pass for the wrong reasons. The failing test is the evidence that the fix addresses the actual bug, not a coincidental symptom. A bug fixed without a test will recur.
 
 ---
 
