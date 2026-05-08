@@ -420,35 +420,9 @@ msg = f"User {user.name} logged in from {ip_address}"
 
 ## Refactoring — IntelliJ First
 
-Use a three-tier tool strategy, prioritized in this order:
-
-**Tier 1 — `mcp__intellij-index` (always prefer for semantic operations)**
-
-| Tool | Use for — not bash |
-|------|--------------------|
-| `ide_find_references` | **Before any rename or delete** — understand full impact |
-| `ide_find_definition` | Navigate to symbol declaration |
-| `ide_find_implementations` | All implementations of an interface or abstract method |
-| `ide_type_hierarchy` | Full class/interface inheritance tree |
-| `ide_call_hierarchy` | Who calls this / what this calls |
-| `ide_find_class` | Locate a class by name |
-| `ide_find_file` | Locate a file by name |
-| `ide_refactor_rename` | **Safe rename** — updates all references across project |
-| `ide_move_file` | **Safe move** — updates imports |
-| `ide_refactor_safe_delete` | Delete only if no usages |
-| `ide_search_text` | Fast identifier search (faster than grep for exact names) |
-| `ide_diagnostics` | Errors, warnings, quick-fix intentions |
-| `ide_index_status` | Check IDE is ready before batch operations |
-
-**Tier 2 — `mcp__intellij` (build, format, file ops)**
-
-`build_project`, `get_file_problems`, `replace_text_in_file`, `reformat_file`,
-`find_files_by_glob`, `list_directory_tree`, `execute_terminal_command`
-
-**Tier 3 — Native tools** for reading, searching content, and targeted text edits.
-
-If no MCP is available for a semantic operation (rename, move, find-references):
-inform the user — do not silently fall back to text tools.
+**Prerequisites: `ide-tooling`** — invoke it for the full IntelliJ MCP tool guide.
+Always prefer IntelliJ MCPs over bash for any rename, move, find-references, or navigation.
+If no MCP is available for a semantic operation, inform the user — do not silently fall back.
 
 ## Common Pitfalls — These Thoughts Mean STOP
 
@@ -471,7 +445,8 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 
 ## Prerequisites
 
-**This skill builds on `testing-principles`.** Apply all rules from:
+**This skill builds on `testing-principles` and `ide-tooling`.** Apply all rules from:
+- **ide-tooling**: IntelliJ MCP tool guide — which tool to use for rename, move, find-references, navigation, diagnostics
 - **testing-principles**: test taxonomy (unit/integration/E2E), happy path / correctness / robustness coverage, coverage analysis checklist, high-value prioritization
 
 ## Skill Chaining

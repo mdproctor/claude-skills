@@ -383,61 +383,9 @@ Keep modified lines to a minimum to reduce conflicts and ease review:
 
 ## Refactoring
 
-Use a **three-tier tool strategy**, prioritized in this order:
-
-**Tier 1 — `mcp__intellij-index` (always prefer for semantic operations)**
-
-When available, always use `mcp__intellij-index` first — it provides a rich
-semantic index with accurate cross-project references, type hierarchies, and
-safe refactoring that text-based tools cannot match. Check `ide_index_status`
-if results seem stale; indexing may still be in progress.
-
-| Tool | Use for — not bash |
-|------|--------------------|
-| `ide_find_references` | **Before any rename or delete** — understand full impact |
-| `ide_find_definition` | Navigate to symbol declaration |
-| `ide_find_implementations` | All implementations of an interface or abstract method |
-| `ide_find_super_methods` | What does this method override |
-| `ide_type_hierarchy` | Full class/interface inheritance tree |
-| `ide_call_hierarchy` | Who calls this method / what this method calls |
-| `ide_find_class` | Locate a class when you know the name |
-| `ide_find_file` | Locate a file when you know the name |
-| `ide_refactor_rename` | **Safe rename** — updates all references across project |
-| `ide_move_file` | **Safe move** — updates package declarations and imports |
-| `ide_refactor_safe_delete` | Delete only if no usages; lists usages if blocked |
-| `ide_search_text` | Fast identifier/word search (faster than grep for exact names) |
-| `ide_diagnostics` | Errors, warnings, and quick-fix intentions in a file |
-| `ide_index_status` | Check IDE is ready before batch semantic operations |
-| `ide_sync_files` | Refresh IDE after external file changes |
-
-**Tier 2 — `mcp__intellij` (for what intellij-index cannot do)**
-
-Use for build/run, formatting, file browsing, and database tools:
-
-| Tool | Use for |
-|------|---------|
-| `build_project` | Compile and get build errors |
-| `execute_run_configuration` | Run a named test or application configuration |
-| `get_symbol_info` | Hover documentation / type info at a position |
-| `get_file_problems` | File-level inspection results |
-| `replace_text_in_file` | Targeted text replacement (not semantic — no reference awareness) |
-| `reformat_file` | Apply code formatting rules |
-| `get_project_modules` | Project module structure |
-| `get_project_dependencies` | Library dependencies |
-| `find_files_by_glob` | Find files matching a glob pattern |
-| `find_files_by_name_keyword` | Find files by name keyword |
-| `list_directory_tree` | Browse project structure |
-| `execute_terminal_command` | Run shell commands in IDE terminal |
-
-**Tier 3 — Native tools (routine operations)**
-
-Use Read, Edit, Grep, Glob for reading files, searching content, and targeted
-text edits. Always appropriate for non-semantic operations.
-
-If no MCP server is available when a semantic operation is needed:
-1. Inform the user — do not silently fall back to text tools for renames or moves
-2. Ask: continue with text-based tools (with risk of missed references), or start IntelliJ first?
-3. If continuing without MCP: use `git diff` to validate scope, make changes conservatively, run build/tests after each logical step
+**Prerequisites: `ide-tooling`** — invoke it for the full IntelliJ MCP tool guide.
+Always prefer IntelliJ MCPs over bash for any rename, move, find-references, or navigation.
+If no MCP is available for a semantic operation, inform the user — do not silently fall back.
 
 ## Common Pitfalls — These Thoughts Mean STOP
 
@@ -461,7 +409,8 @@ If you catch yourself thinking any of these, **STOP** and apply the correct appr
 
 ## Prerequisites
 
-**This skill builds on `testing-principles`.** Apply all rules from:
+**This skill builds on `testing-principles` and `ide-tooling`.** Apply all rules from:
+- **ide-tooling**: IntelliJ MCP tool guide — which tool to use for rename, move, find-references, navigation, diagnostics
 - **testing-principles**: test taxonomy (unit/integration/E2E), happy path / correctness / robustness coverage, coverage analysis checklist, high-value prioritization
 
 ## Skill Chaining
