@@ -350,6 +350,22 @@ Only classify a commit as DROP if `git show --stat` confirms **zero files change
 etc. all match their base type (`chore:`, `style:`) for classification purposes.
 A scope in parentheses does not make a chore or style commit a KEEP.
 
+**Stale-ref classification takes priority over broad type patterns:**
+Check `is_stale_ref` BEFORE the broad `docs:` KEEP and `fix:` KEEP patterns.
+`docs: fix stale repo name references post-rename` is SQUASH, not KEEP.
+`fix: update all stale repo name references` is SQUASH, not KEEP.
+The stale-ref pattern overrides the type prefix.
+
+**CI development arc detection:**
+When 3 or more consecutive `ci:` / `fix(ci):` commits appear in the range, they
+represent a development arc (scratch → working state). Do not absorb them all into
+whatever KEEP precedes them. Instead:
+1. Identify the arc: all contiguous `ci:` / `fix(ci):` commits (none of which has
+   a non-CI commit between them)
+2. Promote the **last** commit in the arc to KEEP — it represents the working outcome
+3. Classify all preceding commits in the arc as SQUASH, absorbed into that final KEEP
+4. The arc is self-contained — it does not absorb unrelated preceding commits
+
 **Rename sweep grouping — stale-ref fixups anchor to the rename, not nearest KEEP:**
 When the range contains a rename commit (`refactor: rename to X — groupId, package...`),
 scan forward from it for all stale-reference fixup commits:

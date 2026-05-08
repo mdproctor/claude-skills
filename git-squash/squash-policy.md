@@ -155,6 +155,19 @@ concatenate — one tight message beats four messages stapled together.
 by trailing fixup commits. MERGE all trailing fixups into the rename commit — they are
 inseparable parts of the same change.
 
+**Stale-ref classification takes priority over broad type patterns:** A commit matching
+the stale-ref pattern (`docs: fix stale ...`, `fix: update all stale repo name references`,
+`docs: replace stale artifact names`, etc.) is always SQUASH regardless of type prefix.
+The `is_stale_ref` check must run before the broad `docs:` KEEP and `fix:` KEEP patterns.
+`docs: fix stale repo name references post-rename` is SQUASH. `fix: update all stale repo
+name references` is SQUASH. The rename sweep should pick them all up.
+
+**CI development arc — final commit is KEEP, intermediates SQUASH:** When 3 or more
+consecutive `ci:` / `fix(ci):` commits appear in the range, they represent a development
+arc (scratch → working state). Classify the **last** commit in the arc as KEEP; all
+preceding CI commits in the arc are SQUASH absorbed into it. Never absorb a CI arc into
+an unrelated preceding KEEP — the arc is a self-contained unit.
+
 **No preceding KEEP target:** Squash forward into the next KEEP commit instead.
 
 **Temporal scrutiny:** When two or more commits from the same author fall within a
