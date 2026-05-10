@@ -186,6 +186,20 @@ working-style content (collaboration preferences, session methodology) rather th
 project conventions, it is a Phase 0 filter-repo candidate — not a squash target.
 The skill's Q&A UI will surface it.
 
+**Double issue-close detection:** After grouping, scan all surviving KEEP commits
+for duplicate `Closes #N` references. If two KEEPs both claim `Closes #N` for the
+same issue, flag it — only one should be authoritative. Convention: the PR merge
+commit closes the issue; the individual branch commit that preceded it should use
+`Refs #N` instead.
+
+**Consistent proximity-grouped flagging:** The ⚠️ proximity-grouped annotation
+applies to ANY commit absorbed into a semantically unrelated KEEP — not only chore
+commits. CI commits (`ci:`, `fix(ci):`), formatting commits (`style:`), and any
+other commit with zero meaningful word overlap with its KEEP target all receive the
+same ⚠️ proximity-grouped label. Inconsistent flagging (some proximity groups
+flagged, others not) creates a false impression that unflagged groups are semantically
+correct.
+
 **Multi-issue reference preservation:** When a group absorbs commits that carry
 issue references different from the KEEP commit's references, all unique refs must
 survive into the curated message. Collect every `Closes #N`, `Refs #N` from every

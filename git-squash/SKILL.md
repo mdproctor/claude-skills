@@ -116,7 +116,25 @@ git log --oneline <range> | grep -c "^[a-f0-9]* Merge pull request #"
 - **≥ 1 PR merge commit found → Reconstruction mode**: run Strategy B. These boundaries are the primary signal; they override commit-message-based grouping.
 - **0 PR merge commits → Flat compaction mode**: skip Strategies A, B, C entirely. Go directly to Strategy D (scope clustering) or E (flat). The `gh pr list` call is skipped — it adds latency and the context it returns doesn't improve grouping for flat histories.
 
-*Strategies A (squash-merge SHA) and C (branch tip) are not implemented — specced in git-squash-improvements-v2.md for future reconstruction-only work.*
+**Strategy A — Squash-merge SHA match (reconstruction):**
+
+When `PR_DATA` is available and reconstruction mode is confirmed, match each PR's
+`mergeCommit.oid` against `RANGE_SHAS`. A match means that single commit on the
+current branch represents the entire squash-merged PR. Recover the original branch
+commits for grouping:
+
+```bash
+# For each PR where mergeCommit.oid is in RANGE_SHAS:
+BRANCH_COMMITS=$(git log --format="%H %s" \
+  origin/<headRefName> ^<merge-base-with-main> 2>/dev/null)
+```
+
+If the source branch is still available remotely, use its commits as the group
+members. If unavailable, the squash commit stands alone as its own group.
+Use **reconstruction format** — the squash already happened; we are recovering
+the original commits to classify them. Seed the curated message from the PR title.
+
+*Strategy C (branch tip) is not implemented — lower priority than A and B.*
 
 **False grouping guard:** Only form a group if the commits are **contiguous**
 in the range. An intervening commit from a different scope or branch breaks
@@ -404,6 +422,77 @@ whatever KEEP precedes them. Instead:
 2. Promote the **last** commit in the arc to KEEP — it represents the working outcome
 3. Classify all preceding commits in the arc as SQUASH, absorbed into that final KEEP
 4. The arc is self-contained — it does not absorb unrelated preceding commits
+
+**Double issue-close detection (run after grouping, before showing plan):**
+
+After all groups are formed, scan all surviving KEEP commits for duplicate `Closes #N`
+references. If two or more KEEPs both claim `Closes #N` for the same issue number,
+flag it in the plan:
+
+```bash
+# Extract all Closes refs from surviving KEEP commit subjects + bodies
+git log --format="%H %s%n%b" <work-branch> | grep -oE 'Closes\s+#[0-9]+'
+```
+
+For each issue number that appears more than once with `Closes`:
+```
+⚠️  Duplicate Closes #N: both <sha1> and <sha2> claim to close this issue.
+    Only one should be authoritative. Suggest changing one to `Refs #N`.
+    Typically: the PR merge commit closes; the individual branch commit refs.
+```
+
+Surface this flag in the plan before the approval prompt. Do not block execution —
+the author may accept both or choose to amend one.
+
+**Consistent proximity-grouped flagging:**
+
+The ⚠️ proximity-grouped annotation must apply to ALL cases where a commit is
+absorbed into a semantically unrelated KEEP — not only chore commits. Apply it when:
+- A `ci:` or `fix(ci):` commit is absorbed into a non-CI KEEP
+- A `style:` or formatting commit is absorbed into an unrelated KEEP
+- Any commit with zero meaningful word overlap (after PROXIMITY_STOP filter) with its KEEP
+
+CI commits absorbed into blackboard feats, test commits, or unrelated fixes are
+proximity-grouped by the same definition as chore commits near unrelated feats. Flag
+them identically.
+
+**Absorption target SHA verification (pre-execution, before building rebase todo):**
+
+Before building the rebase todo, verify every non-group KEEP target SHA exists on
+the working branch:
+
+```bash
+# Verify all referenced SHAs exist
+for sha in <all_absorption_target_shas>; do
+  git cat-file -e "$sha" 2>/dev/null || echo "MISSING: $sha"
+done
+```
+
+If any SHA is missing: halt and report. A missing SHA means the plan was generated
+against a different branch state than the current working branch (the branch was
+amended, rebased, or additional commits were added since plan generation). Do not
+proceed until the plan is regenerated.
+
+**Chronological ordering check for cross-group absorptions:**
+
+When a SQUASH commit targets a KEEP from a *different* group (i.e., the target is
+not the immediately preceding KEEP), verify the chronological relationship:
+
+```bash
+# Does SQUASH commit appear before or after its target in the range?
+git log --format="%H" <range> | grep -n "<squash_sha>\|<target_sha>"
+```
+
+If the SQUASH commit appears *before* its target in the range (i.e., older), the
+standard rebase todo cannot use a simple `squash` line — it would need to be listed
+after the target's `pick` line, which requires manual reordering of the todo. Flag
+this explicitly in the plan:
+
+```
+⚠️  Ordering: <squash_sha> is chronologically before <target_sha>.
+    The rebase todo must list this commit as `squash` after the target's `pick` line.
+    Verify the todo ordering before executing.
+```
 
 **Proximity-grouped resolution — scan forward before accepting a wrong attachment:**
 When a SQUASH commit has zero meaningful word overlap with its nearest preceding KEEP
@@ -948,36 +1037,40 @@ Detect by looking for: migrate/restore pairs on the same path, add/revert pairs
 on the same subject, or any two absorbed commits that together produce a zero diff
 on their shared files.
 
-**Post-squash interval tree verification:**
+**Post-squash interval tree verification (automatic — mandatory, not a placeholder):**
 
-After rebase completes, verify content integrity at sampled points — not just HEAD.
-HEAD-only verification can miss silent content loss in earlier commits.
-
-Sample ~5 evenly-spaced commits across the compacted range and compare each against
-the corresponding original commit in the backup branch:
+After rebase completes, automatically sample and verify. Run before showing the
+result to the user — do not defer to the executor's judgment on whether to run this.
 
 ```bash
 TOTAL=$(git log --oneline <base>..<work-branch> | wc -l)
-STEP=$(( TOTAL / 5 ))
+STEP=$(( TOTAL / 5 ))  # 5 evenly-spaced samples
+
 git log --format="%H" <base>..<work-branch> | \
   awk -v step=$STEP 'NR % step == 0 {print}' | while read compacted_sha; do
   subject=$(git log -1 --format="%s" "$compacted_sha")
-  original_sha=$(git log --format="%H %s" backup/pre-squash-* 2>/dev/null \
+  original_sha=$(git log --format="%H %s" <backup-branch> 2>/dev/null \
     | grep -F "$subject" | head -1 | awk '{print $1}')
   if [ -n "$original_sha" ]; then
     # Use printf not echo: echo "" | wc -l returns 1 (false positive for empty diff)
     diff_out=$(git diff "$original_sha" "$compacted_sha" \
       -- ':!HANDOFF.md' ':!blog/' 2>/dev/null)
     diff_lines=$(printf '%s' "$diff_out" | wc -l | tr -d ' ')
-    echo "$compacted_sha  diff=$diff_lines  ($subject)"
+    status=$([ "$diff_lines" -eq 0 ] && echo "✅ diff=0" || echo "⚠️  diff=$diff_lines")
+    echo "  $status  [$subject]"
   else
-    echo "$compacted_sha  original not found  ($subject)"
+    echo "  ⚠️  not found in backup  [$subject]"
   fi
 done
 ```
 
-Any non-zero diff at a sample point (excluding stripped workspace artifact paths)
-warrants investigation before proceeding to the review gate. Report results to user.
+**Interpreting results — show all 5 to the user:**
+- `diff=0` — content intact ✓
+- `diff=N (small, N<30)` — expected timeline shift from squashing; verify HEAD diff is clean
+- `diff=N (large, N≥30)` — investigate before proceeding; may indicate content loss or conflict resolution changed content
+- `not found` — sample commit's subject changed during squash; check nearby commit
+
+Do not proceed to the review gate if any large diffs or unexplained "not found" entries appear.
 
 Show the result in group format with real post-rebase SHAs.
 
