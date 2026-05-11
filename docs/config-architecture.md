@@ -99,7 +99,7 @@ For each topic: the **authoritative** location, plus acceptable secondary appear
 | Location | Role |
 |----------|------|
 | `PLATFORM.md` ← **authoritative** | Full 6-step protocol |
-| All casehubio project CLAUDE.md | Reference via local path |
+| All casehubio project CLAUDE.md | Reference via `~/claude/casehub/parent/docs/` path; note says "skip gracefully if not cloned" with GitHub raw URL fallback |
 | Prompt snippet | Reminder to read it at session start |
 
 ### Behavioral norms (engagement, directness, no sycophancy)
