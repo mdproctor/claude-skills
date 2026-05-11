@@ -33,6 +33,8 @@ description: >
 | | Imports | Use simple names with imports, not FQNs |
 | | Documentation | Javadoc only for non-trivial methods; focus on why |
 | | Commits | Keep commits focused on the problem; isolate refactors in separate commits |
+| | Consolidation | Check all levels — class, module, repo — before duplicating |
+| | APIs | Prioritise clean interfaces; improve wrong-shaped ones rather than working around them |
 
 ## Rule Priority Decision Flow
 
@@ -264,10 +266,33 @@ for (int count : counts) {
 and any code path called at high frequency. Config parsing, startup code, and
 build-time logic are generally not critical — use idiomatic Java there.
 
-## Code duplication
+## Code duplication and consolidation
 
 Before writing new helpers or utilities, check for existing code that can be
 reused. Prefer extension or composition over duplication.
+
+Consolidation applies at every level:
+- **Within a class or package** — extract shared logic into a method or utility
+- **Across modules in a multi-module project** — if two modules implement the same
+  thing differently, find the right module to own it and consolidate there
+- **Across repos in a multi-repo platform** — duplication across repo boundaries is
+  the most expensive kind: it diverges silently, creates inconsistent behaviour, and
+  is hard to find. When you spot it, consolidate into the repo that naturally owns
+  the capability, even if it's more work
+
+When no existing module is the right home, creating a new module or API to own the
+shared capability is the correct call — don't force it into the wrong module.
+
+## Clean APIs and abstractions
+
+Prioritise well-designed interfaces over expedient ones. A clean API that models the
+problem correctly is worth the extra abstraction or module. If an existing abstraction
+is the wrong shape, improve it rather than working around it — workarounds accumulate
+and make the codebase harder to reason about.
+
+When designing an API or SPI, ask: can someone understand what this does without
+reading its implementation? Can the implementation change without breaking consumers?
+If not, the boundary needs work.
 
 ## Code clarity
 
