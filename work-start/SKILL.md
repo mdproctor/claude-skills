@@ -80,7 +80,8 @@ Do not proceed without an issue number.
 
 ## 4 — Verify IntelliJ MCPs
 
-Call `ide_index_status` (intellij-index) and `get_project_modules` (intellij).
+Call `mcp__intellij-index__ide_index_status` and `mcp__intellij__get_project_modules`.
+Do NOT use the `LSP` tool — that is Claude Code's built-in LSP, not IntelliJ.
 
 **If either MCP is unavailable:**
 - Stop immediately
