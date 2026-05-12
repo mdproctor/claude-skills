@@ -502,6 +502,8 @@ For contributors and skill authors: [QUALITY.md](QUALITY.md) covers the full val
 │   └── SKILL.md
 ├── custom-git-commit/                   # User-configured commits with primary doc sync
 │   └── SKILL.md
+├── implementation-doc-sync/             # Session-scoped doc sync after implementation
+│   └── SKILL.md
 ├── update-claude-md/                    # CLAUDE.md workflow documentation sync
 │   ├── SKILL.md
 │   ├── starter-templates.md             # CLAUDE.md starter templates (skills + code repos)
