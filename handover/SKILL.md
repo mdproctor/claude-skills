@@ -119,17 +119,15 @@ Session wrap — create before writing the handover?
 [x] 3  update-claude-md  sync any new workflow conventions
 [x] 4  forage sweep      check for gotchas, techniques, undocumented
 [x] 5  protocol sweep    check for project rules worth formalising
-[ ] 6  journal-entry     document any design changes this session not yet in design/JOURNAL.md
+[?] 6  journal-entry     document any design changes this session not yet in design/JOURNAL.md  ← ON if mid-epic (design/.meta exists), OFF otherwise
 
 Type numbers to toggle (e.g. "2 6"), "all" to toggle all on/off, or "go" to proceed:
 ```
 
-- **Default:** write-blog, update-claude-md, forage sweep, protocol sweep ticked; design-snapshot and journal-entry OFF
+- **Default:** write-blog, update-claude-md, forage sweep, protocol sweep ticked; design-snapshot OFF; journal-entry depends on epic state (see below).
 - **design-snapshot is off by default** — the project model is a single authoritative design document updated in place, not a growing snapshot chain. Only tick it for an explicit, intentional design freeze (e.g. a major milestone or architectural pivot worth preserving immutably). Without a workspace configured, the skill will fail or create the wrong directory.
 - **protocol sweep is on by default** — scans the session for project-specific rules worth formalising. Skip it for sessions that worked purely in universal tools with no project-specific rules established or re-enforced. Only applies when the project has a `docs/protocols/` directory (or `parent/docs/protocols/` for parent-repo layouts).
-- **journal-entry is off by default** — only tick if `design/JOURNAL.md` exists
-  (i.e. Claude is on an epic branch). If it exists and there were design decisions
-  this session not yet journalled, tick it and write the entry before the handover.
+- **journal-entry is ON by default when on an epic branch** — check `ls design/.meta 2>/dev/null` before showing the checklist. If `.meta` exists the session is mid-epic and design reasoning is about to be lost; default journal-entry to ON. If not on an epic branch, default to OFF.
 - **"all":** if all are on → turn all off; if any are off → turn all on
 - **Numbers:** toggle individual items
 - **"go" (or "ok", "yes", blank Enter if the UI allows it):** proceed with current selections

@@ -487,7 +487,7 @@ Draft:
 
 ## Session Start
 
-Run `add-dir <absolute-path-to-project>` before any other work.
+Run `add-dir <absolute-path-to-project>` and `add-dir <absolute-path-to-workspace>` before any other work.
 
 ## Artifact Locations
 
@@ -515,12 +515,15 @@ Run `add-dir <absolute-path-to-project>` before any other work.
 ## Git Discipline
 
 Two git repositories are active in every session:
-- **Workspace** (`<absolute-path-to-workspace>`) — methodology artifacts: handover, blog, specs, plans, ADRs
-- **Project repo** (`<absolute-path-to-project>`) — source code
+- **Workspace** (`<absolute-path-to-workspace>`) — plans, blog (staging), snapshots, handover
+- **Project repo** (`<absolute-path-to-project>`) — source code, ADRs (`docs/adr/`), specs
 
-Before any git operation, run `git rev-parse --show-toplevel` to confirm which repo is currently active. Do not assume — the session may have opened in either. cd to the correct repo before staging:
-- Source code commits → project repo
-- Methodology artifacts → workspace
+Never rely on CWD for git operations — the session may have started in either repo. Always use explicit paths:
+```bash
+git -C <absolute-path-to-workspace> add <file>    # workspace artifacts
+git -C <absolute-path-to-project> add <file>      # project artifacts
+```
+The file path determines the repo: if the file lives under the workspace path, use the workspace; if under the project path, use the project.
 
 ## Rules
 
@@ -534,13 +537,19 @@ Per-artifact routing destinations (optional). If absent, all artifacts route to 
 
 | Artifact   | Destination | Notes |
 |------------|-------------|-------|
-| adr        | project     | lands in `docs/adr/` |
-| blog       | project     | |
-| design     | project     | |
-| snapshots  | project     | |
-| specs      | project     | lands in `docs/specs/` — design specs are project knowledge |
+| adr        | project     | lands in `docs/adr/` — promoted at epic close |
+| specs      | project     | lands in `docs/specs/` — promoted at epic close |
+| blog       | workspace   | staged here; published to mdproctor.github.io via publish-blog at epic close |
+| plans      | workspace   | stay in workspace permanently |
+| design     | workspace   | epic journal stays in workspace |
+| snapshots  | workspace   | stay in workspace permanently |
+| handover   | workspace   | |
 
-Valid destinations: `project` · `workspace` · `alternative ~/path/to/repo/`
+**Blog directory:** `<absolute-path-to-workspace>/blog/`
+
+Valid destinations: `project` · `workspace` · `mdproctor.github.io` · `alternative ~/path/to/repo/`
+
+`mdproctor.github.io` — blog publishing destination, resolved via `~/.claude/blog-routing.yaml`.
 
 To set a global default across all workspaces, add to `~/.claude/CLAUDE.md`:
 \`\`\`markdown
