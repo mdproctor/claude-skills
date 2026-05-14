@@ -60,17 +60,26 @@ This skill is invoked by `java-git-commit` when:
 
 ## Workflow
 
-### Step 1: Locate JOURNAL.md (workspace mode detection)
+### Step 1: Detect workspace mode
+
+All three conditions must be true for workspace mode. Check in order:
 
 ```bash
-ls design/JOURNAL.md 2>/dev/null || echo "not found"
+# 1. Are we on an epic branch?
+git branch --show-current   # must match epic-* pattern
+
+# 2. Does .meta exist?
+ls design/.meta 2>/dev/null
+
+# 3. Does JOURNAL.md exist?
+ls design/JOURNAL.md 2>/dev/null
 ```
 
-- If found → **workspace mode**: proceed with journal entry workflow below.
-- If not found → **direct mode**: no workspace configured, or not on an epic branch.
-  Fall back to the existing DESIGN.md sync workflow (unchanged — update the
-  project `DESIGN.md` directly as before). Do not prompt; do not create JOURNAL.md.
-  `epic` is responsible for creating it.
+- All three present → **workspace mode**: proceed with journal entry workflow below.
+- Any absent → **direct mode**: fall back to updating project `DESIGN.md` directly.
+  Do not prompt; do not create JOURNAL.md. `epic` is responsible for creating it.
+
+**Why all three?** JOURNAL.md presence alone is unreliable — a stale JOURNAL.md from a previous epic that was not cleaned up would silently activate workspace mode when it should not. Branch + `.meta` + JOURNAL.md together confirm an active epic.
 
 In workspace mode: read `design/JOURNAL.md` to understand which sections have
 already been journalled during this epic before adding or updating an entry.
