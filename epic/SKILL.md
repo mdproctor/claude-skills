@@ -32,6 +32,40 @@ meta_exists=$(test -f design/.meta && echo yes || echo no)
 
 ## Workflow A — Starting an Epic
 
+### Step A0 — Validate state before starting
+
+Read the project path from workspace CLAUDE.md:
+```bash
+grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+```
+
+Check both repos are on the same branch:
+```bash
+project_branch=$(git -C <project-path> branch --show-current)
+workspace_branch=$(git branch --show-current)
+```
+
+If they differ, stop:
+```
+⚠️ Branch mismatch: project is on '<project_branch>', workspace is on '<workspace_branch>'.
+   Switch both repos to the same branch before starting an epic.
+```
+
+Check for orphaned `.meta` on main:
+```bash
+if [ "$workspace_branch" = "main" ] && [ -f design/.meta ]; then
+  echo "⚠️ Orphaned design/.meta found on main — a previous epic may not have been cleanly closed."
+  cat design/.meta
+  echo "Remove design/.meta and design/JOURNAL.md to clean up? (y/n)"
+fi
+```
+
+If the user confirms cleanup:
+```bash
+rm -f design/.meta design/JOURNAL.md
+git add -A && git commit -m "chore: remove orphaned epic scaffold from main"
+```
+
 ### Step A1 — Get epic name
 
 Ask: "What's the epic name? (e.g. `epic-payments`)"
@@ -226,11 +260,12 @@ Use `<design-repo>` throughout B3, B7a, and B7b for all DESIGN.md operations.
 ### Step B2 — Inventory artifacts
 
 ```bash
-ls adr/ 2>/dev/null | grep -v INDEX.md      # ADRs
-ls blog/ 2>/dev/null | grep -v INDEX.md     # Blog entries
-ls snapshots/ 2>/dev/null | grep -v INDEX.md  # Snapshots
-ls specs/ 2>/dev/null                        # Specs (user selects)
-cat design/JOURNAL.md 2>/dev/null            # Journal
+ls adr/ 2>/dev/null | grep -v INDEX.md          # ADRs
+ls blog/ 2>/dev/null | grep -v INDEX.md         # Blog entries
+ls snapshots/ 2>/dev/null | grep -v INDEX.md    # Snapshots
+ls specs/ 2>/dev/null                            # Specs (user selects)
+ls plans/ 2>/dev/null | grep -v "^attic$"        # Plans (exclude attic/)
+cat design/JOURNAL.md 2>/dev/null               # Journal
 ```
 
 ### Step B3 — Generate journal merge preview
@@ -242,6 +277,17 @@ git -C <design-repo> show <project-sha>:DESIGN.md 2>/dev/null || echo "(no DESIG
 ```
 
 Read current `<design-repo>/DESIGN.md`.
+
+**If current DESIGN.md does not exist:**
+```
+⚠️ No DESIGN.md found in <design-repo>.
+
+Options:
+  [C] Create DESIGN.md from journal entries — journal becomes the initial design document
+  [S] Skip journal merge entirely
+```
+If `C`: write journal entries as the initial `DESIGN.md` content, commit to `<design-repo>`, then mark journal merge as complete in the close plan.
+If `S`: skip journal merge; note in final report.
 
 Read `design/JOURNAL.md` — extract all `§Section` anchors from entry headers
 (lines matching `^### .* · §`).
@@ -323,7 +369,11 @@ Epic close plan — <epic-name>
   Artifact routing
   ├── adr/<N files>            → <destination>  [<capability>]
   ├── blog/<N files>           → <destination>  [<capability>]
+  ├── specs/<N files>          → <destination>  [<capability>]
   └── design/JOURNAL.md        → <destination>  [<capability>]
+
+  Plan archiving
+  └── plans/<N files>          → plans/attic/<epic-name>/  [workspace main]
 
   Journal merge
   ├── §<Section1>              <one-line change summary>
@@ -361,6 +411,35 @@ git -C "<dest>" commit -m "feat: promote <artifact-type> from <project> epic <ep
 If `remote-git`:
 ```bash
 git -C "<dest>" push
+```
+
+**Spec cleanup** (after promotion confirmed):
+Remove the promoted spec copies from the workspace staging area:
+```bash
+rm specs/<promoted-files>
+git add -A
+git commit -m "chore(<epic-name>): remove promoted specs from workspace staging"
+```
+
+**Plan archiving** (plans always archive to workspace main):
+Plans are moved to `plans/attic/<epic-name>/` on the workspace `main` branch so they survive branch deletion:
+```bash
+# Stash any uncommitted workspace changes
+git stash
+
+# Switch workspace to main
+git checkout main
+
+# Copy plan files from the epic branch into attic
+git checkout <epic-name> -- plans/<file1> plans/<file2> ...
+mkdir -p plans/attic/<epic-name>
+mv plans/<file1> plans/<file2> ... plans/attic/<epic-name>/
+git add -A
+git commit -m "archive(<epic-name>): move plans to attic"
+
+# Return to epic branch
+git checkout <epic-name>
+git stash pop
 ```
 
 **Journal merge:**
@@ -493,7 +572,7 @@ git commit -m "docs(<epic-name>): mark epic as closed"
 | No issue in `.meta` or tracking disabled | Skip all GitHub steps silently |
 | Destination path doesn't exist | `mkdir -p <dest>` before promoting |
 | Push fails (no network) | Report failure with manual resolution command; continue |
-| Project has no `DESIGN.md` | Skip journal merge; note in summary |
+| Project has no `DESIGN.md` | Offer to create from journal entries, or skip merge entirely |
 | `design/JOURNAL.md` after close | Remains in workspace git history; not promoted to project repo |
 | On epic branch, no `.meta` | Warn: incomplete setup — offer to scaffold `.meta` and `design/JOURNAL.md` |
 
@@ -513,7 +592,9 @@ git commit -m "docs(<epic-name>): mark epic as closed"
 ### Closing an epic
 
 - [ ] All artifacts promoted to declared destinations (or failures reported with resolution commands)
-- [ ] Journal merged into project `DESIGN.md`, user confirmed
+- [ ] Promoted spec copies removed from workspace `specs/` staging area
+- [ ] Plans archived to `plans/attic/<epic-name>/` on workspace `main`
+- [ ] Journal merged into `DESIGN.md` (or created from journal if DESIGN.md was absent), user confirmed
 - [ ] Post-merge verification: each `§Section` anchor confirmed in updated doc
 - [ ] Selected spec(s) posted to GitHub issue
 - [ ] GitHub issue closed (if tracking enabled)

@@ -20,6 +20,37 @@ Four mandatory checks before any design or implementation begins.
 
 ---
 
+## 0 — Check Epic State
+
+Before anything else, check whether a workspace epic is in progress:
+
+```bash
+cat design/.meta 2>/dev/null
+git branch --show-current
+```
+
+Also read the project repo branch:
+```bash
+grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+# then:
+git -C <project-path> branch --show-current
+```
+
+| State | Action |
+|-------|--------|
+| `.meta` exists, both repos on same epic branch | Surface epic name and issue number — you are mid-epic |
+| `.meta` exists, branches differ | **Stop** — branch mismatch. Switch both repos to the same branch before proceeding |
+| `.meta` on main branch | **Stop** — orphaned `.meta`. Run `/epic` to clean up before starting work |
+| No `.meta`, both on main | All clear — continue |
+
+If mid-epic, include in the work-start report:
+```
+⚡ Active epic: <epic-name>  Issue: #<N>
+   Project branch: <branch>  Workspace branch: <branch>
+```
+
+---
+
 ## 1 — Read the Platform Doc and Run the Coherence Protocol
 
 Locate the platform doc:
