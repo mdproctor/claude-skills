@@ -398,16 +398,29 @@ Approve all, or go step by step? (all / step)
 Execute all steps in order. On any failure: continue remaining steps, report at the end.
 
 **Artifact promotion:**
-For each artifact file and its resolved destination:
-```bash
-mkdir -p "<dest>"
-cp "<file>" "<dest>/"
-```
 
-If `local-git` or `remote-git`:
+The workspace epic branch is **not merged into workspace main**. Instead, each artifact is explicitly copied to its routing destination and committed there before the epic branch is deleted. This ensures every artifact that should survive lands on the correct main branch, and ephemeral scaffolding (`.meta`, `JOURNAL.md`) is cleanly discarded with the branch.
+
+For each artifact file, resolve destination:
+- `project` → copy to **project main** (or promote via the PR that merges the project epic branch)
+- `workspace` → copy to **workspace main** — switch to main, copy, commit, switch back to epic branch
+
 ```bash
-git -C "<dest>" add .
-git -C "<dest>" commit -m "feat: promote <artifact-type> from <project> epic <epic-name>"
+# For workspace-routed artifacts (blog, snapshots):
+git stash
+git checkout main
+mkdir -p "<workspace-dest>"
+git checkout <epic-name> -- <artifact-files>
+git -C <workspace-path> add <workspace-dest>/
+git -C <workspace-path> commit -m "feat: promote <artifact-type> from epic <epic-name>"
+git checkout <epic-name>
+git stash pop
+
+# For project-routed artifacts (specs, adr):
+mkdir -p "<project-dest>"
+cp "<file>" "<project-dest>/"
+git -C "<project-path>" add <project-dest>/
+git -C "<project-path>" commit -m "feat: promote <artifact-type> from epic <epic-name>"
 ```
 
 If `remote-git`:
