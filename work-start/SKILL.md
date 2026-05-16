@@ -41,9 +41,23 @@ git -C <project-path> branch --show-current
 | `.meta` exists, both repos on same epic branch | Surface epic name and issue number — you are mid-epic |
 | `.meta` exists, branches differ | **Stop** — branch mismatch. Switch both repos to the same branch before proceeding |
 | `.meta` on main branch | **Stop** — orphaned `.meta`. Run `/epic` to clean up before starting work |
-| No `.meta`, both on main | All clear — continue |
+| No `.meta`, both on main | **Stop** — no active epic. See below before continuing |
 
-If mid-epic, include in the work-start report:
+**If no active epic (no `.meta`, both on main):**
+
+```
+⚠️  No active epic detected. Before proceeding, choose one:
+
+  1. Issue-scoped work      → invoke /epic begin to create the epic branch
+  2. Exploratory/isolated   → invoke superpowers:using-git-worktrees
+  3. Intentional main work  → confirm explicitly before continuing
+
+Do not proceed to steps 1–4 below until one of these is resolved.
+```
+
+Wait for the user to respond before continuing.
+
+**If mid-epic, include in the work-start report:**
 ```
 ⚡ Active epic: <epic-name>  Issue: #<N>
    Project branch: <branch>  Workspace branch: <branch>
