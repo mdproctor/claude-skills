@@ -27,6 +27,42 @@ meta_exists=$(test -f design/.meta && echo yes || echo no)
 | Not on epic branch, no `.meta` | Offer to start a new epic |
 | On epic branch, `.meta` exists | Ask: close this epic, or start a new one? |
 | On epic branch, no `.meta` | Warn: incomplete setup — offer to scaffold `.meta` and `design/JOURNAL.md`, then continue |
+| **On main branch, `.meta` exists** | **Orphaned epic — offer to complete close from here (see Workflow B-Orphaned below)** |
+
+---
+
+## Workflow B-Orphaned — Closing from Main (orphaned .meta)
+
+When `.meta` exists on the main branch, the epic branch was merged or deleted without going through epic close. The journal was never merged. Offer to complete the close:
+
+```
+⚠️  Orphaned epic detected: <epic-name> (started <date>)
+   The project branch appears to have been merged without running epic close.
+   The design journal may not have been merged into DESIGN.md.
+
+Options:
+  [C] Complete close — run journal merge and artifact promotion from here
+  [D] Discard — remove .meta without closing (journal content will be lost)
+  [S] Skip — leave as-is and proceed with something else
+```
+
+**If [C] — Complete close from main:**
+
+The workspace epic branch may still exist. Check:
+```bash
+git branch -a | grep <epic-name>
+```
+
+- If workspace epic branch exists: switch to it (`git checkout <epic-name>`), then run Workflow B normally from Step B1.
+- If workspace epic branch is gone: run journal merge directly from current `.meta` and the JOURNAL.md on main (if any content was committed there before branch deletion).
+
+After close completes: remove `.meta` and commit on workspace main.
+
+**If [D] — Discard:**
+```bash
+rm design/.meta design/JOURNAL.md 2>/dev/null
+git add -A && git commit -m "chore: discard orphaned epic scaffold for <epic-name>"
+```
 
 ---
 
@@ -290,6 +326,30 @@ Options:
 ```
 If `C`: write journal entries as the initial `DESIGN.md` content, commit to `<design-repo>`, then mark journal merge as complete in the close plan.
 If `S`: skip journal merge; note in final report.
+
+**Validate journal anchors before proceeding:**
+```bash
+# Count entries with §Section anchors
+grep -c "^### .*·.*§" design/JOURNAL.md 2>/dev/null || echo 0
+# Count all entries
+grep -c "^### " design/JOURNAL.md 2>/dev/null || echo 0
+```
+
+If any entries lack `§SectionName` anchors, surface a warning before presenting the close plan:
+```
+⚠️ Journal anchor check: N of M entries have §Section anchors.
+   Entries without anchors will be silently skipped during DESIGN.md merge.
+
+   Unanchored entries:
+   - <entry header>
+
+   Options:
+     [F] Fix anchors now — run java-update-design to tag missing entries
+     [S] Skip journal merge entirely for this close
+     [C] Continue anyway — accept that unanchored entries will not be merged
+```
+
+Wait for user decision before continuing to the merge preview.
 
 Read `design/JOURNAL.md` — extract all `§Section` anchors from entry headers
 (lines matching `^### .* · §`).

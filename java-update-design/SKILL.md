@@ -233,6 +233,22 @@ between services that complicated retry logic and made failure semantics
 ambiguous at the API boundary.
 ```
 
+**Step 7b — Validate anchors before committing (mandatory)**
+
+After writing the entry, verify it has a `§SectionName` anchor in the header before committing to `design/JOURNAL.md`:
+
+```bash
+grep -c "^### .*·.*§" design/JOURNAL.md
+```
+
+If the entry you just wrote does not contain `· §SectionName` in its header — **do not commit**. The entry will be silently skipped at epic close, permanently losing the design context. Fix the header first:
+
+```markdown
+### YYYY-MM-DD · §SectionName        ← §SectionName is required; without it the merge is a no-op
+```
+
+This is not optional. An anchor-free journal entry is invisible to the epic close merge.
+
 ---
 
 ## Common Pitfalls
@@ -306,7 +322,7 @@ Then update CLAUDE.md:
 **In workspace mode** (`design/JOURNAL.md` exists):
 
 - ✅ Architectural changes identified from staged diff
-- ✅ Journal entry drafted with `§Section` anchor header matching the changed area
+- ✅ Journal entry has `· §SectionName` anchor in the header — validated before commit (Step 7b)
 - ✅ User confirmed with explicit **YES**
 - ✅ Entry appended to `design/JOURNAL.md`
 - ✅ File ready for staging (or user confirmed no changes needed)
