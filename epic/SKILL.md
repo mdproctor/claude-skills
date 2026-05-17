@@ -397,7 +397,28 @@ Read `design/JOURNAL.md` — extract all `§Section` anchors from entry headers
 For each anchored section: note the baseline content, the current project content,
 and the journal narrative. This forms the merge preview.
 
-If `design/JOURNAL.md` has no `§Section` entries → skip journal merge in the plan.
+If `design/JOURNAL.md` has no `§Section` entries:
+
+```
+⚠️  Journal is empty — no design decisions were recorded during this epic.
+   This usually means java-update-design was not called during development
+   (e.g. commits were made directly without going through java-git-commit).
+
+   Options:
+     [W] Write a retrospective journal entry now — invoke java-update-design
+         to capture the key design decisions before closing
+     [S] Skip journal merge — accept that design narrative will not be captured
+         in DESIGN.md (the DESIGN.md capability row added by implementation-doc-sync
+         will still be present, but the design rationale will be missing)
+```
+
+**If [W]:** invoke `java-update-design` with a description of the key design decisions
+made during the epic. After the entry is written and committed with a valid `§Section`
+anchor, re-read `design/JOURNAL.md` and continue to the merge preview.
+
+**If [S]:** skip journal merge; note in the final close report that the journal was
+empty and no narrative was captured. This is a permanent loss — the git history will
+not contain the design rationale for this epic.
 
 ### Step B4 — Ask user to select specs
 
