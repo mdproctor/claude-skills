@@ -57,6 +57,8 @@ Do not proceed to steps 1–4 below until one of these is resolved.
 
 Wait for the user to respond before continuing.
 
+**Do NOT output the work-start summary. Do NOT say "proceeding to brainstorming". Do NOT continue to steps 1–4.** This is a hard gate — the session stops here until the user picks one of the three options above.
+
 **If mid-epic, include in the work-start report:**
 ```
 ⚡ Active epic: <epic-name>  Issue: #<N>

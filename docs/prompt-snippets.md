@@ -9,7 +9,7 @@ Ready-to-paste workflow prompts for Claude Code sessions. These apply to any pro
 Paste at the start of any session involving designing or building:
 
 ```
-invoke work-start first. superpowers:brainstorming before designing — any deferred concerns or out-of-scope items must be captured as GitHub issues before leaving brainstorming, not just noted in the spec. superpowers:test-driven-development before implementing. [java-dev|python-dev|ts-dev] for all [Java|Python|TypeScript]. superpowers:requesting-code-review before committing — any finding Minor or above that isn't fixed this session must be captured as a GitHub issue before sign-off; batch related nits into a single issue. implementation-doc-sync after.
+invoke work-start first — if it reports no active epic, invoke /epic begin for issue-scoped work (or superpowers:using-git-worktrees for exploratory work) before proceeding; never implement on main. superpowers:brainstorming before designing — any deferred concerns or out-of-scope items must be captured as GitHub issues before leaving brainstorming, not just noted in the spec. superpowers:test-driven-development before implementing. [java-dev|python-dev|ts-dev] for all [Java|Python|TypeScript]. superpowers:requesting-code-review before committing — any finding Minor or above that isn't fixed this session must be captured as a GitHub issue before sign-off; batch related nits into a single issue. implementation-doc-sync after.
 
 [describe the issue or feature here]
 ```
