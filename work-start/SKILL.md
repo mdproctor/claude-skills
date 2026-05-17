@@ -20,6 +20,34 @@ Four mandatory checks before any design or implementation begins.
 
 ---
 
+## Branch Switch Helper
+
+When switching both repos to a branch (at session start, after epic begin, or on return from pause), always use this atomic procedure — never switch one repo and forget the other:
+
+```bash
+# Read project path from CLAUDE.md
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
+
+# Switch both repos atomically
+git -C "$PROJECT" checkout <branch>
+git -C "$WORKSPACE" checkout <branch>
+
+# Verify alignment
+PROJECT_BRANCH=$(git -C "$PROJECT" branch --show-current)
+WORKSPACE_BRANCH=$(git -C "$WORKSPACE" branch --show-current)
+if [ "$PROJECT_BRANCH" != "$WORKSPACE_BRANCH" ]; then
+  echo "⚠️  Branch mismatch after switch: project=$PROJECT_BRANCH workspace=$WORKSPACE_BRANCH"
+  echo "    Manual alignment required before proceeding."
+  exit 1
+fi
+echo "✅ Both repos on: $PROJECT_BRANCH"
+```
+
+**Use this procedure any time both repos need to move together.** Never run `git checkout` on one repo alone without immediately doing the same on the other.
+
+---
+
 ## 0 — Check Epic State
 
 Before anything else, check whether a workspace epic is in progress:
@@ -39,7 +67,7 @@ git -C <project-path> branch --show-current
 | State | Action |
 |-------|--------|
 | `.meta` exists, both repos on same epic branch | Surface epic name and issue number — you are mid-epic |
-| `.meta` exists, branches differ | **Stop** — branch mismatch. Switch both repos to the same branch before proceeding |
+| `.meta` exists, branches differ | **Stop** — branch mismatch. Use the Branch Switch Helper above to align both repos, then re-run work-start |
 | `.meta` on main branch | **Stop** — orphaned `.meta`. Run `/epic` to clean up before starting work |
 | No `.meta`, both on main | **Stop** — no active epic. See below before continuing |
 

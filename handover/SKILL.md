@@ -359,11 +359,23 @@ suggest the name and prompt at the right moment.
 
 ### Step 6 — Commit (required)
 
-Read `**Workspace:**` from CLAUDE.md to get the absolute workspace path. Use `git -C` — never bare git commands:
+Read `**Workspace:**` from CLAUDE.md to get the absolute workspace path. HANDOFF.md must **always** be committed to workspace **main**, even when the session is on an epic branch. It is a session artifact, not an epic artifact — committing it to an epic branch makes it invisible to the next session starting on main.
 
 ```bash
-git -C <Workspace> add HANDOFF.md
-git -C <Workspace> commit -m "docs: session handover YYYY-MM-DD"
+CURRENT_BRANCH=$(git -C <Workspace> branch --show-current)
+
+# If on an epic branch, switch workspace to main, commit, switch back
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  git -C <Workspace> stash
+  git -C <Workspace> checkout main
+  git -C <Workspace> add HANDOFF.md
+  git -C <Workspace> commit -m "docs: session handover YYYY-MM-DD"
+  git -C <Workspace> checkout "$CURRENT_BRANCH"
+  git -C <Workspace> stash pop
+else
+  git -C <Workspace> add HANDOFF.md
+  git -C <Workspace> commit -m "docs: session handover YYYY-MM-DD"
+fi
 ```
 
 Committing is mandatory. It's what makes git history the archive.

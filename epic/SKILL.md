@@ -164,7 +164,21 @@ epic: <epic-name>
 project-sha: <output of: git -C <project-path> rev-parse HEAD>
 date: <YYYY-MM-DD>
 issue:
+design-section-hashes: <see below>
 ```
+
+**Record DESIGN.md section heading hashes** — these protect the journal merge from renamed or deleted sections:
+
+```bash
+# Extract all H2 headings from DESIGN.md and record their hashes
+grep "^## " <design-repo>/DESIGN.md 2>/dev/null | md5 | head -c 8
+# Or per-section:
+grep "^## " <design-repo>/DESIGN.md 2>/dev/null | while read heading; do
+  echo "$heading" | md5 | head -c 8 | tr -d '\n'; echo " $heading"
+done
+```
+
+Write the result as `design-section-hashes:` in `.meta`, one hash+heading per line (indented). If DESIGN.md does not exist yet, leave `design-section-hashes:` empty.
 
 **Routing-aware SHA baseline:** Before writing `project-sha`, read the workspace
 `CLAUDE.md ## Routing` config (and global `~/.claude/CLAUDE.md ## Routing`). If the
@@ -326,6 +340,32 @@ Options:
 ```
 If `C`: write journal entries as the initial `DESIGN.md` content, commit to `<design-repo>`, then mark journal merge as complete in the close plan.
 If `S`: skip journal merge; note in final report.
+
+**Check for section heading drift** — compare current DESIGN.md headings against the hashes recorded in `.meta` at epic start:
+
+```bash
+# Re-hash current headings
+grep "^## " <design-repo>/DESIGN.md 2>/dev/null | while read heading; do
+  echo "$heading" | md5 | head -c 8 | tr -d '\n'; echo " $heading"
+done
+```
+
+Compare against `design-section-hashes:` in `.meta`. For each §Section anchor in JOURNAL.md, check the corresponding heading still exists in DESIGN.md with the same text.
+
+If any headings were renamed or deleted since epic start:
+```
+⚠️  Section heading drift detected:
+   Journal references §<Name> but DESIGN.md heading changed to "<NewName>" (or was removed).
+   
+   These journal entries will not merge correctly without manual intervention.
+   
+   Options:
+     [U] Update journal anchors to match new heading names — then continue
+     [S] Skip merge for drifted sections
+     [A] Abort close — fix headings or journal anchors manually first
+```
+
+Wait for user decision before proceeding to anchor validation.
 
 **Validate journal anchors before proceeding:**
 ```bash
