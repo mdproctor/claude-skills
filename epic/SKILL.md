@@ -671,38 +671,54 @@ Post each selected spec as a comment (same format as Step B7a).
 Close the issue.
 Prompt: "Continue to branch cleanup? (y/n)"
 
-### Step B8 — Branch cleanup (both paths)
+### Step B8 — Mark closed and return to main
 
-Prompt:
-```
-Delete epic branches?
-  project: <epic-name>
-  workspace: <epic-name>
+Branches are **never deleted automatically**. Instead, they are marked with a
+14-day retention window. This allows verification that the workspace/journal
+workflow produced correct results before data is discarded.
 
-  y → delete both, return to main
-  n → keep both; mark epic as closed
-```
+**Step 8.1 — Write EPIC-CLOSED.md on the workspace epic branch**
 
-If `y`:
-```bash
-git -C <project-path> checkout main
-git -C <project-path> branch -d <epic-name>
-git checkout main
-git branch -d <epic-name>
-```
+Calculate deletion date = today + 14 days. Create `EPIC-CLOSED.md`:
 
-If `n`: create `EPIC-CLOSED.md` in workspace branch root:
 ```markdown
 # Epic Closed — <epic-name>
-**Date:** <today>
+**Date:** <YYYY-MM-DD>
 **Issue:** #<N>
-**Status:** Closed — branch retained for inspection
+**Status:** Closed
+**Scheduled for deletion:** <YYYY-MM-DD + 14 days>
+
+Branches `<epic-name>` retained in project and workspace repos.
+Delete manually once the workspace/journal workflow has been verified,
+or after the scheduled date, whichever comes first.
 ```
 
 ```bash
 git add EPIC-CLOSED.md
-git commit -m "docs(<epic-name>): mark epic as closed"
+git commit -m "docs(<epic-name>): mark epic closed, scheduled for deletion <date>"
 ```
+
+**Step 8.2 — Switch both repos to main (prompt before doing so)**
+
+```
+Close complete. Return both repos to main?
+  project:   <epic-name> → main
+  workspace: <epic-name> → main
+(y/n)
+```
+
+Wait for explicit confirmation. If `y`:
+
+```bash
+git -C <project-path> checkout main
+git checkout main
+```
+
+If `n`: stop here. The human will switch manually.
+
+**Do NOT offer to delete branches.** Deletion is a manual or scheduled operation
+outside the epic close workflow. The `EPIC-CLOSED.md` file with its deletion date
+is the signal for future cleanup.
 
 ---
 
@@ -741,8 +757,8 @@ git commit -m "docs(<epic-name>): mark epic as closed"
 - [ ] Post-merge verification: each `§Section` anchor confirmed in updated doc
 - [ ] Selected spec(s) posted to GitHub issue
 - [ ] GitHub issue closed (if tracking enabled)
-- [ ] Branch cleanup resolved — both branches deleted or `EPIC-CLOSED.md` created
-- [ ] Workspace and project both on `main`
+- [ ] `EPIC-CLOSED.md` created on workspace epic branch with 14-day deletion date
+- [ ] Both repos switched to `main` (user confirmed)
 
 ---
 
