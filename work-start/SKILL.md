@@ -29,11 +29,21 @@ When switching both repos to a branch (at session start, after epic begin, or on
 PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
 WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
 
-# Switch both repos atomically and sync with remote
+# Switch both repos atomically
 git -C "$PROJECT" checkout <branch>
-git -C "$PROJECT" pull --rebase origin <branch>
 git -C "$WORKSPACE" checkout <branch>
-git -C "$WORKSPACE" pull --rebase origin <branch>
+
+# Check if remote is ahead — prompt before incorporating upstream changes
+PROJECT_BEHIND=$(git -C "$PROJECT" rev-list HEAD..origin/<branch> --count 2>/dev/null || echo 0)
+WORKSPACE_BEHIND=$(git -C "$WORKSPACE" rev-list HEAD..origin/<branch> --count 2>/dev/null || echo 0)
+
+if [ "$PROJECT_BEHIND" -gt 0 ] || [ "$WORKSPACE_BEHIND" -gt 0 ]; then
+  echo "Remote has new commits: project +${PROJECT_BEHIND}, workspace +${WORKSPACE_BEHIND}"
+  echo "Incorporate now with pull --rebase? You may not be ready for upstream changes. (y/n)"
+  # Wait for user response before pulling
+fi
+# If yes: git -C "$PROJECT" pull --rebase origin <branch>
+#          git -C "$WORKSPACE" pull --rebase origin <branch>
 
 # Verify alignment
 PROJECT_BRANCH=$(git -C "$PROJECT" branch --show-current)

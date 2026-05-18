@@ -943,9 +943,18 @@ Wait for explicit confirmation. If `y`:
 ```bash
 git -C <project-path> checkout main
 git checkout main
+
+# Check if remote main is ahead — prompt before incorporating upstream changes
+PROJECT_BEHIND=$(git -C <project-path> rev-list HEAD..origin/main --count 2>/dev/null || echo 0)
+if [ "$PROJECT_BEHIND" -gt 0 ]; then
+  echo "Remote main has ${PROJECT_BEHIND} new commits since this epic started."
+  echo "Incorporate now with pull --rebase? Upstream changes may conflict with epic work. (y/n)"
+  # If yes: git -C <project-path> pull --rebase origin main
+  # If no:  leave local main as-is; user handles sync separately
+fi
 ```
 
-If `n`: stop here. The human will switch manually.
+If `n` (don't return to main): stop here. The human will switch manually.
 
 **Do NOT offer to delete branches.** Deletion is a manual or scheduled operation
 outside the epic close workflow. The `EPIC-CLOSED.md` file with its deletion date
