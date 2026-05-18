@@ -104,14 +104,34 @@ Union the two lists. For each branch name, check its status in the workspace rep
 
 ### Step C2 — Assess each branch
 
-For each epic branch, check out just the relevant files (without switching branches):
+**Code merge check (most important):** Verify that implementation commits from the
+epic branch have landed on project main. An epic with unmerged code was never shipped.
+
+```bash
+# How many commits on the epic branch are NOT in project main?
+unmerged=$(git -C <project-path> log main..<branch> --oneline 2>/dev/null | wc -l)
+
+# What are those commits? (show first 5)
+git -C <project-path> log main..<branch> --oneline 2>/dev/null | head -5
+```
+
+If `unmerged > 0`: the implementation code was never merged to main — **Critical issue**.
+
+If GitHub issue tracking is enabled, also check whether a PR was opened and merged:
+```bash
+# Check for a merged PR for this branch
+gh pr list --repo <owner>/<repo> --state merged --head <branch> --json number,title,mergedAt 2>/dev/null
+gh pr list --repo <owner>/<repo> --state open --head <branch> --json number,title 2>/dev/null
+```
+
+For each epic branch, also check workspace artifacts without switching branches:
 
 ```bash
 # Does EPIC-CLOSED.md exist on this branch?
 git show <branch>:EPIC-CLOSED.md 2>/dev/null
 
 # Are there unremoved spec files for this epic?
-git show <branch>:specs/<branch>/ 2>/dev/null | head -5
+git ls-tree <branch> specs/<branch>/ 2>/dev/null
 
 # What is the scheduled deletion date (from EPIC-CLOSED.md)?
 git show <branch>:EPIC-CLOSED.md 2>/dev/null | grep "Scheduled for deletion"
@@ -130,6 +150,8 @@ Build a status for each branch:
 
 | Check | Good | Issue |
 |-------|------|-------|
+| **Code merged to project main** | ✅ Merged (0 unmerged commits) | 🚨 Code not merged — N commits unshipped |
+| **PR merged** (if GitHub tracking) | ✅ PR merged / no PR needed | ⚠️ PR open or none found |
 | `EPIC-CLOSED.md` exists | ✅ Closed | ⚠️ Never closed |
 | Scheduled deletion date | shows date | ⚠️ No date — legacy marker |
 | Scheduled deletion date passed | future | 🗑️ Eligible for deletion |
@@ -137,24 +159,45 @@ Build a status for each branch:
 | `docs/specs/` has promoted files | ✅ Promoted | ⚠️ Spec never promoted |
 | `plans/attic/<branch>/` exists | ✅ Archived | ⚠️ Plan never archived |
 
+**Do NOT offer deletion for any branch with 🚨 unmerged code** — those commits
+would be permanently lost. Block deletion until the code merge issue is resolved.
+
 ### Step C3 — Present report
 
 ```
 Branch hygiene scan — <N> epic branches found
 
-  epic-payments          ✅ Closed 2026-04-01  🗑️ Eligible for deletion (was 2026-04-15)
-  epic-auth-redesign     ✅ Closed 2026-05-10  ⏳ Deletion due 2026-05-24
-  epic-output-schema     ✅ Closed 2026-05-17  ⏳ Deletion due 2026-05-31
-  epic-excluded-users    ✅ Closed 2026-05-18  ⏳ Deletion due 2026-06-01
-  epic-old-feature       ⚠️ Never closed       Spec not promoted, no plan in attic
+  Branch                 Code    Closed       Artifacts    Deletion
+  ─────────────────────────────────────────────────────────────────
+  epic-payments          ✅ merged  ✅ 2026-04-01  ✅ clean     🗑️ overdue (was 2026-04-15)
+  epic-auth-redesign     ✅ merged  ✅ 2026-05-10  ✅ clean     ⏳ due 2026-05-24
+  epic-output-schema     ✅ merged  ✅ 2026-05-17  ✅ clean     ⏳ due 2026-05-31
+  epic-excluded-users    ✅ merged  ✅ 2026-05-18  ✅ clean     ⏳ due 2026-06-01
+  epic-old-feature       🚨 3 commits unmerged  ⚠️ never closed  ⚠️ spec not promoted  🔒 blocked
 ```
+
+Branches with 🚨 unmerged code are **blocked from deletion** and shown first.
 
 ### Step C4 — Offer fixes for each issue
 
-For each branch with a `⚠️` issue, offer:
+**For branches with 🚨 unmerged code:**
 
 ```
-epic-old-feature has unresolved issues:
+epic-old-feature — 3 commits on project branch not in main:
+  abc1234 feat: add payment validation
+  def5678 test: payment validation tests
+  ghi9012 docs: sync DESIGN.md for payment validation
+
+Options:
+  [M] Merge to main — switch to project epic branch, then merge/cherry-pick to main
+  [P] Open PR — create a PR from this branch to main
+  [S] Skip — leave for manual resolution (branch stays blocked for deletion)
+```
+
+**For branches with ⚠️ artifact issues (only if code is merged):**
+
+```
+epic-old-feature has artifact issues:
   ⚠️ Never closed — no EPIC-CLOSED.md found
   ⚠️ specs/epic-old-feature/design.md not removed from workspace
   ⚠️ Spec never promoted to docs/specs/
@@ -165,10 +208,12 @@ Options:
   [D] Discard — mark closed with today's date, no journal merge (data may be lost)
 ```
 
-For each branch with `🗑️ Eligible for deletion`:
+**For branches with 🗑️ Eligible for deletion (code merged + artifacts clean):**
 
 ```
 epic-payments — closed 2026-04-01, deletion was due 2026-04-15 (N days overdue)
+  Code: ✅ merged to main
+  Artifacts: ✅ spec promoted, plan archived
 
 Delete branches?
   workspace: epic-payments
@@ -181,6 +226,10 @@ If `y`:
 git -C <project-path> branch -d epic-payments
 git branch -d epic-payments
 ```
+
+If the branch cannot be deleted (`-d` fails because Git detects unmerged commits
+despite the log check), use `--force` only after explicitly confirming with the
+human that the code is safe to lose.
 
 ### Step C5 — Summary
 
