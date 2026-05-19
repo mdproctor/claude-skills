@@ -136,7 +136,19 @@ Full rules and image path conventions: **[visual-elements.md](visual-elements.md
 
 ### Step 0 — Orientation (layers in this order)
 
-**Layer 0 — Resolve blog directory**
+**Layer 0 — Load write-content**
+
+Invoke `write-content` first. It provides:
+- Content type selection (Note/log, Article/explanation etc.)
+- Structure principles (scannability, heading tests, element selection)
+- Anti-slop guidance (per-type human texture, banned patterns)
+- Form-specific writing rules
+
+For blog entries, the content type is typically Note/log (development diary)
+or Article (explanation, commentary, essay). write-content determines which
+and loads the appropriate form guide.
+
+**Layer 1 — Resolve blog directory**
 
 Resolution order (first match wins):
 
@@ -523,11 +535,28 @@ For Retrospective runs additionally:
 
 ---
 
+## Prerequisites
+
+**This skill builds on `write-content`.** Apply all rules from:
+- **write-content**: content type selection, structure principles, anti-slop guidance, form-specific writing rules
+
+`write-blog` adds blog-specific concerns on top:
+- Blog directory resolution and file naming conventions
+- Jekyll frontmatter and entry metadata
+- Retrospective sweep mode
+- Publishing pipeline integration (`publish-blog`)
+- Mandatory writing style guide enforcement
+
+When writing a blog entry, load `write-content` first to determine content type
+and apply structure and anti-slop guidance, then apply blog-specific rules here.
+
+---
+
 ## Skill Chaining
 
 **Invoked by:** User directly — single entry ("write a blog entry", "update the project blog", "document this pivot") or full retrospective ("blog all the work to date", "catch the blog up", "write a retrospective series"); also after `adr` captures a major decision, after `design-snapshot` marks a significant milestone, or automatically as part of the `handover` wrap checklist
 
-**Invokes:** [`update-claude-md`] — on first entry ever in a project, to add the mandatory Writing Style Guide section to CLAUDE.md; [`adr`] — when a significant decision in the blog entry warrants a formal record; [`design-snapshot`] — when the entry marks a major milestone worth freezing as a formal state record; [`git-commit`] — to commit the entry (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
+**Invokes:** [`write-content`] — always; provides content type, structure principles, anti-slop guidance, and form-specific writing rules. write-blog is a blog-specific consumer of write-content. [`update-claude-md`] — on first entry ever in a project, to add the mandatory Writing Style Guide section to CLAUDE.md; [`adr`] — when a significant decision in the blog entry warrants a formal record; [`design-snapshot`] — when the entry marks a major milestone worth freezing as a formal state record; [`git-commit`] — to commit the entry (routes to `java-git-commit`, `custom-git-commit`, etc. per CLAUDE.md project type)
 
 **Feeds into:** `publish-blog` (personal skill, not in cc-praxis) — handles the publishing mechanics when entries are ready to go out. `write-blog` is the writing step; `publish-blog` is the delivery step (currently Jekyll, but the platform may change — only `publish-blog` needs to change, not the entries)
 
