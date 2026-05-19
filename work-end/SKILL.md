@@ -25,7 +25,13 @@ WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*
 
 ## Pre-conditions
 
-Check in order before proceeding:
+Resolve paths and read current branch, then check in order:
+
+```bash
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
+CURRENT_WORKSPACE=$(git -C "$WORKSPACE" branch --show-current)
+```
 
 1. **If `$WORKSPACE/design/.paused` exists** → hard stop.
    "You have a paused branch. Invoke `work-resume` first, then `work-end`."
@@ -190,8 +196,12 @@ failure prompts the user before continuing to issue close.
 ### 8a — Batch workspace-main operations (single main-visit)
 
 ```bash
-# Stash any uncommitted workspace changes
-git -C "$WORKSPACE" status --short | grep -q . && git -C "$WORKSPACE" stash
+# Capture stash ref if workspace has uncommitted changes
+WS_STASH_8A=none
+if git -C "$WORKSPACE" status --short | grep -q .; then
+  stash_out=$(git -C "$WORKSPACE" stash)
+  echo "$stash_out" | grep -q "Saved working" && WS_STASH_8A="stash@{0}"
+fi
 
 git -C "$WORKSPACE" checkout main
 git -C "$WORKSPACE" pull --rebase origin main
@@ -212,18 +222,26 @@ if plans exist:
   git -C "$WORKSPACE" add -A
   git -C "$WORKSPACE" commit -m "archive($BRANCH_NAME): move plans to attic"
 
-# If DESIGN_REPO = workspace: perform journal merge here while on workspace main
-# (see 8d note — merge must happen on main, not on epic branch)
-if [ "$DESIGN_REPO_KEY" = "workspace" ]:
+# WORKSPACE DESIGN REPO CASE: journal merge must happen here on main, not on the epic branch.
+# Commits to the epic branch are discarded at close — the merge must land on workspace main.
+if [ "$DESIGN_REPO_KEY" = "workspace" ]; then
+  # Cherry-pick JOURNAL.md from the epic branch, then run the journal merge sub-procedure
+  # (same steps as 8d below: baseline read, current read, apply journal, verify, commit)
   git -C "$WORKSPACE" checkout "$BRANCH_NAME" -- design/JOURNAL.md
-  # Run journal merge steps (see 8d below)
-  # Commit merge result to workspace main
-  # Mark 8d as complete — skip the 8d block below
+  # [execute 8d merge steps here — baseline=$PROJECT_SHA, target=$WORKSPACE/DESIGN.md]
+  git -C "$WORKSPACE" add DESIGN.md
+  git -C "$WORKSPACE" commit -m "docs($BRANCH_NAME): apply design journal"
+  # 8d is now complete for the workspace case — skip the 8d block when DESIGN_REPO_KEY=workspace
+fi
 
 git -C "$WORKSPACE" push  # single push for all workspace-main commits
 
 git -C "$WORKSPACE" checkout "$BRANCH_NAME"
-git -C "$WORKSPACE" stash pop  # only if stashed above
+# Use the captured ref, not bare stash pop
+if [ "$WS_STASH_8A" != "none" ]; then
+  git -C "$WORKSPACE" stash pop "$WS_STASH_8A" 2>/dev/null \
+    || echo "⚠️ Workspace stash pop failed ($WS_STASH_8A) — resolve manually"
+fi
 ```
 
 ### 8b — Project-routed artifact promotion (ADRs, specs)
@@ -316,18 +334,22 @@ If user chose "step" in Step 7:
 
 ## Step 9 — Mark closed
 
+`EPIC-CLOSED.md` lives in `$WORKSPACE/design/` alongside `.meta` and `JOURNAL.md`.
+This is committed to the workspace **epic branch** (not main), so the hygiene scan
+must traverse epic branches to find it — which it already does to check for `.meta`.
+
 ```bash
 CLOSE_DATE=$(date +%Y-%m-%d)
 DELETE_DATE=$(date -v +14d +%Y-%m-%d 2>/dev/null || date -d "+14 days" +%Y-%m-%d)
 
-cat > "$WORKSPACE/EPIC-CLOSED.md" << EOF
+cat > "$WORKSPACE/design/EPIC-CLOSED.md" << EOF
 # Branch Closed — $BRANCH_NAME
 **Date:** $CLOSE_DATE
 **Issue:** #$ISSUE_N
 **Scheduled for deletion:** $DELETE_DATE
 EOF
 
-git -C "$WORKSPACE" add EPIC-CLOSED.md
+git -C "$WORKSPACE" add design/EPIC-CLOSED.md
 git -C "$WORKSPACE" commit -m "docs($BRANCH_NAME): mark closed, deletion due $DELETE_DATE"
 git -C "$WORKSPACE" push
 ```

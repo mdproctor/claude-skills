@@ -84,14 +84,10 @@ WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*
 - Any false → **direct mode**: fall back to updating project `DESIGN.md` directly.
   Do not prompt; do not create JOURNAL.md. `work-start` is responsible for creating it.
 
-**Why these three and not branch prefix?** `.meta` + `JOURNAL.md` + not-on-main
-together confirm an active working branch regardless of naming convention. The
-`epic-*` prefix check broke for `issue-NNN-*` branches — this fix handles all
-branch names uniformly.
-
-**Why not branch prefix?** Branch name prefix (`epic-*`) is fragile — it breaks
-silently for `issue-NNN-*` branches, causing every commit to write directly to
-`DESIGN.md` with no error, bypassing the journal entirely.
+**Why these three and not branch prefix?** Branch name prefix (`epic-*`) breaks
+silently for `issue-NNN-*` branches — every commit writes directly to `DESIGN.md`
+with no error, bypassing the journal entirely. `.meta` + `JOURNAL.md` + not-on-main
+confirms an active working branch regardless of naming convention.
 
 In workspace mode: read `$WORKSPACE/design/JOURNAL.md` to understand which sections
 have already been journalled during this branch before adding or updating an entry.
