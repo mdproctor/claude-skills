@@ -24,18 +24,24 @@ meta_exists=$(test -f design/.meta && echo yes || echo no)
 
 | State | Action |
 |-------|--------|
-| Not on epic branch, no `.meta` | Offer to start a new epic **or run branch hygiene scan** |
-| On epic branch, `.meta` exists | Ask: close this epic, or start a new one? |
-| On epic branch, no `.meta` | Warn: incomplete setup — offer to scaffold `.meta` and `design/JOURNAL.md`, then continue |
-| **On main branch, `.meta` exists** | **Orphaned epic — offer to complete close from here (see Workflow B-Orphaned below)** |
+| Not on a work branch, no `.meta` | Offer to start a new branch **or run branch hygiene scan** |
+| On a work branch, `.meta` exists | Ask: close this branch, or start a new one? |
+| On a work branch, no `.meta` | Warn: incomplete setup — offer to scaffold `.meta` and `design/JOURNAL.md`, then continue |
+| **On main branch, `.meta` exists** | **Orphaned `.meta` — offer to complete close from here (see Workflow B-Orphaned below)** |
 
-**When no active epic:** always present the scan option alongside "start new epic":
+Epic branches and issue branches use identical workflow — the only difference is scope:
+- **Epic branch** (`epic-<name>`): covers 1–N issues, multi-session design work
+- **Issue branch** (`issue-<N>-<slug>`): covers 1 issue, typically single-session
+
+Both get `.meta`, `JOURNAL.md`, artifact routing, journal merge at close. No exceptions.
+
+**When no active branch:** always present the scan option alongside "start new branch":
 
 ```
-No active epic. What next?
+No active branch. What next?
 
-  [S] Start a new epic
-  [H] Branch hygiene scan — find finished epics with unresolved issues
+  [S] Start a new branch
+  [H] Branch hygiene scan — find finished branches with unresolved issues
   [X] Nothing for now
 ```
 
@@ -310,17 +316,19 @@ git add -A && git commit -m "chore: remove orphaned epic scaffold from main"
 
 ### Step A1 — Get epic name
 
-Ask: "What's the epic name? (e.g. `epic-payments`)"
+Ask: "What's the branch name? (e.g. `epic-payments` or `issue-13-remove-workarounds`)"
 
 Rules:
 - Lowercase with hyphens
-- Prefix with `epic-` (e.g. `epic-payments`, `epic-auth-redesign`)
+- Epic branches: prefix with `epic-` (e.g. `epic-payments`, `epic-auth-redesign`) — covers 1–N issues
+- Issue branches: prefix with `issue-<N>-` (e.g. `issue-13-remove-workarounds`) — covers 1 issue
+- Workflow is identical for both
 
-If currently on an epic branch (starting a second epic while one is active):
+If currently on a work branch (starting a new branch while one is active):
 
 ```
-You're currently on <current-branch>. Starting a new epic requires
-returning to main first. Switch to main on both branches and continue? (y/n)
+You're currently on <current-branch>. Starting a new branch requires
+returning to main first. Switch to main on both repos and continue? (y/n)
 ```
 
 If yes:

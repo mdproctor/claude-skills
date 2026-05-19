@@ -78,19 +78,20 @@ git -C <project-path> branch --show-current
 
 | State | Action |
 |-------|--------|
-| `.meta` exists, both repos on same epic branch | Surface epic name and issue number — you are mid-epic |
+| `.meta` exists, both repos on same branch | Surface branch name and issue number(s) — you are mid-branch |
 | `.meta` exists, branches differ | **Stop** — branch mismatch. Use the Branch Switch Helper above to align both repos, then re-run work-start |
 | `.meta` on main branch | **Stop** — orphaned `.meta`. Run `/epic` to clean up before starting work |
-| No `.meta`, both on main | **Stop** — no active epic. See below before continuing |
+| No `.meta`, both on main | **Stop** — no active branch. See below before continuing |
 
-**If no active epic (no `.meta`, both on main):**
+**If no active branch (no `.meta`, both on main):**
 
 ```
-⚠️  No active epic detected. Before proceeding, choose one:
+⚠️  No active branch detected. Before proceeding, choose one:
 
-  1. Issue-scoped work      → invoke /epic begin to create the epic branch
-  2. Exploratory/isolated   → invoke superpowers:using-git-worktrees
-  3. Intentional main work  → confirm explicitly before continuing
+  1. Branch work  → invoke /epic begin (same workflow for all branch work;
+                    epic branches cover 1–N issues, issue branches cover 1 issue)
+  2. Exploratory  → invoke superpowers:using-git-worktrees
+  3. Main work    → confirm explicitly before continuing
 
 Do not proceed to steps 1–4 below until one of these is resolved.
 ```
@@ -100,13 +101,13 @@ Wait for the user to respond before continuing.
 **Do NOT output the work-start summary. Do NOT say "proceeding to brainstorming". Do NOT continue to steps 1–4.** This is a hard gate — the session stops here until the user picks one of the three options above.
 
 **After the user responds:**
-- Option 1 (epic begin): wait for `/epic begin` to complete, then resume work-start from Step 1.
-- Option 2 (worktrees): wait for `superpowers:using-git-worktrees` to complete, then resume work-start from Step 1.
+- Option 1 (branch work): wait for `/epic begin` to complete, then resume work-start from Step 1.
+- Option 2 (exploratory): wait for `superpowers:using-git-worktrees` to complete, then resume work-start from Step 1.
 - Option 3 (confirmed main): accept the confirmation and proceed to Steps 1–4 normally. Include `⚠️ Working on main (explicitly confirmed)` in the final work-start report.
 
-**If mid-epic, include in the work-start report:**
+**If mid-branch, include in the work-start report:**
 ```
-⚡ Active epic: <epic-name>  Issue: #<N>
+⚡ Active branch: <branch-name>  Issue(s): #<N>
    Project branch: <branch>  Workspace branch: <branch>
 ```
 
