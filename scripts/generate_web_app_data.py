@@ -38,7 +38,7 @@ ALL_SKILLS = {
     'pip-dependency-update', 'python-project-health', 'design-snapshot',
     'idea-log', 'write-blog', 'cc-praxis-ui', 'garden', 'handover',
     'workspace-init', 'retro-issues',
-    'epic',
+    'epic', 'work-start', 'work-end', 'work-pause', 'work-resume',
 }
 
 # Skills that are universal entry points — chains TO them don't require

@@ -33,7 +33,7 @@ ALL_SKILLS = {
     'pip-dependency-update', 'python-project-health', 'design-snapshot',
     'idea-log', 'write-blog', 'cc-praxis-ui', 'garden', 'handover',
     'workspace-init', 'retro-issues',
-    'epic-start', 'epic-close',
+    'epic', 'work-start', 'work-end', 'work-pause', 'work-resume',
 }
 
 # Ground truth extracted from all SKILL.md files.
@@ -53,7 +53,7 @@ CHAINING_TRUTH = {
     'handover': {'chains_to': ['design-snapshot', 'update-claude-md', 'write-blog'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'idea-log': {'chains_to': ['adr', 'custom-git-commit', 'git-commit', 'issue-workflow', 'java-git-commit'], 'invoked_by': ['design-snapshot', 'git-commit'], 'builds_on': [], 'extended_by': []},
     'install-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'issue-workflow': {'chains_to': [], 'invoked_by': ['idea-log'], 'builds_on': [], 'extended_by': []},
+    'issue-workflow': {'chains_to': [], 'invoked_by': ['idea-log', 'workspace-init'], 'builds_on': [], 'extended_by': []},
     'java-code-review': {'chains_to': ['java-git-commit', 'java-security-audit'], 'invoked_by': ['java-dev', 'java-git-commit', 'quarkus-flow-dev', 'quarkus-flow-testing'], 'builds_on': ['code-review-principles', 'java-dev'], 'extended_by': []},
     'java-dev': {'chains_to': ['java-code-review', 'quarkus-observability'], 'invoked_by': [], 'builds_on': [], 'extended_by': ['java-code-review', 'java-security-audit', 'quarkus-flow-dev', 'quarkus-flow-testing']},
     'java-git-commit': {'chains_to': ['java-code-review', 'java-update-design', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'idea-log', 'java-code-review', 'maven-dependency-update', 'quarkus-flow-dev', 'quarkus-flow-testing', 'quarkus-observability', 'write-blog'], 'builds_on': ['git-commit'], 'extended_by': []},
@@ -83,9 +83,13 @@ CHAINING_TRUTH = {
     'uninstall-skills': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
     'update-claude-md': {'chains_to': ['java-update-design'], 'invoked_by': ['blog-git-commit', 'custom-git-commit', 'git-commit', 'handover', 'java-git-commit', 'write-blog'], 'builds_on': [], 'extended_by': []},
     'update-primary-doc': {'chains_to': [], 'invoked_by': ['custom-git-commit'], 'builds_on': [], 'extended_by': ['java-update-design']},
-    'workspace-init': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
-    'write-blog': {'chains_to': ['adr', 'custom-git-commit', 'design-snapshot', 'git-commit', 'java-git-commit', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'git-commit', 'handover'], 'builds_on': [], 'extended_by': []},
+    'work-start': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'workspace-init': {'chains_to': ['issue-workflow'], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'write-blog': {'chains_to': ['adr', 'custom-git-commit', 'design-snapshot', 'git-commit', 'java-git-commit', 'update-claude-md'], 'invoked_by': ['adr', 'design-snapshot', 'git-commit', 'handover'], 'builds_on': ['write-blog'], 'extended_by': ['write-blog']},
     'garden': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'work-pause': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'work-resume': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
+    'work-end': {'chains_to': [], 'invoked_by': [], 'builds_on': [], 'extended_by': []},
 }
 
 

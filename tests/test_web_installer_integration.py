@@ -46,7 +46,8 @@ TS_BUNDLE       = ['ts-dev', 'ts-code-review', 'ts-security-audit',
 CORE_BUNDLE     = ['git-commit', 'update-claude-md', 'adr',
                    'project-health', 'project-refine']
 PRINCIPLES      = ['code-review-principles', 'security-audit-principles',
-                   'dependency-management-principles', 'observability-principles']
+                   'dependency-management-principles', 'observability-principles',
+                   'testing-principles']
 
 # Skills with declared dependencies (child → [parents])
 SKILL_DEPS = {
