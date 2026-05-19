@@ -82,10 +82,12 @@ if [ -f "CLAUDE.md" ] && [ -f "HANDOFF.md" ]; then
   fi
 fi
 
-# Check for workspace CLAUDE.md session-start instruction
+# Check for workspace configuration
 if [ -f "CLAUDE.md" ]; then
-  if grep -q "## Session Start" CLAUDE.md 2>/dev/null; then
-    : # Workspace configured — session-start add-dir will handle project access
+  if [ -L "wksp" ] && [ -d "wksp" ]; then
+    : # Workspace configured — wksp symlink present and valid
+  elif grep -q "## Session Start" CLAUDE.md 2>/dev/null; then
+    : # Legacy workspace detection fallback
   elif grep -q "## Project Type" CLAUDE.md 2>/dev/null; then
     echo "ℹ️  No workspace configured for this project."
     echo "Run /workspace-init to create ~/claude/private/<project>/ and set up the companion workspace."
