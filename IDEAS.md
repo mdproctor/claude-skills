@@ -27,6 +27,25 @@ and syndication targets beyond the project repo.
 
 ---
 
+## 2026-05-18 — Markdown A/B viewer → LLM writing critique tool
+
+**Priority:** medium
+**Status:** active
+
+The markdown A/B viewer (currently being built as a Sparge spin-off) has a natural evolution path:
+
+1. **Phase 1 (current):** Side-by-side rendered markdown — load two files, sync scroll, compare
+2. **Phase 2:** Add LLM critique panel — show the critique that motivated the changes alongside the before/after
+3. **Phase 3:** Interactive — select a passage, get critique, see the improved version generated inline
+
+Phase 2 maps almost exactly to Sparge's refine panel — it shows suggested changes with context. The difference is domain: writing quality rather than HTML-to-markdown conversion. The critique panel would show readable prose (what was wrong, what changed, why) rather than diff hunks.
+
+This tool would be directly useful for the A/B testing of the linguistic fingerprint — load the "no guidance" version (A) and the "fingerprint applied" version (B), with the LLM's critique of A showing why B improves on it.
+
+**Connection:** Sparge already has the UX pattern. The new tool inherits the panel layout, scroll sync, and marked.js renderer. The LLM critique layer is new.
+
+---
+
 ## 2026-05-13 — Command to toggle exhaustive note-taking mode
 
 **Priority:** medium
