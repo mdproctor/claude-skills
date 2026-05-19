@@ -46,9 +46,10 @@ PAUSED_AT=$(grep "^paused-at:" "$WORKSPACE/design/.paused" | sed 's/paused-at: /
 Verify the branch still exists in both repos:
 
 ```bash
-git -C "$WORKSPACE" branch -a | grep -q "$RESUME_BRANCH" \
+# Use rev-parse --verify for exact match — grep would match partial branch names
+git -C "$WORKSPACE" rev-parse --verify "$RESUME_BRANCH" &>/dev/null \
   || echo "⚠️ $RESUME_BRANCH not found in workspace"
-git -C "$PROJECT" branch -a | grep -q "$RESUME_BRANCH" \
+git -C "$PROJECT" rev-parse --verify "$RESUME_BRANCH" &>/dev/null \
   || echo "⚠️ $RESUME_BRANCH not found in project"
 ```
 
@@ -79,8 +80,12 @@ fi
 ## Step 4 — Remove .paused from workspace main
 
 ```bash
-# Stash any uncommitted workspace changes on the epic branch
-git -C "$WORKSPACE" status --short | grep -q . && git -C "$WORKSPACE" stash
+# Capture stash ref if workspace has uncommitted changes on the epic branch
+STEP4_STASH=none
+if git -C "$WORKSPACE" status --short | grep -q .; then
+  stash_out=$(git -C "$WORKSPACE" stash)
+  echo "$stash_out" | grep -q "Saved working" && STEP4_STASH="stash@{0}"
+fi
 
 git -C "$WORKSPACE" checkout main
 git -C "$WORKSPACE" pull --rebase origin main
@@ -90,7 +95,11 @@ git -C "$WORKSPACE" commit -m "chore: resume $RESUME_BRANCH, remove pause marker
 git -C "$WORKSPACE" push
 
 git -C "$WORKSPACE" checkout "$RESUME_BRANCH"
-git -C "$WORKSPACE" stash pop 2>/dev/null || true  # only if stashed above
+# Use the recorded ref, not bare stash pop (consistent with Step 5 principle)
+if [ "$STEP4_STASH" != "none" ]; then
+  git -C "$WORKSPACE" stash pop "$STEP4_STASH" 2>/dev/null \
+    || echo "⚠️ Workspace stash pop failed ($STEP4_STASH) — resolve manually"
+fi
 ```
 
 ---
@@ -105,15 +114,17 @@ STASH_WORKSPACE=$(grep "^stash-workspace:" "$WORKSPACE/design/.meta" | sed 's/st
 
 # Use the recorded stash reference — do NOT use bare stash pop (pops wrong
 # stash if the stack shifted since pause time)
-[ "$STASH_PROJECT" != "none" ] && \
-  git -C "$PROJECT" stash pop "$STASH_PROJECT" 2>/dev/null \
-  || { [ "$STASH_PROJECT" != "none" ] \
-       && echo "⚠️ Project stash pop failed ($STASH_PROJECT) — resolve manually"; }
+if [ "$STASH_PROJECT" != "none" ]; then
+  if ! git -C "$PROJECT" stash pop "$STASH_PROJECT" 2>/dev/null; then
+    echo "⚠️ Project stash pop failed ($STASH_PROJECT) — resolve manually"
+  fi
+fi
 
-[ "$STASH_WORKSPACE" != "none" ] && \
-  git -C "$WORKSPACE" stash pop "$STASH_WORKSPACE" 2>/dev/null \
-  || { [ "$STASH_WORKSPACE" != "none" ] \
-       && echo "⚠️ Workspace stash pop failed ($STASH_WORKSPACE) — resolve manually"; }
+if [ "$STASH_WORKSPACE" != "none" ]; then
+  if ! git -C "$WORKSPACE" stash pop "$STASH_WORKSPACE" 2>/dev/null; then
+    echo "⚠️ Workspace stash pop failed ($STASH_WORKSPACE) — resolve manually"
+  fi
+fi
 ```
 
 If stash pop fails: warn and continue. Do not abort — the branch is already restored
@@ -136,10 +147,10 @@ git -C "$WORKSPACE" push
 
 ## Step 7 — Surface context
 
-Compute how long the branch was paused:
 ```bash
+# Extract issue number from .meta (read once here, not re-derived later)
+ISSUE_N=$(grep "^issue:" "$WORKSPACE/design/.meta" | sed 's/issue: //')
 # $PAUSED_AT read from .paused in Step 1
-echo "Paused at: $PAUSED_AT"
 ```
 
 ```

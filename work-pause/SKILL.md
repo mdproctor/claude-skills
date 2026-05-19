@@ -48,8 +48,9 @@ If `.paused` already exists: hard stop — only one paused branch at a time.
 ## Step 2 — Handle uncommitted changes
 
 ```bash
-PROJECT_DIRTY=$(git -C "$PROJECT" status --short | grep -c . || echo 0)
-WORKSPACE_DIRTY=$(git -C "$WORKSPACE" status --short | grep -c . || echo 0)
+# Use wc -l — grep -c exits 1 on no-match and outputs "0", causing || echo 0 to produce "0\n0"
+PROJECT_DIRTY=$(git -C "$PROJECT" status --short | wc -l | tr -d ' ')
+WORKSPACE_DIRTY=$(git -C "$WORKSPACE" status --short | wc -l | tr -d ' ')
 ```
 
 If either is dirty:
@@ -65,9 +66,21 @@ If y:
 ```bash
 STASH_PROJECT=none
 STASH_WORKSPACE=none
-[ "$PROJECT_DIRTY" -gt 0 ] && git -C "$PROJECT" stash && STASH_PROJECT="stash@{0}"
-[ "$WORKSPACE_DIRTY" -gt 0 ] && git -C "$WORKSPACE" stash && STASH_WORKSPACE="stash@{0}"
+
+if [ "$PROJECT_DIRTY" -gt 0 ]; then
+  stash_out=$(git -C "$PROJECT" stash)
+  echo "$stash_out" | grep -q "Saved working" && STASH_PROJECT="stash@{0}"
+fi
+
+if [ "$WORKSPACE_DIRTY" -gt 0 ]; then
+  stash_out=$(git -C "$WORKSPACE" stash)
+  echo "$stash_out" | grep -q "Saved working" && STASH_WORKSPACE="stash@{0}"
+fi
 ```
+
+The stash output is checked to confirm something was actually saved before recording
+`stash@{0}` — `git stash` exits 0 even when there is nothing to stash ("No local changes
+to save"), which would otherwise record a stale reference pointing to a previous stash.
 
 **Warning to user:** If you run `git stash` or `git stash pop` manually on either
 repo before resuming, the recorded stash position will shift and restoration will
