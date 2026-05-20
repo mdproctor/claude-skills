@@ -1,13 +1,9 @@
 ---
 name: work-start
 description: >
-  MUST be invoked at the start of every piece of work — user says "work-start",
-  or it appears as the first instruction in a work-item prompt. Detects current
-  branch state, creates a branch if needed, scaffolds .meta + JOURNAL.md, and
-  runs pre-checks before any design or implementation begins. Replaces the
-  former two-step "work-start + /epic begin" workflow — branch creation is now
-  integrated. These checks are NOT optional and must NOT be skipped even for
-  small changes.
+  Use when a task or session is beginning — the opening directive in any
+  work-item prompt, or when the user says they are beginning work. Handles
+  both new and existing branches. NOT optional, must NOT be skipped.
 ---
 
 # work-start

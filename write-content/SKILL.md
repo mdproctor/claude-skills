@@ -118,7 +118,7 @@ Before presenting:
 
 **Consumed by:**
 - `write-blog` — invokes write-content for content type and writing, adds blog-specific publishing rules
-- Future: `write-paper`, `write-post` — same pattern
+- Future: write-paper, write-post — same pattern (not yet implemented)
 
 **Loads:**
 - `write-content/defaults/structure-principles.md` — always

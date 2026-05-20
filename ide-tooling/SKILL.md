@@ -3,9 +3,9 @@ name: ide-tooling
 description: >
   Use when any IDE operation is needed — renaming a symbol, moving a file,
   finding all references, navigating to a definition, exploring a type hierarchy,
-  checking call chains, getting diagnostics, or any other operation where
-  IntelliJ provides semantic correctness that bash/grep cannot. Also use when
-  the user asks which tool to use for a code navigation or refactoring task.
+  diagnosing dependency chains, or any other operation where IntelliJ provides
+  semantic correctness that bash/grep cannot. Also use when the user asks
+  which tool to use for a code navigation or refactoring task.
 ---
 
 # IDE Tooling — IntelliJ MCP Guide

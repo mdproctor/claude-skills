@@ -1,13 +1,10 @@
 ---
 name: implementation-doc-sync
 description: >
-  Use after implementing a feature or fix to sync documentation scoped to what
-  changed this session — user says "sync docs", "update docs", "doc sweep", or
-  invoked from a prompt snippet at end of session. Checks only docs relevant to
-  the changed components, not the whole project. NOT a full project health check
-  (use project-health for that). NOT a design journal update (java-git-commit
-  handles that). Covers drift, broken cross-references, staleness, and gaps in
-  the specific areas touched.
+  Use when documentation needs syncing — user says "sync docs", "update docs",
+  "doc sweep", or invoked from a prompt snippet at session end. Scoped to what
+  changed this session only, not a full project sweep. NOT a design journal
+  update (java-git-commit handles that).
 ---
 
 # Implementation Doc Sync

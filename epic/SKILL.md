@@ -1,9 +1,9 @@
 ---
 name: epic
 description: >
-  DEPRECATED. Use work-start (replaces /epic begin) and work-end (replaces
-  /epic close). work-pause and work-resume are new. The workflows below are
-  preserved for reference during migration only.
+  Use when a development epic needs to begin or wrap up — user says "begin
+  epic", "new epic", "close epic", "finish epic", or invokes /epic. DEPRECATED:
+  replaced by the work lifecycle skills. Workflows preserved for migration.
 ---
 
 > ⚠️ **This skill is deprecated.** Use instead:

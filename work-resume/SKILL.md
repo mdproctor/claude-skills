@@ -1,10 +1,9 @@
 ---
 name: work-resume
 description: >
-  Resume a paused working branch. Reads the .paused marker from workspace main,
-  switches both repos back to the branch, removes the pause marker, restores
-  stashed changes, and runs pre-checks. Must be invoked from main (or any state
-  where .paused exists on workspace main).
+  Use when returning to a paused branch — user says "work-resume", "resume",
+  or "go back to that branch". Requires a .paused marker on workspace main
+  (created by work-pause). Must be invoked from main.
 ---
 
 # work-resume

@@ -1,10 +1,9 @@
 ---
 name: work-end
 description: >
-  Close the current working branch. Promotes artifacts per routing config,
-  merges the design journal into DESIGN.md, closes the GitHub issue, and
-  returns both repos to main. Replaces "epic close". Must be invoked from
-  the working branch (not main).
+  Use when the current branch is complete and ready to close — user says
+  "work-end", "close this branch", or "wrap up this issue". Must be invoked
+  from the working branch, not main. Replaces "epic close".
 ---
 
 # work-end

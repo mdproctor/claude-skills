@@ -1,9 +1,9 @@
 ---
 name: work-pause
 description: >
-  Save the current branch context and switch both repos to main, so you can
-  work on something else without losing state. Records a .paused marker on
-  workspace main. Only one paused branch at a time. Use work-resume to return.
+  Use when interrupting current branch work to switch to something else — user
+  says "work-pause", "pause this work", or "switch to a different issue". Only
+  one paused branch at a time. Pair with work-resume to restore.
 ---
 
 # work-pause

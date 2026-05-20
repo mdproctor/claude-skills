@@ -2,12 +2,10 @@
 name: handover
 description: >
   Use when ending a session and wanting to preserve context for resumption,
-  OR when starting a session and needing to resume from where things left off —
-  says "create a handover", "end of session", "update the handover",
-  "write a handover", or "resume handover". When creating: generates a concise
-  HANDOFF.md with lazy references to deeper context. When resuming: locates and
-  reads HANDOFF.md from the correct location (workspace or project repo).
-  NOT for design records (use design-snapshot) or project narrative (use write-blog).
+  OR when a session is beginning and needing to resume from where things left
+  off — says "create a handover", "end of session", "update the handover",
+  "write a handover", or "resume handover". NOT for design records (use
+  design-snapshot) or project narrative (use write-blog).
 ---
 
 # Session Handover
