@@ -28,8 +28,8 @@ PROJECT=$(readlink -f proj 2>/dev/null)
 Resolve paths and read current branch, then check in order:
 
 ```bash
-PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
-WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
+WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
+PROJECT=$(readlink -f proj 2>/dev/null)
 CURRENT_WORKSPACE=$(git -C "$WORKSPACE" branch --show-current)
 ```
 
@@ -46,8 +46,8 @@ CURRENT_WORKSPACE=$(git -C "$WORKSPACE" branch --show-current)
 ## Step 0 — Resolve paths
 
 ```bash
-PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
-WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
+WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
+PROJECT=$(readlink -f proj 2>/dev/null)
 OWNER_REPO=$(grep "GitHub repo:" CLAUDE.md | head -1 | sed 's/.*GitHub repo: *//')
 ```
 

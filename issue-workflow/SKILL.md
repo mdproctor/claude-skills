@@ -133,9 +133,7 @@ Confirm:
 Install the hook that hard-blocks commits without an issue reference:
 
 ```bash
-# Derive project path — use add-dir line from workspace CLAUDE.md,
-# or "." if running directly in the project repo
-PROJECT_PATH=$(grep "add-dir" CLAUDE.md 2>/dev/null | head -1 | sed 's/.*add-dir //' || echo ".")
+PROJECT_PATH=$(readlink -f proj 2>/dev/null || echo ".")
 
 HOOK_SRC="$HOME/.claude/skills/issue-workflow/hooks/commit-msg"
 HOOK_DEST="$PROJECT_PATH/.git/hooks/commit-msg"

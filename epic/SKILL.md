@@ -103,7 +103,7 @@ Run from the workspace on `main`.
 
 Read project path from workspace CLAUDE.md:
 ```bash
-grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+readlink -f proj 2>/dev/null
 ```
 
 List all local epic-* branches in both repos:
@@ -293,7 +293,7 @@ Hygiene scan complete:
 
 Read the project path from workspace CLAUDE.md:
 ```bash
-grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+readlink -f proj 2>/dev/null
 ```
 
 Check both repos are on the same branch:
@@ -348,10 +348,10 @@ git checkout main
 
 If no → stop.
 
-Read the project path from workspace CLAUDE.md `## Session Start` → `add-dir` line:
+Read the project path via the `proj/` symlink:
 
 ```bash
-grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+readlink -f proj 2>/dev/null
 ```
 
 ### Step A2 — Create branches
@@ -494,7 +494,7 @@ Extract: `epic`, `project-sha`, `issue` (may be empty).
 
 Read project path from workspace CLAUDE.md:
 ```bash
-grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //'
+readlink -f proj 2>/dev/null
 ```
 
 Read GitHub repo from workspace CLAUDE.md `## Work Tracking` → `GitHub repo:` line:
