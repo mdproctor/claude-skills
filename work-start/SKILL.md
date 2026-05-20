@@ -144,6 +144,24 @@ Common signals:
 - SPI changes → `ledger-spi-propagation.md`, `spi-blocking-reactive-parity.md`
 - Module structure → `module-tier-structure.md`, `maven-submodule-folder-naming.md`
 
+### Step 3b — Garden search
+
+Search the garden for GEs relevant to the domain being worked. This step surfaces existing knowledge before implementation begins — relevant gotchas, techniques, and undocumented behaviours often already exist for the domain.
+
+Extract 2–4 keywords from the work description (domain name, library, framework, or key concept). Then:
+
+```bash
+git -C ${HORTORA_GARDEN:-~/.hortora/garden} grep -i "<keyword1>\|<keyword2>" HEAD -- '*.md' \
+  ':!GARDEN.md' ':!CHECKED.md' ':!DISCARDED.md' \
+  | grep -i "^[^:]*:" | head -20
+```
+
+If matches found: surface the GE filenames and titles to the user. Ask which are relevant before proceeding. Do not read them unless the user confirms interest.
+
+If no matches: proceed silently.
+
+**Skip** if the garden path does not exist (`${HORTORA_GARDEN:-~/.hortora/garden}` is absent) or the work description has no searchable domain keywords (e.g., a pure docs or tooling task).
+
 ### Step 4 — Issue
 
 If tracking enabled (CLAUDE.md `## Work Tracking` with `Issue tracking: enabled`):
@@ -183,7 +201,6 @@ Only ask about Flyway if the user described migration work:
 > - y → `FLYWAY_NEXT_V=<next-safe-v>`
 > - explicit n → `FLYWAY_NEXT_V=none`
 > - no answer (default) → `FLYWAY_NEXT_V=unknown`
-
 ### Step 7 — Create branches (atomic)
 
 ```bash
@@ -290,7 +307,7 @@ Surface `.meta`:
    Project: <branch>  Workspace: <branch>
 ```
 
-Run Steps 0, 2, 3, 11 only. Skip all branch creation steps.
+Run Steps 0, 2, 3, 3b, 11 only. Skip all branch creation steps.
 
 ---
 
@@ -302,6 +319,7 @@ Branch: <branch-name>  Issue: #<N>
 Platform doc: [read / not found]
 Coherence Protocol: [any concerns raised, or "clear"]
 Protocols checked: [list any relevant ones read]
+Garden search: [N GEs surfaced for <domain> / no matches / skipped]
 IntelliJ: ✅ both connected / ⚠️ [missing — stopped]
 
 Proceeding to brainstorming.  (or: Ready for work.)

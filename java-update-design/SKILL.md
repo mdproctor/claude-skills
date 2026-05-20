@@ -93,7 +93,6 @@ attempt to parse CLAUDE.md for paths.
 silently for `issue-NNN-*` branches — every commit writes directly to `DESIGN.md`
 with no error, bypassing the journal entirely. `.meta` + `JOURNAL.md` + not-on-main
 confirms an active working branch regardless of naming convention.
-
 In workspace mode: read `$WORKSPACE/design/JOURNAL.md` to understand which sections
 have already been journalled during this branch before adding or updating an entry.
 

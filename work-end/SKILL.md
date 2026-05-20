@@ -16,9 +16,8 @@ closes the issue, marks the branch closed, returns to main.
 ## Path Resolution (run first, always)
 
 ```bash
-WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
-PROJECT=$(readlink -f proj 2>/dev/null)
-[ -z "$PROJECT" ] && { echo "⚠️ No proj/ symlink found. Run workspace-init to set up."; exit 1; }
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
 ```
 
 ---
@@ -28,8 +27,8 @@ PROJECT=$(readlink -f proj 2>/dev/null)
 Resolve paths and read current branch, then check in order:
 
 ```bash
-WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
-PROJECT=$(readlink -f proj 2>/dev/null)
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
 CURRENT_WORKSPACE=$(git -C "$WORKSPACE" branch --show-current)
 ```
 
@@ -46,8 +45,8 @@ CURRENT_WORKSPACE=$(git -C "$WORKSPACE" branch --show-current)
 ## Step 0 — Resolve paths
 
 ```bash
-WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
-PROJECT=$(readlink -f proj 2>/dev/null)
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
 OWNER_REPO=$(grep "GitHub repo:" CLAUDE.md | head -1 | sed 's/.*GitHub repo: *//')
 ```
 

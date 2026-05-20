@@ -16,9 +16,8 @@ restores stashed changes, runs pre-checks.
 ## Path Resolution (run first, always)
 
 ```bash
-WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
-PROJECT=$(readlink -f proj 2>/dev/null)
-[ -z "$PROJECT" ] && { echo "⚠️ No proj/ symlink found. Run workspace-init to set up."; exit 1; }
+PROJECT=$(grep "add-dir" CLAUDE.md | head -1 | sed 's/.*add-dir //')
+WORKSPACE=$(grep "^\*\*Workspace:\*\*" CLAUDE.md | head -1 | sed 's/.*`\(.*\)`.*/\1/')
 ```
 
 ---
