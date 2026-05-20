@@ -131,6 +131,31 @@ java-dev → java-code-review → java-git-commit → java-update-design + updat
 git-commit → update-claude-md (automatic)
 ```
 
+### Canonical Path Resolution Block
+
+Several workspace-aware skills (`work-start`, `work-end`, `work-pause`, `work-resume`,
+`java-update-design`, `handover`, `adr`) resolve workspace and project paths via symlinks.
+The canonical form — identical across all of them — is:
+
+```bash
+WORKSPACE=$(git rev-parse --show-toplevel 2>/dev/null)
+PROJECT=$(readlink -f proj 2>/dev/null)
+[ -z "$PROJECT" ] && { echo "⚠️ No proj/ symlink found. Run workspace-init to set up."; exit 1; }
+```
+
+**Do not use CLAUDE.md parsing** (`grep "**Workspace:**"`, `grep "add-dir"`) for path
+detection. The `proj/` → project and `wksp/` → workspace symlinks (created by `workspace-init`)
+are the single source of truth. CLAUDE.md fields are human documentation only.
+
+If you edit any of these skills, keep this block identical. Verify with:
+```bash
+grep -l "readlink -f proj" ~/claude/cc-praxis/*/SKILL.md
+```
+
+There is no include mechanism in cc-praxis — this duplication is intentional and the block
+is short enough to audit by eye. If a shared-snippet mechanism is ever added, this is the
+first candidate. (Tracked in cc-praxis#35 or similar.)
+
 ### Supporting Files
 
 When skill content exceeds ~200 words or includes heavy reference material:
